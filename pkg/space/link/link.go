@@ -51,17 +51,17 @@ func (l Link) UID() uuid.UID {
 	return l.uid
 }
 
-// From returns uid of Link origin.
+// From returns uid of link origin.
 func (l Link) From() uuid.UID {
 	return l.from
 }
 
-// To returns uid of Link end.
+// To returns uid of link end.
 func (l Link) To() uuid.UID {
 	return l.to
 }
 
-// Metadata returns Link metadata.
+// Metadata returns link metadata.
 func (l Link) Metadata() metadata.Metadata {
 	return l.md
 }

@@ -1,6 +1,7 @@
 package top
 
 import (
+	"context"
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/query"
@@ -37,7 +38,11 @@ func TestObjects(t *testing.T) {
 		return
 	}
 
-	objects := top.Objects()
+	objects, err := top.Objects(context.TODO())
+	if err != nil {
+		t.Fatalf("failed to get objects: %v", err)
+	}
+
 	if len(objects) == 0 {
 		t.Errorf("no objects found")
 	}
@@ -49,15 +54,21 @@ func TestGetUID(t *testing.T) {
 		t.Fatalf("failed to create mock Top: %v", err)
 	}
 
-	uids := make([]uuid.UID, len(top.Objects()))
-	for i, o := range top.Objects() {
+	objects, err := top.Objects(context.TODO())
+	if err != nil {
+		t.Fatalf("failed to get objects: %v", err)
+	}
+
+	uids := make([]uuid.UID, len(objects))
+
+	for i, o := range objects {
 		uids[i] = o.UID()
 	}
 
 	for _, uid := range uids {
 		q := base.Build().Add(query.UID(uid), query.UUIDEqFunc(uid))
 
-		objects, err := top.Get(q)
+		objects, err := top.Get(context.TODO(), q)
 
 		if err != nil {
 			t.Errorf("error getting object: %s: %v", uid, err)
@@ -83,21 +94,26 @@ func TestTopGet(t *testing.T) {
 
 	q := base.Build()
 
-	objects, err := top.Get(q)
+	objects, err := top.Get(context.TODO(), q)
 	if err != nil {
-		t.Errorf("error getting objects: %v", err)
+		t.Errorf("error querying objects: %v", err)
 	}
 
-	if len(objects) != len(top.Objects()) {
-		t.Errorf("expected: %d, got: %d", len(objects), len(top.Objects()))
+	allObjects, err := top.Objects(context.TODO())
+	if err != nil {
+		t.Fatalf("failed to get all topology objects: %v", err)
+	}
+
+	if len(objects) != len(allObjects) {
+		t.Errorf("expected: %d, got: %d", len(objects), len(allObjects))
 
 	}
 
-	namespaces := make([]string, len(top.Objects()))
-	kinds := make([]string, len(top.Objects()))
-	names := make([]string, len(top.Objects()))
+	namespaces := make([]string, len(allObjects))
+	kinds := make([]string, len(allObjects))
+	names := make([]string, len(allObjects))
 
-	for i, o := range top.Objects() {
+	for i, o := range allObjects {
 		namespaces[i] = o.Namespace()
 		kinds[i] = o.Resource().Kind()
 		names[i] = o.Name()
@@ -106,7 +122,7 @@ func TestTopGet(t *testing.T) {
 	for _, ns := range namespaces {
 		q := base.Build().Add(query.Namespace(ns), query.StringEqFunc(ns))
 
-		objects, err := top.Get(q)
+		objects, err := top.Get(context.TODO(), q)
 		if err != nil {
 			t.Errorf("error getting namespace %s objects: %v", ns, err)
 			continue
@@ -121,7 +137,7 @@ func TestTopGet(t *testing.T) {
 		for _, kind := range kinds {
 			q = q.Add(query.Kind(kind), query.StringEqFunc(kind))
 
-			objects, err = top.Get(q)
+			objects, err = top.Get(context.TODO(), q)
 			if err != nil {
 				t.Errorf("error getting objects: %s/%s: %v", ns, kind, err)
 				continue
@@ -136,7 +152,7 @@ func TestTopGet(t *testing.T) {
 			for _, name := range names {
 				q = q.Add(query.Name(name), query.StringEqFunc(name))
 
-				objects, err = top.Get(q)
+				objects, err = top.Get(context.TODO(), q)
 				if err != nil {
 					t.Errorf("error getting objects: %s/%s/%s: %v", ns, kind, name, err)
 					continue

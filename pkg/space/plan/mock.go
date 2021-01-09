@@ -1,6 +1,7 @@
 package plan
 
 import (
+	"context"
 	"io/ioutil"
 
 	"github.com/ghodss/yaml"
@@ -50,7 +51,7 @@ func NewMock(path string) (*Plan, error) {
 			return nil, err
 		}
 
-		if err := a.Add(m, space.AddOptions{}); err != nil {
+		if err := a.Add(context.TODO(), m, space.AddOptions{}); err != nil {
 			return nil, err
 		}
 	}

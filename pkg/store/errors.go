@@ -9,4 +9,6 @@ var (
 	ErrNotImplemented = errors.New("not implemented")
 	// ErrUnsupported is returned when requesting unsupported functionality
 	ErrUnsupported = errors.New("not supported")
+	// ErrNodeNotFound is returned when Node entity could not be found in store
+	ErrNodeNotFound = errors.New("node not found")
 )

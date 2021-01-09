@@ -1,6 +1,7 @@
 package plan
 
 import (
+	"context"
 	"sync"
 
 	"github.com/milosgajdos/netscrape/pkg/query"
@@ -27,8 +28,13 @@ func New(o space.Origin) (*Plan, error) {
 	}, nil
 }
 
+// Origin returns Space origin.
+func (a Plan) Origin(ctx context.Context) (space.Origin, error) {
+	return a.origin, nil
+}
+
 // Add adds r to Space.
-func (a *Plan) Add(r space.Resource, opts space.AddOptions) error {
+func (a *Plan) Add(ctx context.Context, r space.Resource, opts space.AddOptions) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -51,13 +57,8 @@ func (a *Plan) Add(r space.Resource, opts space.AddOptions) error {
 	return nil
 }
 
-// Origin returns Space origin.
-func (a Plan) Origin() space.Origin {
-	return a.origin
-}
-
 // Resources returns all Space resources.
-func (a Plan) Resources() []space.Resource {
+func (a Plan) Resources(ctx context.Context) ([]space.Resource, error) {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
@@ -71,7 +72,7 @@ func (a Plan) Resources() []space.Resource {
 		}
 	}
 
-	return resources
+	return resources, nil
 }
 
 func matchName(r space.Resource, q query.Query) bool {
@@ -157,7 +158,7 @@ func (a Plan) getAllGroupedResources(q query.Query) ([]space.Resource, error) {
 }
 
 // Get returns all resources matching the given query.
-func (a Plan) Get(q query.Query) ([]space.Resource, error) {
+func (a Plan) Get(ctx context.Context, q query.Query) ([]space.Resource, error) {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 

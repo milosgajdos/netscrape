@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -27,8 +28,8 @@ func TestNew(t *testing.T) {
 		t.Fatalf("expected id: %s, got: %s", id, testID)
 	}
 
-	if g := m.Graph(); m == nil {
-		t.Fatalf("expected graph handle, got: %v", g)
+	if _, err = m.Graph(context.TODO()); err != nil {
+		t.Fatalf("failed to get graph handle: %v", err)
 	}
 }
 
@@ -57,7 +58,7 @@ func TestAddDelete(t *testing.T) {
 		t.Fatalf("failed creating new node: %v", err)
 	}
 
-	if err := m.Add(n1, store.AddOptions{}); err != nil {
+	if err := m.Add(context.TODO(), n1, store.AddOptions{}); err != nil {
 		t.Errorf("failed storing node %s: %v", n1.UID(), err)
 	}
 
@@ -75,11 +76,16 @@ func TestAddDelete(t *testing.T) {
 		t.Errorf("failed adding node to graph: %v", err)
 	}
 
-	if err := m.Add(n2, store.AddOptions{}); err != nil {
+	if err := m.Add(context.TODO(), n2, store.AddOptions{}); err != nil {
 		t.Errorf("failed storing node %s: %v", n2.UID(), err)
 	}
 
-	nodes, err := m.Graph().Nodes()
+	g, err := m.Graph(context.TODO())
+	if err != nil {
+		t.Fatalf("failed to get graph handle: %v", err)
+	}
+
+	nodes, err := g.Nodes(context.TODO())
 	if err != nil {
 		t.Fatalf("failed to get store nodes: %v", err)
 	}
@@ -99,7 +105,7 @@ func TestAddDelete(t *testing.T) {
 		t.Fatalf("failed creating entity: %v", err)
 	}
 
-	if err := m.Add(entX, store.AddOptions{}); !errors.Is(err, store.ErrUnknownEntity) {
+	if err := m.Add(context.TODO(), entX, store.AddOptions{}); !errors.Is(err, store.ErrUnknownEntity) {
 		t.Errorf("expected: %v, got: %v", store.ErrUnknownEntity, err)
 	}
 
@@ -108,11 +114,11 @@ func TestAddDelete(t *testing.T) {
 		t.Errorf("failed creating edge: %v", err)
 	}
 
-	if err := m.Add(edge, store.AddOptions{}); err != nil {
+	if err := m.Add(context.TODO(), edge, store.AddOptions{}); err != nil {
 		t.Errorf("failed storing edge %s: %v", edge.UID(), err)
 	}
 
-	edges, err := m.Graph().Edges()
+	edges, err := g.Edges(context.TODO())
 	if err != nil {
 		t.Fatalf("failed to get store edges: %v", err)
 	}
@@ -122,11 +128,11 @@ func TestAddDelete(t *testing.T) {
 		t.Errorf("expected edges: %d, got: %d", expCount, edgeCount)
 	}
 
-	if err := m.Delete(edge, store.DelOptions{}); err != nil {
+	if err := m.Delete(context.TODO(), edge, store.DelOptions{}); err != nil {
 		t.Errorf("failed deleting edge %s: %v", edge.UID(), err)
 	}
 
-	edges, err = m.Graph().Edges()
+	edges, err = g.Edges(context.TODO())
 	if err != nil {
 		t.Fatalf("failed to get store edges: %v", err)
 	}
@@ -136,11 +142,11 @@ func TestAddDelete(t *testing.T) {
 		t.Errorf("expected edges: %d, got: %d", expCount, edgeCount)
 	}
 
-	if err := m.Delete(n2, store.DelOptions{}); err != nil {
+	if err := m.Delete(context.TODO(), n2, store.DelOptions{}); err != nil {
 		t.Errorf("failed storing node %s: %v", n2.UID(), err)
 	}
 
-	nodes, err = m.Graph().Nodes()
+	nodes, err = g.Nodes(context.TODO())
 	if err != nil {
 		t.Fatalf("failed to get store nodes: %v", err)
 	}
@@ -150,7 +156,7 @@ func TestAddDelete(t *testing.T) {
 		t.Errorf("expected nodes: %d, got: %d", expCount, nodeCount)
 	}
 
-	if err := m.Delete(entX, store.DelOptions{}); !errors.Is(err, store.ErrUnknownEntity) {
+	if err := m.Delete(context.TODO(), entX, store.DelOptions{}); !errors.Is(err, store.ErrUnknownEntity) {
 		t.Errorf("expected: %v, got: %v", store.ErrUnknownEntity, err)
 	}
 }
@@ -180,13 +186,13 @@ func TestQuery(t *testing.T) {
 		t.Fatalf("failed creating new node: %v", err)
 	}
 
-	if err := m.Add(n1, store.AddOptions{}); err != nil {
+	if err := m.Add(context.TODO(), n1, store.AddOptions{}); err != nil {
 		t.Errorf("failed storing node %s: %v", n1.UID(), err)
 	}
 
 	q := base.Build().Add(query.Entity(query.Node))
 
-	qnodes, err := m.Query(q)
+	qnodes, err := m.Query(context.TODO(), q)
 	if err != nil {
 		t.Errorf("failed to query nodes: %v", err)
 	}
@@ -198,7 +204,7 @@ func TestQuery(t *testing.T) {
 
 	q = base.Build().Add(query.Entity(query.EntityVal(10000)), query.IsAnyFunc)
 
-	if _, err := m.Query(q); !errors.Is(err, graph.ErrUnknownEntity) {
+	if _, err := m.Query(context.TODO(), q); !errors.Is(err, graph.ErrUnknownEntity) {
 		t.Errorf("expected: %v, got: %v", graph.ErrUnknownEntity, err)
 	}
 }

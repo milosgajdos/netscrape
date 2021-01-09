@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"io/ioutil"
 
 	"github.com/ghodss/yaml"
@@ -118,24 +119,24 @@ func makeTestGraph(path string) (*WUG, error) {
 	}
 
 	for _, object := range objects {
-		n, err := g.NewNode(object, graph.NodeOptions{})
+		n, err := g.NewNode(context.TODO(), object, graph.NodeOptions{})
 		if err != nil {
 			return nil, err
 		}
 
-		if err := g.AddNode(n); err != nil {
+		if err := g.AddNode(context.TODO(), n); err != nil {
 			return nil, err
 		}
 
 		for _, link := range object.Links() {
 			object2 := objects[link.To().Value()]
 
-			n2, err := g.NewNode(object2, graph.NodeOptions{})
+			n2, err := g.NewNode(context.TODO(), object2, graph.NodeOptions{})
 			if err != nil {
 				return nil, err
 			}
 
-			if err := g.AddNode(n2); err != nil {
+			if err := g.AddNode(context.TODO(), n2); err != nil {
 				return nil, err
 			}
 
@@ -148,7 +149,7 @@ func makeTestGraph(path string) (*WUG, error) {
 				a.Set("relation", relation)
 			}
 
-			if _, err = g.Link(n.UID(), n2.UID(), graph.LinkOptions{Attrs: a}); err != nil {
+			if _, err = g.Link(context.TODO(), n.UID(), n2.UID(), graph.LinkOptions{Attrs: a}); err != nil {
 				return nil, err
 			}
 		}
