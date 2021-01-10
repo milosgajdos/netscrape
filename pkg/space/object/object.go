@@ -13,12 +13,11 @@ type Object struct {
 	name string
 	ns   string
 	res  space.Resource
-	// links index all links to this object
-	// this is for faster link lookups
+	// links indexes all links to this object
+	// for faster link lookups
 	links map[string]space.Link
-	// olinks index links from this object to
-	// some other object in topology
-	// This is for faster end object lookups.
+	// olinks indexes links from this object to
+	// other object for faster object lookups.
 	olinks map[string]space.Link
 	md     metadata.Metadata
 }
@@ -92,7 +91,7 @@ func (o *Object) link(u uuid.UID, opts space.LinkOptions) error {
 	return nil
 }
 
-// Link links the object to the object with the given uid.
+// Link links object to object to with the given uid.
 // If link merging is requested, the new link will contain
 // all the metadata of the existing link with addition to the metadata
 /// that are not in the original link. The original metadata are updated.

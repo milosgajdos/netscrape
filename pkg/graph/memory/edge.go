@@ -1,6 +1,8 @@
 package memory
 
 import (
+	"context"
+
 	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
@@ -60,13 +62,13 @@ func (e *Edge) To() gngraph.Node {
 }
 
 // FromNode returns the from node of the first non-nil edge, or nil.
-func (e *Edge) FromNode() graph.Node {
-	return e.from
+func (e *Edge) FromNode(ctx context.Context) (graph.Node, error) {
+	return e.from, nil
 }
 
 // ToNode returns the to node of the first non-nil edge, or nil.
-func (e *Edge) ToNode() graph.Node {
-	return e.to
+func (e *Edge) ToNode(ctx context.Context) (graph.Node, error) {
+	return e.to, nil
 }
 
 // Weight returns edge weight

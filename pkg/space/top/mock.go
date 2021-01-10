@@ -1,6 +1,7 @@
 package top
 
 import (
+	"context"
 	"io/ioutil"
 
 	"github.com/ghodss/yaml"
@@ -87,7 +88,7 @@ func NewMock(a space.Plan, path string) (*Top, error) {
 			}
 		}
 
-		if err := t.Add(obj, space.AddOptions{}); err != nil {
+		if err := t.Add(context.TODO(), obj, space.AddOptions{}); err != nil {
 			return nil, err
 		}
 	}

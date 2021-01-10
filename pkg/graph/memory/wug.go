@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
@@ -43,7 +44,7 @@ func NewWUG(id string, opts graph.Options) (*WUG, error) {
 // ID does not already exist in the graph relieving you
 // from the necessity to make sure your new Node.ID()
 // returns unique ID in the underlying graph.
-func (g *WUG) NewNode(obj space.Object, opts graph.NodeOptions) (graph.Node, error) {
+func (g *WUG) NewNode(ctx context.Context, obj space.Object, opts graph.NodeOptions) (graph.Node, error) {
 	gnode := g.WeightedUndirectedGraph.NewNode()
 
 	node, err := NewNode(gnode.ID(), obj, opts)
@@ -59,7 +60,7 @@ func (g *WUG) NewNode(obj space.Object, opts graph.NodeOptions) (graph.Node, err
 }
 
 // AddNode adds node to the graph.
-func (g *WUG) AddNode(n graph.Node) error {
+func (g *WUG) AddNode(ctx context.Context, n graph.Node) error {
 	if _, ok := g.nodes[n.UID().Value()]; ok {
 		return nil
 	}
@@ -83,7 +84,7 @@ func (g *WUG) AddNode(n graph.Node) error {
 
 // Node returns the node with the given ID if it exists
 // in the graph, and error if it could not be retrieved.
-func (g *WUG) Node(uid uuid.UID) (graph.Node, error) {
+func (g *WUG) Node(ctx context.Context, uid uuid.UID) (graph.Node, error) {
 	if node, ok := g.nodes[uid.Value()]; ok {
 		return node, nil
 	}
@@ -92,7 +93,7 @@ func (g *WUG) Node(uid uuid.UID) (graph.Node, error) {
 }
 
 // Nodes returns all the nodes in the graph.
-func (g *WUG) Nodes() ([]graph.Node, error) {
+func (g *WUG) Nodes(ctx context.Context) ([]graph.Node, error) {
 	graphNodes := gngraph.NodesOf(g.WeightedUndirectedGraph.Nodes())
 
 	nodes := make([]graph.Node, len(graphNodes))
@@ -105,7 +106,7 @@ func (g *WUG) Nodes() ([]graph.Node, error) {
 }
 
 // RemoveNode removes the node with the given id from graph.
-func (g *WUG) RemoveNode(uid uuid.UID) error {
+func (g *WUG) RemoveNode(ctx context.Context, uid uuid.UID) error {
 	node, ok := g.nodes[uid.Value()]
 	if !ok {
 		return nil
@@ -125,8 +126,8 @@ func (g *WUG) RemoveNode(uid uuid.UID) error {
 
 // Link creates a new edge between from and to and returns it or it returns the existing edge.
 // It returns error if either of the nodes does not exist in the graph.
-func (g *WUG) Link(from, to uuid.UID, opts graph.LinkOptions) (graph.Edge, error) {
-	e, err := g.Edge(from, to)
+func (g *WUG) Link(ctx context.Context, from, to uuid.UID, opts graph.LinkOptions) (graph.Edge, error) {
+	e, err := g.Edge(ctx, from, to)
 	if err != nil && err != graph.ErrEdgeNotExist {
 		return nil, err
 	}
@@ -166,7 +167,7 @@ func (g *WUG) Link(from, to uuid.UID, opts graph.LinkOptions) (graph.Edge, error
 }
 
 // Edge returns edge between the two nodes
-func (g *WUG) Edge(uid, vid uuid.UID) (graph.Edge, error) {
+func (g *WUG) Edge(ctx context.Context, uid, vid uuid.UID) (graph.Edge, error) {
 	from, ok := g.nodes[uid.Value()]
 	if !ok {
 		return nil, fmt.Errorf("%s: %w", uid, graph.ErrNodeNotFound)
@@ -188,7 +189,7 @@ func (g *WUG) Edge(uid, vid uuid.UID) (graph.Edge, error) {
 }
 
 // Edges returns all the edges (lines) from u to v.
-func (g *WUG) Edges() ([]graph.Edge, error) {
+func (g *WUG) Edges(ctx context.Context) ([]graph.Edge, error) {
 	wedges := g.WeightedUndirectedGraph.Edges()
 
 	graphEdges := gngraph.EdgesOf(wedges)
@@ -203,7 +204,7 @@ func (g *WUG) Edges() ([]graph.Edge, error) {
 }
 
 // RemoveLink removes link between two nodes.
-func (g *WUG) RemoveLink(from, to uuid.UID) error {
+func (g *WUG) RemoveLink(ctx context.Context, from, to uuid.UID) error {
 	f, ok := g.nodes[from.Value()]
 	if !ok {
 		return nil
@@ -223,7 +224,7 @@ func (g *WUG) RemoveLink(from, to uuid.UID) error {
 }
 
 // SubGraph returns the subgraph of the node up to given depth.
-func (g *WUG) SubGraph(uid uuid.UID, depth int) (graph.Graph, error) {
+func (g *WUG) SubGraph(ctx context.Context, uid uuid.UID, depth int) (graph.Graph, error) {
 	root, ok := g.nodes[uid.Value()]
 	if !ok {
 		return nil, graph.ErrNodeNotFound
@@ -241,7 +242,7 @@ func (g *WUG) SubGraph(uid uuid.UID, depth int) (graph.Graph, error) {
 	visit := func(n gngraph.Node) {
 		vnode := n.(*Node)
 
-		if err := sub.AddNode(vnode); err != nil {
+		if err := sub.AddNode(ctx, vnode); err != nil {
 			sgErr = err
 			return
 		}
@@ -277,7 +278,7 @@ func (g *WUG) SubGraph(uid uuid.UID, depth int) (graph.Graph, error) {
 							Weight: e.Weight(),
 						}
 
-						if _, err := sub.Link(node.UID(), to.UID(), opts); err != nil {
+						if _, err := sub.Link(ctx, node.UID(), to.UID(), opts); err != nil {
 							return nil, fmt.Errorf("subgraph %s link error: %v", sub.id, err)
 						}
 					}
@@ -382,7 +383,7 @@ func (g WUG) queryNode(q query.Query) ([]graph.Node, error) {
 }
 
 // Query queries the in-memory graph and returns the matched results.
-func (g WUG) Query(q query.Query) ([]graph.Entity, error) {
+func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
 	var e query.EntityVal
 
 	if m := q.Matcher(query.PEntity); m != nil {

@@ -1,6 +1,7 @@
 package plan
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -20,7 +21,12 @@ func TestSource(t *testing.T) {
 		t.Fatalf("failed to create mock Space: %v", err)
 	}
 
-	if s := space.Origin(); !strings.EqualFold(src, s.URL().String()) {
+	s, err := space.Origin(context.TODO())
+	if err != nil {
+		t.Fatalf("failed to get space origin: %v", err)
+	}
+
+	if !strings.EqualFold(src, s.URL().String()) {
 		t.Errorf("expected: %s, got: %s", src, s.URL().String())
 	}
 }
@@ -33,7 +39,11 @@ func TestResources(t *testing.T) {
 		t.Fatalf("failed to create mock Space: %v", err)
 	}
 
-	resources := space.Resources()
+	resources, err := space.Resources(context.TODO())
+	if err != nil {
+		t.Fatalf("failed to get plan resources: %v", err)
+	}
+
 	if len(resources) == 0 {
 		t.Errorf("no resources found")
 	}
@@ -48,12 +58,18 @@ func TestSpaceGet(t *testing.T) {
 		return
 	}
 
-	groups := make([]string, len(space.Resources()))
-	versions := make([]string, len(space.Resources()))
-	kinds := make([]string, len(space.Resources()))
-	names := make([]string, len(space.Resources()))
+	resources, err := space.Resources(context.TODO())
+	if err != nil {
+		t.Fatalf("failed to get plan resources: %v", err)
+	}
+	count := len(resources)
 
-	for i, r := range space.Resources() {
+	groups := make([]string, count)
+	versions := make([]string, count)
+	kinds := make([]string, count)
+	names := make([]string, count)
+
+	for i, r := range resources {
 		groups[i] = r.Group()
 		versions[i] = r.Version()
 		kinds[i] = r.Kind()
@@ -63,7 +79,7 @@ func TestSpaceGet(t *testing.T) {
 	for _, group := range groups {
 		q := base.Build().Add(query.Group(group), query.StringEqFunc(group))
 
-		resources, err := space.Get(q)
+		resources, err := space.Get(context.TODO(), q)
 		if err != nil {
 			t.Errorf("error querying group %s: %v", group, err)
 		}
@@ -77,7 +93,7 @@ func TestSpaceGet(t *testing.T) {
 		for _, version := range versions {
 			q = q.Add(query.Version(version), query.StringEqFunc(version))
 
-			resources, err := space.Get(q)
+			resources, err := space.Get(context.TODO(), q)
 			if err != nil {
 				t.Errorf("error querying g/v %s/%s: %v", group, version, err)
 			}
@@ -91,7 +107,7 @@ func TestSpaceGet(t *testing.T) {
 			for _, kind := range kinds {
 				q = q.Add(query.Kind(kind), query.StringEqFunc(kind))
 
-				resources, err := space.Get(q)
+				resources, err := space.Get(context.TODO(), q)
 				if err != nil {
 					t.Errorf("error querying g/v/k: %s/%s/%s: %v", group, version, kind, err)
 				}
@@ -106,7 +122,7 @@ func TestSpaceGet(t *testing.T) {
 				for _, name := range names {
 					q = q.Add(query.Name(name), query.StringEqFunc(name))
 
-					resources, err := space.Get(q)
+					resources, err := space.Get(context.TODO(), q)
 					if err != nil {
 						t.Errorf("error querying g/v/k/n: %s/%s/%s/%s: %v", group, version, kind, name, err)
 					}

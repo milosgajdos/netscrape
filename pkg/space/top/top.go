@@ -1,6 +1,7 @@
 package top
 
 import (
+	"context"
 	"sync"
 
 	"github.com/milosgajdos/netscrape/pkg/query"
@@ -31,12 +32,12 @@ func New(a space.Plan) (*Top, error) {
 }
 
 // Plan returns topology Plan.
-func (t Top) Plan() space.Plan {
-	return t.space
+func (t Top) Plan(ctx context.Context) (space.Plan, error) {
+	return t.space, nil
 }
 
 // Objects returns all space objects in tpoology
-func (t Top) Objects() []space.Object {
+func (t Top) Objects(ctx context.Context) ([]space.Object, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
@@ -49,7 +50,7 @@ func (t Top) Objects() []space.Object {
 		i++
 	}
 
-	return objects
+	return objects, nil
 }
 
 // add adds a new object to topology
@@ -78,7 +79,7 @@ func (t *Top) add(o space.Object) error {
 // Add adds o to topology with the given options.
 // If an object already exists in topology and MergeLinks option is enabled
 // the existing object links are merged with the links of o.
-func (t *Top) Add(o space.Object, opts space.AddOptions) error {
+func (t *Top) Add(ctx context.Context, o space.Object, opts space.AddOptions) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -169,7 +170,7 @@ func (t Top) getAllNamespacedObjects(q query.Query) ([]space.Object, error) {
 }
 
 // Get queries the mapped objects and returns the results
-func (t Top) Get(q query.Query) ([]space.Object, error) {
+func (t Top) Get(ctx context.Context, q query.Query) ([]space.Object, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 

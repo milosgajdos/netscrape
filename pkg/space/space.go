@@ -1,6 +1,7 @@
 package space
 
 import (
+	"context"
 	"net/url"
 
 	"github.com/milosgajdos/netscrape/pkg/metadata"
@@ -63,40 +64,40 @@ type Origin interface {
 // Plan is space resource plan.
 type Plan interface {
 	// Origin returns origin.
-	Origin() Origin
+	Origin(context.Context) (Origin, error)
 	// Add adds resource to Plan.
-	Add(Resource, AddOptions) error
+	Add(context.Context, Resource, AddOptions) error
 	// Resources returns all Plan resources.
-	Resources() []Resource
+	Resources(context.Context) ([]Resource, error)
 	// Get returns all Resources matching query.
-	Get(query.Query) ([]Resource, error)
+	Get(context.Context, query.Query) ([]Resource, error)
 }
 
 // Top is space topology i.e. map of space Objects.
 type Top interface {
 	// Plan returns topology Plan.
-	Plan() Plan
+	Plan(context.Context) (Plan, error)
 	// Add adds Object to topology.
-	Add(Object, AddOptions) error
+	Add(context.Context, Object, AddOptions) error
 	// Objects returns all topology Objects.
-	Objects() []Object
+	Objects(context.Context) ([]Object, error)
 	// Get returns all Objects matching query.
-	Get(query.Query) ([]Object, error)
+	Get(context.Context, query.Query) ([]Object, error)
 }
 
 // Planner builds space plans.
 type Planner interface {
 	// Plan builds plan for given Origin and returns it.
-	Plan(Origin) (Plan, error)
+	Plan(context.Context, Origin) (Plan, error)
 }
 
 // Mapper maps space topology using Plan.
 type Mapper interface {
 	// Map returns Space tpology.
-	Map(Plan) (Top, error)
+	Map(context.Context, Plan) (Top, error)
 }
 
-// Scraper discovers Space and maps its Topology.
+// Scraper builds Space plan and maps its Topology.
 type Scraper interface {
 	Planner
 	Mapper
