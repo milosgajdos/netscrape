@@ -13,10 +13,12 @@ type Entity interface {
 }
 
 // Querier queries store.
-// NOTE: this interface is a temporary hack/placeholder!
-// Store must provide some query capability by default.
+// NOTE: this interface is a [temporary] hack!
+// Store must provide query capabilities by default.
 // Ideally, I would like to figure out how to parse
 // a generic GraphQL query into query.Query interface.
+// Or maybe store.Query should simply accept string,
+// which would then have to be parsed into query.Query.
 type Querier interface {
 	// Query store and return the results.
 	Query(context.Context, query.Query) ([]Entity, error)
@@ -24,12 +26,10 @@ type Querier interface {
 
 // Store stores entities.
 type Store interface {
-	// ID returns store id.
-	ID() string
 	// Graph returns store graph handle.
 	Graph(context.Context) (graph.Graph, error)
 	// Add entity to the store.
-	Add(context.Context, Entity, AddOptions) error
+	Add(context.Context, Entity, ...Option) error
 	// Delete entity from the store.
-	Delete(context.Context, Entity, DelOptions) error
+	Delete(context.Context, Entity, ...Option) error
 }

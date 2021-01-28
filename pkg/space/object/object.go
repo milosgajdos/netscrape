@@ -1,7 +1,7 @@
 package object
 
 import (
-	"github.com/milosgajdos/netscrape/pkg/metadata"
+	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/link"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
@@ -19,20 +19,29 @@ type Object struct {
 	// olinks indexes links from this object to
 	// other object for faster object lookups.
 	olinks map[string]space.Link
-	md     metadata.Metadata
+	attrs  attrs.Attrs
 }
 
 // New creates a new Object and returns it.
-func New(uid uuid.UID, name, ns string, res space.Resource, opts ...Option) (*Object, error) {
+func New(name, ns string, res space.Resource, opts ...Option) (*Object, error) {
 	oopts := Options{}
 	for _, apply := range opts {
 		apply(&oopts)
 	}
 
-	md := oopts.Metadata
-	if md == nil {
+	uid := oopts.UID
+	if uid == nil {
 		var err error
-		md, err = metadata.New()
+		uid, err = uuid.New()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	a := oopts.Attrs
+	if a == nil {
+		var err error
+		a, err = attrs.New()
 		if err != nil {
 			return nil, err
 		}
@@ -45,7 +54,7 @@ func New(uid uuid.UID, name, ns string, res space.Resource, opts ...Option) (*Ob
 		res:    res,
 		links:  make(map[string]space.Link),
 		olinks: make(map[string]space.Link),
-		md:     md,
+		attrs:  a,
 	}, nil
 }
 
@@ -70,14 +79,19 @@ func (o Object) Resource() space.Resource {
 }
 
 // link creates a new link to object to.
-func (o *Object) link(u uuid.UID, opts space.LinkOptions) error {
-	lopts := []link.Option{
-		link.UID(opts.UID),
-		link.Metadata(opts.Metadata),
-		link.Merge(opts.Merge),
+func (o *Object) link(u uuid.UID, opts ...space.Option) error {
+	lopts := space.Options{}
+	for _, apply := range opts {
+		apply(&lopts)
 	}
 
-	link, err := link.New(o.uid, u, lopts...)
+	nopts := []link.Option{
+		link.WithUID(lopts.UID),
+		link.WithAttrs(lopts.Attrs),
+		link.WithMerge(lopts.Merge),
+	}
+
+	link, err := link.New(o.uid, u, nopts...)
 	if err != nil {
 		return err
 	}
@@ -91,20 +105,25 @@ func (o *Object) link(u uuid.UID, opts space.LinkOptions) error {
 	return nil
 }
 
-// Link links object to object to with the given uid.
+// Link links object to object to with the given UID.
 // If link merging is requested, the new link will contain
 // all the metadata of the existing link with addition to the metadata
 /// that are not in the original link. The original metadata are updated.
-func (o *Object) Link(to uuid.UID, opts space.LinkOptions) error {
-	l, ok := o.olinks[to.Value()]
-	if !ok {
-		return o.link(to, opts)
+func (o *Object) Link(to uuid.UID, opts ...space.Option) error {
+	lopts := space.Options{}
+	for _, apply := range opts {
+		apply(&lopts)
 	}
 
-	if opts.Merge {
-		if opts.Metadata != nil {
-			for _, k := range opts.Metadata.Keys() {
-				l.Metadata().Set(k, opts.Metadata.Get(k))
+	l, ok := o.olinks[to.Value()]
+	if !ok {
+		return o.link(to, opts...)
+	}
+
+	if lopts.Merge {
+		if lopts.Attrs != nil {
+			for _, k := range lopts.Attrs.Keys() {
+				l.Attrs().Set(k, lopts.Attrs.Get(k))
 			}
 		}
 	}
@@ -125,7 +144,7 @@ func (o Object) Links() []space.Link {
 	return links
 }
 
-// Metadata returns object metadata.
-func (o *Object) Metadata() metadata.Metadata {
-	return o.md
+// Attrs returns attributes.
+func (o *Object) Attrs() attrs.Attrs {
+	return o.attrs
 }

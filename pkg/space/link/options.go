@@ -1,40 +1,40 @@
 package link
 
 import (
-	"github.com/milosgajdos/netscrape/pkg/metadata"
+	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Options are link options.
+// Options are Space options.
 type Options struct {
-	// UID is an optional link UID.
+	// UID options
 	UID uuid.UID
-	// Merge merges link with existing link.
+	// Attrs options
+	Attrs attrs.Attrs
+	// Merge links
 	Merge bool
-	// Metadata options.
-	Metadata metadata.Metadata
 }
 
-// Option sets LinkOptions.
+// Option configures Options.
 type Option func(*Options)
 
-// UID set UID option
-func UID(u uuid.UID) Option {
+// WithUID sets UID Options.
+func WithUID(u uuid.UID) Option {
 	return func(o *Options) {
 		o.UID = u
 	}
 }
 
-// Merge set merge option
-func Merge(m bool) Option {
+// WithAttrs sets Attrs options
+func WithAttrs(a attrs.Attrs) Option {
 	return func(o *Options) {
-		o.Merge = m
+		o.Attrs = a
 	}
 }
 
-// Metadata set metadata option
-func Metadata(m metadata.Metadata) Option {
+// WithMerge set merge option
+func WithMerge(m bool) Option {
 	return func(o *Options) {
-		o.Metadata = m
+		o.Merge = m
 	}
 }

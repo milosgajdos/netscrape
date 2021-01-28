@@ -19,7 +19,16 @@ type NetScraper interface {
 }
 
 // Options are kraph options.
-type Options struct{}
+type Options struct {
+	Store store.Store
+}
 
 // Option is functional kraph option.
 type Option func(*Options)
+
+// WithStore sets Store Options
+func WithStore(s store.Store) Option {
+	return func(o *Options) {
+		o.Store = s
+	}
+}

@@ -15,10 +15,31 @@ type Node struct {
 	attrs attrs.Attrs
 }
 
-// NewNodeWithDOTID creates a new Node with the given DOTID and returns it.
-func NewNodeWithDOTID(id int64, obj space.Object, dotid string, opts graph.NodeOptions) (*Node, error) {
+// NewNode creates new Node and returns it.
+// NOTE: if WithAttrs is passed it, its values ovverride Object.Attrs
+func NewNode(id int64, obj space.Object, opts ...graph.Option) (*Node, error) {
+	nopts := graph.Options{}
+	for _, apply := range opts {
+		apply(&nopts)
+	}
 
-	attrs := attrs.NewCopyFrom(opts.Attrs)
+	dotid := nopts.DOTID
+	if dotid == "" {
+		var err error
+		dotid, err = graph.DOTIDFromObject(obj)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	attrs := attrs.NewCopyFrom(obj.Attrs())
+	if nopts.Attrs != nil {
+		for _, k := range nopts.Attrs.Keys() {
+			attrs.Set(k, nopts.Attrs.Get(k))
+		}
+	}
+	attrs.Set("dotid", dotid)
+	attrs.Set("name", dotid)
 
 	return &Node{
 		Object: obj,
@@ -26,27 +47,6 @@ func NewNodeWithDOTID(id int64, obj space.Object, dotid string, opts graph.NodeO
 		dotid:  dotid,
 		attrs:  attrs,
 	}, nil
-}
-
-// NewNode creates a new Node and returns it.
-func NewNode(id int64, obj space.Object, opts graph.NodeOptions) (*Node, error) {
-	dotid, err := graph.DOTID(obj)
-	if err != nil {
-		return nil, err
-	}
-
-	attrs := attrs.NewCopyFrom(opts.Attrs)
-	attrs.Set("dotid", dotid)
-	attrs.Set("name", dotid)
-
-	// copy string metadata to node attributes
-	for _, k := range obj.Metadata().Keys() {
-		if v, ok := obj.Metadata().Get(k).(string); ok {
-			attrs.Set(k, v)
-		}
-	}
-
-	return NewNodeWithDOTID(id, obj, dotid, graph.NodeOptions{Attrs: attrs})
 }
 
 // ID returns node ID.
@@ -68,7 +68,7 @@ func (n *Node) SetDOTID(id string) {
 }
 
 // Attrs returns node attributes.
-func (n *Node) Attrs() attrs.Attrs {
+func (n Node) Attrs() attrs.Attrs {
 	return n.attrs
 }
 

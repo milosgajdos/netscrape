@@ -12,32 +12,24 @@ import (
 
 // Store is in-memory store.
 type Store struct {
-	// id is store id
-	id string
 	// g is the store graph
 	g memory.Graph
 }
 
-// NewStore creates a new in-memory store and returns it.
+// New creates a new in-memory store backed by graph g and returns it.
 // If g is nil, the store creates *memory.WUG with default options.
-func NewStore(id string, g memory.Graph) (*Store, error) {
+func New(g memory.Graph) (*Store, error) {
 	if g == nil {
 		var err error
-		g, err = memory.NewWUG(id+"-graph", graph.Options{})
+		g, err = memory.NewWUG()
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return &Store{
-		id: id,
-		g:  g,
+		g: g,
 	}, nil
-}
-
-// ID returns store ID.
-func (m Store) ID() string {
-	return m.id
 }
 
 // Graph returns graph handle.
@@ -46,22 +38,27 @@ func (m *Store) Graph(ctx context.Context) (graph.Graph, error) {
 }
 
 // Add stores e in memory store.
-func (m *Store) Add(ctx context.Context, e store.Entity, opts store.AddOptions) error {
+func (m *Store) Add(ctx context.Context, e store.Entity, opts ...store.Option) error {
+	aopts := store.Options{}
+	for _, apply := range opts {
+		apply(&aopts)
+	}
+
 	switch v := e.(type) {
 	case graph.Node:
 		return m.g.AddNode(ctx, v)
 	case graph.Edge:
 		from, err := v.FromNode(ctx)
 		if err != nil {
-			return fmt.Errorf("%s FromNode: %w", v.UID(), store.ErrNodeNotFound)
+			return fmt.Errorf("add: %s FromNode: %w", v.UID(), store.ErrNodeNotFound)
 		}
 
 		to, err := v.ToNode(ctx)
 		if err != nil {
-			return fmt.Errorf("%s ToNode: %w", v.UID(), store.ErrNodeNotFound)
+			return fmt.Errorf("add: %s ToNode: %w", v.UID(), store.ErrNodeNotFound)
 		}
 
-		if _, err := m.g.Link(ctx, from.UID(), to.UID(), graph.LinkOptions{Attrs: opts.Attrs}); err != nil {
+		if _, err := m.g.Link(ctx, from.UID(), to.UID(), graph.WithAttrs(aopts.Attrs)); err != nil {
 			return err
 		}
 
@@ -72,19 +69,19 @@ func (m *Store) Add(ctx context.Context, e store.Entity, opts store.AddOptions) 
 }
 
 // Delete deletes e from memory store.
-func (m *Store) Delete(ctx context.Context, e store.Entity, opts store.DelOptions) error {
+func (m *Store) Delete(ctx context.Context, e store.Entity, opts ...store.Option) error {
 	switch v := e.(type) {
 	case graph.Node:
 		return m.g.RemoveNode(ctx, v.UID())
 	case graph.Edge:
 		from, err := v.FromNode(ctx)
 		if err != nil {
-			return fmt.Errorf("%s FromNode: %w", v.UID(), store.ErrNodeNotFound)
+			return fmt.Errorf("delete: %s FromNode: %w", v.UID(), store.ErrNodeNotFound)
 		}
 
 		to, err := v.ToNode(ctx)
 		if err != nil {
-			return fmt.Errorf("%s ToNode: %w", v.UID(), store.ErrNodeNotFound)
+			return fmt.Errorf("delete: %s ToNode: %w", v.UID(), store.ErrNodeNotFound)
 		}
 
 		return m.g.RemoveLink(ctx, from.UID(), to.UID())
@@ -97,7 +94,7 @@ func (m *Store) Delete(ctx context.Context, e store.Entity, opts store.DelOption
 func (m Store) Query(ctx context.Context, q query.Query) ([]store.Entity, error) {
 	g, ok := m.g.(graph.Querier)
 	if !ok {
-		return nil, fmt.Errorf("graph error: %w", graph.ErrUnsupported)
+		return nil, fmt.Errorf("query: %w", graph.ErrUnsupported)
 	}
 
 	qents, err := g.Query(ctx, q)

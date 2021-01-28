@@ -19,13 +19,9 @@ const (
 )
 
 func TestNew(t *testing.T) {
-	m, err := NewStore(testID, nil)
+	m, err := New(nil)
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
-	}
-
-	if id := m.ID(); id != testID {
-		t.Fatalf("expected id: %s, got: %s", id, testID)
 	}
 
 	if _, err = m.Graph(context.TODO()); err != nil {
@@ -34,7 +30,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestAddDelete(t *testing.T) {
-	m, err := NewStore(testID, nil)
+	m, err := New(nil)
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
@@ -53,12 +49,12 @@ func TestAddDelete(t *testing.T) {
 		t.Fatalf("failed to create object %q: %v", node1UID, err)
 	}
 
-	n1, err := gm.NewNode(int64(node1ID), o, graph.NodeOptions{})
+	n1, err := gm.NewNode(int64(node1ID), o)
 	if err != nil {
 		t.Fatalf("failed creating new node: %v", err)
 	}
 
-	if err := m.Add(context.TODO(), n1, store.AddOptions{}); err != nil {
+	if err := m.Add(context.TODO(), n1); err != nil {
 		t.Errorf("failed storing node %s: %v", n1.UID(), err)
 	}
 
@@ -71,12 +67,12 @@ func TestAddDelete(t *testing.T) {
 		t.Fatalf("failed to create object %q: %v", node1UID, err)
 	}
 
-	n2, err := gm.NewNode(int64(node2ID), o2, graph.NodeOptions{})
+	n2, err := gm.NewNode(int64(node2ID), o2)
 	if err != nil {
 		t.Errorf("failed adding node to graph: %v", err)
 	}
 
-	if err := m.Add(context.TODO(), n2, store.AddOptions{}); err != nil {
+	if err := m.Add(context.TODO(), n2); err != nil {
 		t.Errorf("failed storing node %s: %v", n2.UID(), err)
 	}
 
@@ -105,16 +101,16 @@ func TestAddDelete(t *testing.T) {
 		t.Fatalf("failed creating entity: %v", err)
 	}
 
-	if err := m.Add(context.TODO(), entX, store.AddOptions{}); !errors.Is(err, store.ErrUnknownEntity) {
+	if err := m.Add(context.TODO(), entX); !errors.Is(err, store.ErrUnknownEntity) {
 		t.Errorf("expected: %v, got: %v", store.ErrUnknownEntity, err)
 	}
 
-	edge, err := gm.NewEdge(n1, n2, graph.DefaultWeight)
+	edge, err := gm.NewEdge(n1, n2, graph.WithWeight(graph.DefaultWeight))
 	if err != nil {
 		t.Errorf("failed creating edge: %v", err)
 	}
 
-	if err := m.Add(context.TODO(), edge, store.AddOptions{}); err != nil {
+	if err := m.Add(context.TODO(), edge); err != nil {
 		t.Errorf("failed storing edge %s: %v", edge.UID(), err)
 	}
 
@@ -128,7 +124,7 @@ func TestAddDelete(t *testing.T) {
 		t.Errorf("expected edges: %d, got: %d", expCount, edgeCount)
 	}
 
-	if err := m.Delete(context.TODO(), edge, store.DelOptions{}); err != nil {
+	if err := m.Delete(context.TODO(), edge); err != nil {
 		t.Errorf("failed deleting edge %s: %v", edge.UID(), err)
 	}
 
@@ -142,7 +138,7 @@ func TestAddDelete(t *testing.T) {
 		t.Errorf("expected edges: %d, got: %d", expCount, edgeCount)
 	}
 
-	if err := m.Delete(context.TODO(), n2, store.DelOptions{}); err != nil {
+	if err := m.Delete(context.TODO(), n2); err != nil {
 		t.Errorf("failed storing node %s: %v", n2.UID(), err)
 	}
 
@@ -156,13 +152,13 @@ func TestAddDelete(t *testing.T) {
 		t.Errorf("expected nodes: %d, got: %d", expCount, nodeCount)
 	}
 
-	if err := m.Delete(context.TODO(), entX, store.DelOptions{}); !errors.Is(err, store.ErrUnknownEntity) {
+	if err := m.Delete(context.TODO(), entX); !errors.Is(err, store.ErrUnknownEntity) {
 		t.Errorf("expected: %v, got: %v", store.ErrUnknownEntity, err)
 	}
 }
 
 func TestQuery(t *testing.T) {
-	m, err := NewStore(testID, nil)
+	m, err := New(nil)
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
@@ -181,12 +177,12 @@ func TestQuery(t *testing.T) {
 		t.Fatalf("failed to create object %q: %v", node1UID, err)
 	}
 
-	n1, err := gm.NewNode(int64(node1ID), o, graph.NodeOptions{})
+	n1, err := gm.NewNode(int64(node1ID), o)
 	if err != nil {
 		t.Fatalf("failed creating new node: %v", err)
 	}
 
-	if err := m.Add(context.TODO(), n1, store.AddOptions{}); err != nil {
+	if err := m.Add(context.TODO(), n1); err != nil {
 		t.Errorf("failed storing node %s: %v", n1.UID(), err)
 	}
 

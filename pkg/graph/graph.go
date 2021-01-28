@@ -3,7 +3,6 @@ package graph
 import (
 	"context"
 
-	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
@@ -12,7 +11,7 @@ import (
 
 // Entity is graph entity
 type Entity interface {
-	entity.Entity
+	space.Entity
 }
 
 // DOTer implements GraphViz DOT properties.
@@ -67,7 +66,7 @@ type DOTGraph interface {
 type SubGrapher interface {
 	// SubGraph returns the max subgraph of graph
 	// starting at node with given uid up to given depth.
-	SubGraph(ctx context.Context, uid uuid.UID, depth int) (Graph, error)
+	SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...Option) (Graph, error)
 }
 
 // Querier queries graph.
@@ -79,7 +78,7 @@ type Querier interface {
 // NodeAdder adds new Nodes to graph.
 type NodeAdder interface {
 	// NewNode returns a new Node.
-	NewNode(context.Context, space.Object, NodeOptions) (Node, error)
+	NewNode(context.Context, space.Object, ...Option) (Node, error)
 	// AddNode adds a new node to the graph.
 	AddNode(context.Context, Node) error
 }
@@ -93,7 +92,7 @@ type NodeRemover interface {
 // NodeLinker links arbitrary nodes in graph.
 type NodeLinker interface {
 	// Link links two nodes and returns the new edge.
-	Link(ctx context.Context, from, to uuid.UID, opts LinkOptions) (Edge, error)
+	Link(ctx context.Context, from, to uuid.UID, opts ...Option) (Edge, error)
 }
 
 // LinkRemover removes link between two Nodes.
@@ -104,6 +103,8 @@ type LinkRemover interface {
 
 // Graph is a graph of Space objects.
 type Graph interface {
+	// UID returns graph uid.
+	UID() uuid.UID
 	// Node returns node with given uid.
 	Node(context.Context, uuid.UID) (Node, error)
 	// Nodes returns all graph nodes.

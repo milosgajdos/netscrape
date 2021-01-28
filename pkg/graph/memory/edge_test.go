@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 )
 
@@ -28,7 +27,7 @@ func TestEdge(t *testing.T) {
 		t.Fatalf("failed to create object: %v", err)
 	}
 
-	n1, err := NewNodeWithDOTID(1, o, node1DOTID, graph.NodeOptions{})
+	n1, err := NewNode(1, o, graph.WithDOTID(node1DOTID))
 	if err != nil {
 		t.Fatalf("failed to create new node: %v", err)
 	}
@@ -38,9 +37,19 @@ func TestEdge(t *testing.T) {
 		t.Fatalf("failed to create object: %v", err)
 	}
 
-	n2, err := NewNodeWithDOTID(2, o2, node2DOTID, graph.NodeOptions{})
+	n2, err := NewNode(2, o2, graph.WithDOTID(node2DOTID))
 	if err != nil {
 		t.Fatalf("failed to create new node: %v", err)
+	}
+
+	// pass nil attributes
+	e, err := NewEdge(n1, n2, graph.WithDOTID(edgeUID), graph.WithWeight(weight))
+	if err != nil {
+		t.Fatalf("failed to create new edge: %v", err)
+	}
+
+	if count := len(e.Attrs().Keys()); count != 0 {
+		t.Errorf("expected 0 attributes, got: %d", count)
 	}
 
 	a, err := attrs.New()
@@ -48,9 +57,13 @@ func TestEdge(t *testing.T) {
 		t.Fatalf("failed to create attrs: %v", err)
 	}
 
-	e, err := NewEdgeWithDOTID(edgeUID, n1, n2, weight, entity.Attrs(a))
+	e, err = NewEdge(n1, n2, graph.WithDOTID(edgeUID), graph.WithWeight(weight), graph.WithAttrs(a))
 	if err != nil {
 		t.Fatalf("failed to create new edge: %v", err)
+	}
+
+	if uid := e.UID(); uid == nil {
+		t.Fatalf("expected uid, got: %v", uid)
 	}
 
 	fromNode, err := e.FromNode(context.TODO())

@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 
 	"github.com/ghodss/yaml"
-	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/origin"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/space/types"
@@ -51,7 +50,7 @@ func NewMock(path string) (*Plan, error) {
 			return nil, err
 		}
 
-		if err := a.Add(context.TODO(), m, space.AddOptions{}); err != nil {
+		if err := a.Add(context.TODO(), m); err != nil {
 			return nil, err
 		}
 	}

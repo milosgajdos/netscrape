@@ -8,20 +8,22 @@ import (
 // Options are store options.
 type Options struct {
 	Graph graph.Graph
-}
-
-// AddOptions are store add options.
-type AddOptions struct {
 	Attrs attrs.Attrs
 }
 
-// AddOption sets add options.
-type AddOption func(*AddOptions)
+// Option configures Options.
+type Option func(*Options)
 
-// DelOptions are store delete options.
-type DelOptions struct {
-	Attrs attrs.Attrs
+// WithGraph sets Graph options
+func WithGraph(g graph.Graph) Option {
+	return func(o *Options) {
+		o.Graph = g
+	}
 }
 
-// DelOption sets delete options.
-type DelOption func(*DelOptions)
+// WithAttrs sets Attrs options
+func WithAttrs(a attrs.Attrs) Option {
+	return func(o *Options) {
+		o.Attrs = a
+	}
+}

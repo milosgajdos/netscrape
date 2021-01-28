@@ -23,7 +23,7 @@ func TestNode(t *testing.T) {
 		t.Fatalf("failed to create object: %v", err)
 	}
 
-	dotid, err := graph.DOTID(o)
+	dotid, err := graph.DOTIDFromObject(o)
 	if err != nil {
 		t.Fatalf("failed to build DOTID: %v", err)
 	}
@@ -34,7 +34,7 @@ func TestNode(t *testing.T) {
 	}
 	a.Set("nodename", nodeName)
 
-	node, err := NewNode(nodeGID, o, graph.NodeOptions{Attrs: a})
+	node, err := NewNode(nodeGID, o, graph.WithAttrs(a))
 	if err != nil {
 		t.Fatalf("failed to create new node from Space object: %v", err)
 	}
@@ -65,6 +65,10 @@ func TestNode(t *testing.T) {
 	if dotID := node.DOTID(); dotID != newDOTID {
 		t.Errorf("expected DOTID: %s, got: %s", newDOTID, dotID)
 	}
+
+	if count := len(node.Attrs().Keys()); count == 0 {
+		t.Fatalf("expected node attributes got: %d", count)
+	}
 }
 
 func TestNodeWithDOTID(t *testing.T) {
@@ -84,10 +88,9 @@ func TestNodeWithDOTID(t *testing.T) {
 	}
 	a.Set("name", nodeName)
 
-	node, err := NewNodeWithDOTID(nodeGID, o, nodeName, graph.NodeOptions{Attrs: a})
+	node, err := NewNode(nodeGID, o, graph.WithDOTID(nodeName), graph.WithAttrs(a))
 	if err != nil {
-		t.Errorf("failed to create new node: %v", err)
-		return
+		t.Fatalf("failed to create new node: %v", err)
 	}
 
 	if id := node.ID(); id != nodeGID {

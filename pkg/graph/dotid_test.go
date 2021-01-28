@@ -25,12 +25,12 @@ func TestDOTID(t *testing.T) {
 		t.Fatalf("failed to create new uid from string %q: %v", objUID, err)
 	}
 
-	o, err := object.New(uid, objName, objNs, nil)
+	o, err := object.New(objName, objNs, nil, object.WithUID(uid))
 	if err != nil {
 		t.Fatalf("failed to create new object: %v", err)
 	}
 
-	if _, err := DOTID(o); err == nil {
+	if _, err := DOTIDFromObject(o); err == nil {
 		t.Errorf("expected error, got: %v", err)
 	}
 
@@ -39,7 +39,7 @@ func TestDOTID(t *testing.T) {
 		t.Fatalf("failed to create new resource: %v", err)
 	}
 
-	o, err = object.New(uid, objName, objNs, r)
+	o, err = object.New(objName, objNs, r, object.WithUID(uid))
 	if err != nil {
 		t.Fatalf("failed to create new object: %v", err)
 	}
@@ -51,7 +51,7 @@ func TestDOTID(t *testing.T) {
 		objNs,
 		objName}, "/")
 
-	dotid, err := DOTID(o)
+	dotid, err := DOTIDFromObject(o)
 	if err != nil {
 		t.Fatalf("failed to generate DOTID: %v", err)
 	}
