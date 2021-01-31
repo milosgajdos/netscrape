@@ -1,46 +1,43 @@
 package query
 
-// PredKind is Predicate kind
-type PredKind int
+// Type is predicate type
+type Type int
 
 const (
-	PUID PredKind = iota
-	PName
-	PGroup
-	PVersion
-	PKind
-	PNamespace
-	PWeight
-	PEntity
-	PAttrs
-	PMetadata
+	UID Type = iota
+	Name
+	Group
+	Version
+	Kind
+	Namespace
+	Weight
+	Entity
+	Attrs
 )
 
-func (p PredKind) String() string {
+func (p Type) String() string {
 	switch p {
-	case PUID:
+	case UID:
 		return "uid"
-	case PName:
+	case Name:
 		return "name"
-	case PGroup:
+	case Group:
 		return "group"
-	case PVersion:
+	case Version:
 		return "version"
-	case PKind:
+	case Kind:
 		return "kind"
-	case PNamespace:
+	case Namespace:
 		return "namesapce"
-	case PWeight:
+	case Weight:
 		return "weight"
-	case PEntity:
+	case Entity:
 		return "entity"
-	case PAttrs:
+	case Attrs:
 		return "attrs"
-	case PMetadata:
-		return "metadata"
 	}
 
-	return "unknown predicate"
+	return "unknown type"
 }
 
 // EntityVal is query entity value
@@ -59,21 +56,21 @@ func (v EntityVal) String() string {
 		return "edge"
 	}
 
-	return "unknown entity value"
+	return "unknown entity"
 }
 
-// Match defines query match wildcards
-type Match int
+// WildCard defines query wildcards
+type WildCard int
 
 const (
-	Any Match = iota
+	Any WildCard = iota
 )
 
-func (v Match) String() string {
+func (v WildCard) String() string {
 	switch v {
 	case Any:
 		return "any"
 	}
 
-	return "unknown value"
+	return "unknown wildcard"
 }

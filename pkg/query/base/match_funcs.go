@@ -1,11 +1,10 @@
-package query
+package base
 
 import (
 	"math/big"
-	"reflect"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	"github.com/milosgajdos/netscrape/pkg/metadata"
+	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -16,7 +15,7 @@ func IsAnyFunc(v interface{}) bool {
 
 // StringEqFunc returns MatchFunc option which checks
 // the equality of an arbitrary string to s1
-func StringEqFunc(s1 string) MatchFunc {
+func StringEqFunc(s1 string) query.MatchFunc {
 	return func(s2 interface{}) bool {
 		return s1 == s2.(string)
 	}
@@ -24,7 +23,7 @@ func StringEqFunc(s1 string) MatchFunc {
 
 // FloatEqFunc returns MatchFunc which checks
 // the equality of an arbitrary float to f1
-func FloatEqFunc(f1 float64) MatchFunc {
+func FloatEqFunc(f1 float64) query.MatchFunc {
 	return func(f2 interface{}) bool {
 		return big.NewFloat(f1).Cmp(big.NewFloat(f2.(float64))) != 0
 	}
@@ -32,7 +31,7 @@ func FloatEqFunc(f1 float64) MatchFunc {
 
 // UIDEqFunc returns MatchFunc which checks
 // the equality of an arbitrary uid to u1
-func UUIDEqFunc(u1 uuid.UID) MatchFunc {
+func UUIDEqFunc(u1 uuid.UID) query.MatchFunc {
 	return func(u2 interface{}) bool {
 		u := u2.(uuid.UID)
 		return u1.Value() == u.Value()
@@ -41,34 +40,20 @@ func UUIDEqFunc(u1 uuid.UID) MatchFunc {
 
 // EntityEqFunc returns MatchFunc option which checks
 // the equality of an arbitrary entity to e1
-func EntityEqFunc(e1 EntityVal) MatchFunc {
+func EntityEqFunc(e1 query.EntityVal) query.MatchFunc {
 	return func(e2 interface{}) bool {
-		e2value := e2.(EntityVal)
+		e2value := e2.(query.EntityVal)
 		return e1 == e2value
 	}
 }
 
 // HasAttrsFunc returns MatchFunc which checks
 // if a contains k/v of an arbitrary attrs.Attrs
-func HasAttrsFunc(a attrs.Attrs) MatchFunc {
+func HasAttrsFunc(a attrs.Attrs) query.MatchFunc {
 	return func(a2 interface{}) bool {
 		a2attrs := a2.(attrs.Attrs)
 		for _, k := range a2attrs.Keys() {
 			if v := a.Get(k); v != a2attrs.Get(k) {
-				return false
-			}
-		}
-		return true
-	}
-}
-
-// HasMetadataFunc returns MatchFunc which checks
-// if m contains k/v of an arbitrary metadata.Metadata
-func HasMetadataFunc(m metadata.Metadata) MatchFunc {
-	return func(m2 interface{}) bool {
-		m2meta := m2.(attrs.Attrs)
-		for _, k := range m2meta.Keys() {
-			if v := m.Get(k); !reflect.DeepEqual(v, m2meta.Get(k)) {
 				return false
 			}
 		}

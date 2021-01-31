@@ -327,13 +327,13 @@ func (g WUG) queryEdge(q query.Query) ([]graph.Edge, error) {
 
 		traversed[edge.UID().Value()] = true
 
-		if m := q.Matcher(query.PWeight); m != nil {
+		if m := q.Matcher(query.Weight); m != nil {
 			if !m.Match(edge.Weight()) {
 				return false
 			}
 		}
 
-		if m := q.Matcher(query.PAttrs); m != nil {
+		if m := q.Matcher(query.Attrs); m != nil {
 			if !m.Match(edge.Attrs()) {
 				return false
 			}
@@ -355,7 +355,7 @@ func (g WUG) queryEdge(q query.Query) ([]graph.Edge, error) {
 
 // queryNode returns all the nodes that match the given query.
 func (g WUG) queryNode(q query.Query) ([]graph.Node, error) {
-	if m := q.Matcher(query.PUID); m != nil {
+	if m := q.Matcher(query.UID); m != nil {
 		if uid, ok := m.Predicate().Value().(uuid.UID); ok && len(uid.Value()) > 0 {
 			if n, ok := g.nodes[uid.Value()]; ok {
 				return []graph.Node{n}, nil
@@ -368,25 +368,25 @@ func (g WUG) queryNode(q query.Query) ([]graph.Node, error) {
 	visit := func(n gngraph.Node) {
 		node := n.(*Node)
 
-		if m := q.Matcher(query.PNamespace); m != nil {
+		if m := q.Matcher(query.Namespace); m != nil {
 			if !m.Match(node.Namespace()) {
 				return
 			}
 		}
 
-		if m := q.Matcher(query.PKind); m != nil {
+		if m := q.Matcher(query.Kind); m != nil {
 			if !m.Match(node.Resource().Kind()) {
 				return
 			}
 		}
 
-		if m := q.Matcher(query.PName); m != nil {
+		if m := q.Matcher(query.Name); m != nil {
 			if !m.Match(node.Name()) {
 				return
 			}
 		}
 
-		if m := q.Matcher(query.PAttrs); m != nil {
+		if m := q.Matcher(query.Attrs); m != nil {
 			if !m.Match(node.Attrs()) {
 				return
 			}
@@ -408,7 +408,7 @@ func (g WUG) queryNode(q query.Query) ([]graph.Node, error) {
 func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
 	var e query.EntityVal
 
-	if m := q.Matcher(query.PEntity); m != nil {
+	if m := q.Matcher(query.Entity); m != nil {
 		var ok bool
 		e, ok = m.Predicate().Value().(query.EntityVal)
 		if !ok {

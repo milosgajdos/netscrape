@@ -10,6 +10,7 @@ import (
 	gm "github.com/milosgajdos/netscrape/pkg/graph/memory"
 	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/query/base"
+	"github.com/milosgajdos/netscrape/pkg/query/predicate"
 	"github.com/milosgajdos/netscrape/pkg/store"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -182,7 +183,7 @@ func TestQuery(t *testing.T) {
 		t.Errorf("failed storing node %s: %v", n1.UID(), err)
 	}
 
-	q := base.Build().Add(query.Entity(query.Node))
+	q := base.Build().Add(predicate.Entity(query.Node))
 
 	qnodes, err := m.Query(context.TODO(), q)
 	if err != nil {
@@ -194,7 +195,7 @@ func TestQuery(t *testing.T) {
 		t.Errorf("expected nodes: %d, got: %d", expCount, nodeCount)
 	}
 
-	q = base.Build().Add(query.Entity(query.EntityVal(10000)), query.IsAnyFunc)
+	q = base.Build().Add(predicate.Entity(query.EntityVal(10000)), base.IsAnyFunc)
 
 	if _, err := m.Query(context.TODO(), q); !errors.Is(err, graph.ErrUnknownEntity) {
 		t.Errorf("expected: %v, got: %v", graph.ErrUnknownEntity, err)

@@ -7,8 +7,8 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	memgraph "github.com/milosgajdos/netscrape/pkg/graph/memory"
-	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/query/base"
+	"github.com/milosgajdos/netscrape/pkg/query/predicate"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/store"
 	memstore "github.com/milosgajdos/netscrape/pkg/store/memory"
@@ -140,7 +140,7 @@ func (n *netscraper) buildGraph(ctx context.Context, top space.Top, filters ...F
 			uid := link.To()
 
 			q := base.Build().
-				Add(query.UID(uid), query.UUIDEqFunc(uid))
+				Add(predicate.UID(uid))
 
 			// NOTE: this must return a single node
 			peers, err := top.Get(ctx, q)

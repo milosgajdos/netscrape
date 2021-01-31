@@ -104,7 +104,7 @@ func (t *Top) Add(ctx context.Context, o space.Object, opts ...space.Option) err
 
 // getNamespaceKindObjects returns all objects in given namespace with given kind matching query q.
 func (t Top) getNamespaceKindObjects(ns, kind string, q query.Query) ([]space.Object, error) {
-	if m := q.Matcher(query.PName); m != nil {
+	if m := q.Matcher(query.Name); m != nil {
 		name, ok := m.Predicate().Value().(string)
 		if ok && len(name) > 0 {
 			o, ok := t.index[ns][kind][name]
@@ -128,7 +128,7 @@ func (t Top) getNamespaceKindObjects(ns, kind string, q query.Query) ([]space.Ob
 
 // getNamespaceObjects returns all objects in namespaces ns matching given query
 func (t Top) getNamespaceObjects(ns string, q query.Query) ([]space.Object, error) {
-	if m := q.Matcher(query.PKind); m != nil {
+	if m := q.Matcher(query.Kind); m != nil {
 		kind, ok := m.Predicate().Value().(string)
 		if ok && len(kind) > 0 {
 			return t.getNamespaceKindObjects(ns, kind, q)
@@ -169,7 +169,7 @@ func (t Top) Get(ctx context.Context, q query.Query) ([]space.Object, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
-	if m := q.Matcher(query.PUID); m != nil {
+	if m := q.Matcher(query.UID); m != nil {
 		uid, ok := m.Predicate().Value().(uuid.UID)
 		if ok && len(uid.Value()) > 0 {
 			o, ok := t.objects[uid.Value()]
@@ -180,7 +180,7 @@ func (t Top) Get(ctx context.Context, q query.Query) ([]space.Object, error) {
 		}
 	}
 
-	if m := q.Matcher(query.PNamespace); m != nil {
+	if m := q.Matcher(query.Namespace); m != nil {
 		ns, ok := m.Predicate().Value().(string)
 		if ok && len(ns) > 0 {
 			return t.getNamespaceObjects(ns, q)
