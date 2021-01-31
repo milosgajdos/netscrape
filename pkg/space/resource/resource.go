@@ -3,7 +3,7 @@ package resource
 import (
 	"strings"
 
-	"github.com/milosgajdos/netscrape/pkg/metadata"
+	"github.com/milosgajdos/netscrape/pkg/attrs"
 )
 
 // Resource implements a generic Space resource.
@@ -13,7 +13,7 @@ type Resource struct {
 	version    string
 	kind       string
 	namespaced bool
-	md         metadata.Metadata
+	attrs      attrs.Attrs
 }
 
 // New creates a new generic resource and returns it.
@@ -23,10 +23,10 @@ func New(name, group, version, kind string, namespaced bool, opts ...Option) (*R
 		apply(&ropts)
 	}
 
-	md := ropts.Metadata
-	if md == nil {
+	a := ropts.Attrs
+	if a == nil {
 		var err error
-		md, err = metadata.New()
+		a, err = attrs.New()
 		if err != nil {
 			return nil, err
 		}
@@ -38,7 +38,7 @@ func New(name, group, version, kind string, namespaced bool, opts ...Option) (*R
 		version:    version,
 		kind:       kind,
 		namespaced: namespaced,
-		md:         md,
+		attrs:      a,
 	}, nil
 }
 
@@ -84,7 +84,7 @@ func (r Resource) Paths() []string {
 	return names
 }
 
-// Metadata returns resource metadata.
-func (r Resource) Metadata() metadata.Metadata {
-	return r.md
+// Attrs returns attributes.
+func (r Resource) Attrs() attrs.Attrs {
+	return r.attrs
 }

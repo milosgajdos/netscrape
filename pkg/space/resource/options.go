@@ -1,19 +1,19 @@
 package resource
 
-import "github.com/milosgajdos/netscrape/pkg/metadata"
+import "github.com/milosgajdos/netscrape/pkg/attrs"
 
 // Options are Space options.
 type Options struct {
-	// Metadata options
-	Metadata metadata.Metadata
+	// Attrs options
+	Attrs attrs.Attrs
 }
 
 // Option configures Options.
 type Option func(*Options)
 
-// Metadata set metadata option
-func Metadata(m metadata.Metadata) Option {
+// WithAttrs sets Attrs options
+func WithAttrs(a attrs.Attrs) Option {
 	return func(o *Options) {
-		o.Metadata = m
+		o.Attrs = a
 	}
 }

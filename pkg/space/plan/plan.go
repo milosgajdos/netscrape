@@ -34,7 +34,7 @@ func (a Plan) Origin(ctx context.Context) (space.Origin, error) {
 }
 
 // Add adds r to Space.
-func (a *Plan) Add(ctx context.Context, r space.Resource, opts space.AddOptions) error {
+func (a *Plan) Add(ctx context.Context, r space.Resource, opts ...space.Option) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 

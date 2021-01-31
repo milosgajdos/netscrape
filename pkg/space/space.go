@@ -4,12 +4,20 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/milosgajdos/netscrape/pkg/metadata"
+	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Resource is a space resource.
+// Entity is space Entity.
+type Entity interface {
+	// UID returns unique ID.
+	UID() uuid.UID
+	// Attrs returns attributes.
+	Attrs() attrs.Attrs
+}
+
+// Resource is space resource.
 type Resource interface {
 	// Name returns Resource name.
 	Name() string
@@ -21,8 +29,8 @@ type Resource interface {
 	Kind() string
 	// Namespaced returns true if Resource is namespaced.
 	Namespaced() bool
-	// Metadata returns Resource metadata.
-	Metadata() metadata.Metadata
+	// Attrs returns attributes.
+	Attrs() attrs.Attrs
 }
 
 // Link links space objects.
@@ -33,11 +41,11 @@ type Link interface {
 	From() uuid.UID
 	// To returns uid of the end of the link.
 	To() uuid.UID
-	// Metadata returns Link metadata.
-	Metadata() metadata.Metadata
+	// Attrs returns attributes.
+	Attrs() attrs.Attrs
 }
 
-// Object is an instance of a Resource.
+// Object is an instance of Resource.
 type Object interface {
 	// UID returns unique ID.
 	UID() uuid.UID
@@ -48,11 +56,11 @@ type Object interface {
 	// Resource returns Object Resource.
 	Resource() Resource
 	// Link links two Objects.
-	Link(uuid.UID, LinkOptions) error
+	Link(uuid.UID, ...Option) error
 	// Links returns all Object links.
 	Links() []Link
-	// Metadata returns Object metadata.
-	Metadata() metadata.Metadata
+	// Attrs returns attributes.
+	Attrs() attrs.Attrs
 }
 
 // Origin identifies the origin of resources.
@@ -66,7 +74,7 @@ type Plan interface {
 	// Origin returns origin.
 	Origin(context.Context) (Origin, error)
 	// Add adds resource to Plan.
-	Add(context.Context, Resource, AddOptions) error
+	Add(context.Context, Resource, ...Option) error
 	// Resources returns all Plan resources.
 	Resources(context.Context) ([]Resource, error)
 	// Get returns all Resources matching query.
@@ -78,7 +86,7 @@ type Top interface {
 	// Plan returns topology Plan.
 	Plan(context.Context) (Plan, error)
 	// Add adds Object to topology.
-	Add(context.Context, Object, AddOptions) error
+	Add(context.Context, Object, ...Option) error
 	// Objects returns all topology Objects.
 	Objects(context.Context) ([]Object, error)
 	// Get returns all Objects matching query.

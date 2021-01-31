@@ -2,6 +2,7 @@ package graph
 
 import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 const (
@@ -21,23 +22,47 @@ type DOTOption func(*Options)
 
 // Options are graph options.
 type Options struct {
-	DOTOptions DOTOptions
+	UID        uuid.UID
+	DOTID      string
+	Attrs      attrs.Attrs
 	Weight     float64
+	DOTOptions DOTOptions
 }
 
-// NodeOptions are graph node options.
-type NodeOptions struct {
-	Attrs attrs.Attrs
+// Option configures Options.
+type Option func(*Options)
+
+// WithUID sets UID Options.
+func WithUID(u uuid.UID) Option {
+	return func(o *Options) {
+		o.UID = u
+	}
 }
 
-// NodeOption sets Node options.
-type NodeOption func(*NodeOptions)
-
-// LinkOptions are graph Link options.
-type LinkOptions struct {
-	Attrs  attrs.Attrs
-	Weight float64
+// WithDOTID sets DOTID Options.
+func WithDOTID(dotid string) Option {
+	return func(o *Options) {
+		o.DOTID = dotid
+	}
 }
 
-// LinkOption sets Link options.
-type LinkOption func(*LinkOptions)
+// WithAttrs sets Attrs options
+func WithAttrs(a attrs.Attrs) Option {
+	return func(o *Options) {
+		o.Attrs = a
+	}
+}
+
+// WithWeight sets Weight options.
+func WithWeight(w float64) Option {
+	return func(o *Options) {
+		o.Weight = w
+	}
+}
+
+// WithDOTOptions sets DOTOptions
+func WithDOTOptions(do DOTOptions) Option {
+	return func(o *Options) {
+		o.DOTOptions = do
+	}
+}

@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 
 	"github.com/ghodss/yaml"
-	"github.com/milosgajdos/netscrape/pkg/metadata"
+	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/object"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
@@ -43,7 +43,7 @@ func NewMock(a space.Plan, path string) (*Top, error) {
 			return nil, err
 		}
 
-		md, err := metadata.New()
+		a, err := attrs.New()
 		if err != nil {
 			return nil, err
 		}
@@ -54,11 +54,11 @@ func NewMock(a space.Plan, path string) (*Top, error) {
 		}
 
 		obj, err := object.New(
-			uid,
 			o.Name,
 			o.Namespace,
 			r,
-			object.Metadata(md),
+			object.WithUID(uid),
+			object.WithAttrs(a),
 		)
 
 		if err != nil {
@@ -66,7 +66,7 @@ func NewMock(a space.Plan, path string) (*Top, error) {
 		}
 
 		for _, l := range o.Links {
-			md, err := metadata.NewFromMap(l.Metadata)
+			a, err := attrs.NewFromMap(l.Attrs)
 			if err != nil {
 				return nil, err
 			}
@@ -81,14 +81,12 @@ func NewMock(a space.Plan, path string) (*Top, error) {
 				return nil, err
 			}
 
-			opts := space.LinkOptions{UID: lUID, Metadata: md}
-
-			if err := obj.Link(toUID, opts); err != nil {
+			if err := obj.Link(toUID, space.WithUID(lUID), space.WithAttrs(a)); err != nil {
 				return nil, err
 			}
 		}
 
-		if err := t.Add(context.TODO(), obj, space.AddOptions{}); err != nil {
+		if err := t.Add(context.TODO(), obj); err != nil {
 			return nil, err
 		}
 	}

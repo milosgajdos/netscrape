@@ -3,7 +3,7 @@ package memory
 import (
 	"context"
 
-	"github.com/milosgajdos/netscrape/pkg/entity"
+	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 	gngraph "gonum.org/v1/gonum/graph"
@@ -12,43 +12,71 @@ import (
 
 // Edge implements graph.WeightedEdge
 type Edge struct {
-	entity.Entity
+	uid    uuid.UID
+	attrs  attrs.Attrs
 	from   *Node
 	to     *Node
 	dotid  string
 	weight float64
 }
 
-// NewEdgeWithDOTID creates a new edge with the given dotid and returns it.
-func NewEdgeWithDOTID(dotid string, from, to *Node, weight float64, opts ...entity.Option) (*Edge, error) {
-	uid, err := uuid.NewFromString(dotid)
-	if err != nil {
-		return nil, err
+// NewEdge creates new Edge and returns it.
+// If no DOTID is given, DOTID returns UID.
+// If both WithUID and WithDOTID are provided
+// DOTID overrides the UID value.
+func NewEdge(from, to *Node, opts ...graph.Option) (*Edge, error) {
+	eopts := graph.Options{}
+	for _, apply := range opts {
+		apply(&eopts)
 	}
 
-	ent, err := entity.NewWithUID(uid, opts...)
-	if err != nil {
-		return nil, err
+	uid := eopts.UID
+	if uid == nil {
+		var err error
+		uid, err = uuid.New()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	dotid := eopts.DOTID
+	if dotid != "" {
+		var err error
+		uid, err = uuid.NewFromString(dotid)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		dotid = uid.Value()
+	}
+
+	a := eopts.Attrs
+	if a == nil {
+		var err error
+		a, err = attrs.New()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Edge{
-		Entity: ent,
+		uid:    uid,
+		attrs:  a,
 		from:   from,
 		to:     to,
 		dotid:  dotid,
-		weight: weight,
+		weight: eopts.Weight,
 	}, nil
 }
 
-// NewEdge creates a new edge and returns it.
-// NewEdge sets the edge DOTID to uid.
-func NewEdge(from, to *Node, weight float64, opts ...entity.Option) (*Edge, error) {
-	uid, err := uuid.New()
-	if err != nil {
-		return nil, err
-	}
+// UID returns Edge UID
+func (e Edge) UID() uuid.UID {
+	return e.uid
+}
 
-	return NewEdgeWithDOTID(uid.Value(), from, to, weight, opts...)
+// Attrs returns edge attributes
+func (e Edge) Attrs() attrs.Attrs {
+	return e.attrs
 }
 
 // From returns the from node of the first non-nil edge, or nil.
@@ -61,13 +89,25 @@ func (e *Edge) To() gngraph.Node {
 	return e.to
 }
 
+// ReversedEdge returns a new edge with end points of the pair swapped.
+func (e *Edge) ReversedEdge() gngraph.Edge {
+	return &Edge{
+		uid:    e.uid,
+		attrs:  e.attrs,
+		from:   e.to,
+		to:     e.from,
+		dotid:  e.dotid,
+		weight: e.weight,
+	}
+}
+
 // FromNode returns the from node of the first non-nil edge, or nil.
-func (e *Edge) FromNode(ctx context.Context) (graph.Node, error) {
+func (e Edge) FromNode(ctx context.Context) (graph.Node, error) {
 	return e.from, nil
 }
 
 // ToNode returns the to node of the first non-nil edge, or nil.
-func (e *Edge) ToNode(ctx context.Context) (graph.Node, error) {
+func (e Edge) ToNode(ctx context.Context) (graph.Node, error) {
 	return e.to, nil
 }
 
@@ -76,30 +116,19 @@ func (e Edge) Weight() float64 {
 	return e.weight
 }
 
-// ReversedEdge returns a new line with end points of the pair swapped
-func (e *Edge) ReversedEdge() gngraph.Edge {
-	return &Edge{
-		Entity: e.Entity,
-		from:   e.to,
-		to:     e.from,
-		dotid:  e.dotid,
-		weight: e.weight,
-	}
-}
-
 // DOTID returns the edge's DOT ID.
-func (e *Edge) DOTID() string {
+func (e Edge) DOTID() string {
 	return e.dotid
 }
 
 // SetDOTID sets the edge's DOT ID.
 func (e *Edge) SetDOTID(id string) {
-	e.Attrs().Set("dotid", id)
+	e.attrs.Set("dotid", id)
 	e.dotid = id
 }
 
 // Attributes implements store.DOTAttrs
-func (e *Edge) Attributes() []encoding.Attribute {
+func (e Edge) Attributes() []encoding.Attribute {
 	attrs := make([]encoding.Attribute, len(e.Attrs().Keys()))
 
 	i := 0

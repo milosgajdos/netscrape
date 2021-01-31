@@ -1,16 +1,16 @@
 package link
 
 import (
-	"github.com/milosgajdos/netscrape/pkg/metadata"
+	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 // Link links two unique space objects.
 type Link struct {
-	uid  uuid.UID
-	from uuid.UID
-	to   uuid.UID
-	md   metadata.Metadata
+	uid   uuid.UID
+	from  uuid.UID
+	to    uuid.UID
+	attrs attrs.Attrs
 }
 
 // New creates a new link between two objects and returns it.
@@ -29,20 +29,20 @@ func New(from, to uuid.UID, opts ...Option) (*Link, error) {
 		}
 	}
 
-	md := lopts.Metadata
-	if md == nil {
+	a := lopts.Attrs
+	if a == nil {
 		var err error
-		md, err = metadata.New()
+		a, err = attrs.New()
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return &Link{
-		uid:  uid,
-		from: from,
-		to:   to,
-		md:   md,
+		uid:   uid,
+		from:  from,
+		to:    to,
+		attrs: a,
 	}, nil
 }
 
@@ -61,7 +61,7 @@ func (l Link) To() uuid.UID {
 	return l.to
 }
 
-// Metadata returns link metadata.
-func (l Link) Metadata() metadata.Metadata {
-	return l.md
+// Attrs returns attributes.
+func (l Link) Attrs() attrs.Attrs {
+	return l.attrs
 }

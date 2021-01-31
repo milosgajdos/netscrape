@@ -25,6 +25,17 @@ func NewCopyFrom(a Attrs) *attrs {
 	return &attrs
 }
 
+// NewFromMap creates new attributes from a and returns it.
+func NewFromMap(a map[string]string) (*attrs, error) {
+	at := make(attrs)
+
+	for k, v := range a {
+		at[k] = v
+	}
+
+	return &at, nil
+}
+
 // Keys returns all attribute keys
 func (a attrs) Keys() []string {
 	keys := make([]string, len(a))

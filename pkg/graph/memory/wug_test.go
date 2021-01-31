@@ -19,9 +19,13 @@ const (
 )
 
 func TestWUGAddGetRemoveNode(t *testing.T) {
-	g, err := NewWUG("test", graph.Options{})
+	g, err := NewWUG()
 	if err != nil {
 		t.Fatalf("failed to create graph: %v", err)
+	}
+
+	if uid := g.UID(); uid == nil {
+		t.Errorf("expected uid, got: %v", uid)
 	}
 
 	r, err := newTestResource(nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
@@ -34,7 +38,7 @@ func TestWUGAddGetRemoveNode(t *testing.T) {
 		t.Fatalf("failed to create object: %v", err)
 	}
 
-	n, err := g.NewNode(context.TODO(), o, graph.NodeOptions{})
+	n, err := g.NewNode(context.TODO(), o)
 	if err != nil {
 		t.Errorf("failed creating new graph node: %v", err)
 	}
@@ -109,7 +113,7 @@ func TestWUGAddGetRemoveNode(t *testing.T) {
 }
 
 func TestWUGLinkGetRemoveEdge(t *testing.T) {
-	g, err := NewWUG("test", graph.Options{})
+	g, err := NewWUG()
 	if err != nil {
 		t.Fatalf("failed to create graph: %v", err)
 	}
@@ -127,7 +131,7 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 		t.Fatalf("failed to create object %q: %v", node1UID, err)
 	}
 
-	n1, err := g.NewNode(context.TODO(), o1, graph.NodeOptions{})
+	n1, err := g.NewNode(context.TODO(), o1)
 	if err != nil {
 		t.Errorf("failed creating new node: %v", err)
 	}
@@ -144,7 +148,7 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 		t.Fatalf("failed to create object %q: %v", node2UID, err)
 	}
 
-	n2, err := g.NewNode(context.TODO(), o2, graph.NodeOptions{})
+	n2, err := g.NewNode(context.TODO(), o2)
 	if err != nil {
 		t.Errorf("failed adding node to graph: %v", err)
 	}
@@ -164,11 +168,11 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 	}
 
 	// Link nodes with a node which does not exist in the graph
-	if _, err := g.Link(context.TODO(), n1.UID(), nodeX.UID(), graph.LinkOptions{}); !errors.Is(err, graph.ErrNodeNotFound) {
+	if _, err := g.Link(context.TODO(), n1.UID(), nodeX.UID()); !errors.Is(err, graph.ErrNodeNotFound) {
 		t.Errorf("expected error %s, got: %#v", graph.ErrNodeNotFound, err)
 	}
 
-	if _, err := g.Link(context.TODO(), nodeX.UID(), n2.UID(), graph.LinkOptions{}); !errors.Is(err, graph.ErrNodeNotFound) {
+	if _, err := g.Link(context.TODO(), nodeX.UID(), n2.UID()); !errors.Is(err, graph.ErrNodeNotFound) {
 		t.Errorf("expected error %s, got: %#v", graph.ErrNodeNotFound, err)
 	}
 
@@ -182,7 +186,7 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 		t.Errorf("expected: %d edges, got: %d", expCount, len(edges))
 	}
 
-	edge, err := g.Link(context.TODO(), n1.UID(), n2.UID(), graph.LinkOptions{Weight: graph.DefaultWeight})
+	edge, err := g.Link(context.TODO(), n1.UID(), n2.UID(), graph.WithWeight(graph.DefaultWeight))
 	if err != nil {
 		t.Errorf("failed to link %s to %s: %v", n1.UID(), n2.UID(), err)
 	}
@@ -202,7 +206,7 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 	}
 
 	// linking already linked nodes must return the same edge/line as returned previously
-	exEdge, err := g.Link(context.TODO(), n1.UID(), n2.UID(), graph.LinkOptions{})
+	exEdge, err := g.Link(context.TODO(), n1.UID(), n2.UID())
 	if err != nil {
 		t.Errorf("failed to link %s to %s: %v", n1.UID(), n2.UID(), err)
 	}
@@ -324,7 +328,7 @@ func TestWUGQueryEdge(t *testing.T) {
 
 	for _, n := range nodes {
 		for _, l := range n.(graph.Node).Links() {
-			if r, ok := l.Metadata().Get("relation").(string); ok {
+			if r := l.Attrs().Get("relation"); r != "" {
 				relations[r] = true
 			}
 		}
@@ -446,7 +450,7 @@ func TestWUGQuery(t *testing.T) {
 func TestWUGDOT(t *testing.T) {
 	id := "testID"
 
-	g, err := NewWUG(id, graph.Options{})
+	g, err := NewWUG(graph.WithDOTID(id))
 	if err != nil {
 		t.Fatalf("failed to create new memory store: %v", err)
 	}

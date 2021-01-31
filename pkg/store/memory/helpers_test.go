@@ -25,5 +25,7 @@ func newTestObject(uid, name, ns string, res space.Resource, opts ...object.Opti
 		return nil, err
 	}
 
-	return object.New(u, name, ns, res, opts...)
+	opts = append(opts, object.WithUID(u))
+
+	return object.New(name, ns, res, opts...)
 }

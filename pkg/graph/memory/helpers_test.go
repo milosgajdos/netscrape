@@ -7,7 +7,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
-	"github.com/milosgajdos/netscrape/pkg/metadata"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/object"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
@@ -36,7 +35,9 @@ func newTestObject(uid, name, ns string, res space.Resource, opts ...object.Opti
 		return nil, err
 	}
 
-	return object.New(u, name, ns, res, opts...)
+	opts = append(opts, object.WithUID(u))
+
+	return object.New(name, ns, res, opts...)
 }
 
 func makeTestSpaceObjects(path string) (map[string]space.Object, error) {
@@ -53,7 +54,7 @@ func makeTestSpaceObjects(path string) (map[string]space.Object, error) {
 	objects := make(map[string]space.Object)
 
 	for _, o := range testObjects {
-		m, err := metadata.NewFromMap(o.Resource.Metadata)
+		a, err := attrs.NewFromMap(o.Resource.Attrs)
 		if err != nil {
 			return nil, err
 		}
@@ -64,13 +65,13 @@ func makeTestSpaceObjects(path string) (map[string]space.Object, error) {
 			o.Resource.Version,
 			o.Resource.Kind,
 			o.Resource.Namespaced,
-			resource.Metadata(m),
+			resource.WithAttrs(a),
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		m, err = metadata.NewFromMap(o.Metadata)
+		a, err = attrs.NewFromMap(o.Attrs)
 		if err != nil {
 			return nil, err
 		}
@@ -80,7 +81,7 @@ func makeTestSpaceObjects(path string) (map[string]space.Object, error) {
 			return nil, err
 		}
 
-		obj, err := object.New(uid, o.Name, o.Namespace, res, object.Metadata(m))
+		obj, err := object.New(o.Name, o.Namespace, res, object.WithUID(uid), object.WithAttrs(a))
 		if err != nil {
 			return nil, err
 		}
@@ -91,12 +92,12 @@ func makeTestSpaceObjects(path string) (map[string]space.Object, error) {
 				return nil, err
 			}
 
-			m, err = metadata.NewFromMap(l.Metadata)
+			a, err = attrs.NewFromMap(l.Attrs)
 			if err != nil {
 				return nil, err
 			}
 
-			if err := obj.Link(toUID, space.LinkOptions{Metadata: m}); err != nil {
+			if err := obj.Link(toUID, space.WithAttrs(a)); err != nil {
 				return nil, err
 			}
 		}
@@ -108,7 +109,7 @@ func makeTestSpaceObjects(path string) (map[string]space.Object, error) {
 }
 
 func makeTestGraph(path string) (*WUG, error) {
-	g, err := NewWUG("test", graph.Options{})
+	g, err := NewWUG()
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +120,7 @@ func makeTestGraph(path string) (*WUG, error) {
 	}
 
 	for _, object := range objects {
-		n, err := g.NewNode(context.TODO(), object, graph.NodeOptions{})
+		n, err := g.NewNode(context.TODO(), object)
 		if err != nil {
 			return nil, err
 		}
@@ -131,7 +132,7 @@ func makeTestGraph(path string) (*WUG, error) {
 		for _, link := range object.Links() {
 			object2 := objects[link.To().Value()]
 
-			n2, err := g.NewNode(context.TODO(), object2, graph.NodeOptions{})
+			n2, err := g.NewNode(context.TODO(), object2)
 			if err != nil {
 				return nil, err
 			}
@@ -145,11 +146,11 @@ func makeTestGraph(path string) (*WUG, error) {
 				return nil, err
 			}
 
-			if relation, ok := link.Metadata().Get("relation").(string); ok {
+			if relation := link.Attrs().Get("relation"); relation != "" {
 				a.Set("relation", relation)
 			}
 
-			if _, err = g.Link(context.TODO(), n.UID(), n2.UID(), graph.LinkOptions{Attrs: a}); err != nil {
+			if _, err = g.Link(context.TODO(), n.UID(), n2.UID(), graph.WithAttrs(a)); err != nil {
 				return nil, err
 			}
 		}
