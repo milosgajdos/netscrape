@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/query/base"
+	"github.com/milosgajdos/netscrape/pkg/query/predicate"
 )
 
 const (
@@ -77,7 +77,7 @@ func TestSpaceGet(t *testing.T) {
 	}
 
 	for _, group := range groups {
-		q := base.Build().Add(query.Group(group), query.StringEqFunc(group))
+		q := base.Build().Add(predicate.Group(group))
 
 		resources, err := space.Get(context.TODO(), q)
 		if err != nil {
@@ -91,7 +91,7 @@ func TestSpaceGet(t *testing.T) {
 		}
 
 		for _, version := range versions {
-			q = q.Add(query.Version(version), query.StringEqFunc(version))
+			q = q.Add(predicate.Version(version))
 
 			resources, err := space.Get(context.TODO(), q)
 			if err != nil {
@@ -105,7 +105,7 @@ func TestSpaceGet(t *testing.T) {
 			}
 
 			for _, kind := range kinds {
-				q = q.Add(query.Kind(kind), query.StringEqFunc(kind))
+				q = q.Add(predicate.Kind(kind))
 
 				resources, err := space.Get(context.TODO(), q)
 				if err != nil {
@@ -120,7 +120,7 @@ func TestSpaceGet(t *testing.T) {
 				}
 
 				for _, name := range names {
-					q = q.Add(query.Name(name), query.StringEqFunc(name))
+					q = q.Add(predicate.Name(name))
 
 					resources, err := space.Get(context.TODO(), q)
 					if err != nil {

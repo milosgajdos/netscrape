@@ -76,7 +76,7 @@ func (a Plan) Resources(ctx context.Context) ([]space.Resource, error) {
 }
 
 func matchName(r space.Resource, q query.Query) bool {
-	if m := q.Matcher(query.PName); m != nil {
+	if m := q.Matcher(query.Name); m != nil {
 		name, ok := m.Predicate().Value().(string)
 		if ok && len(name) > 0 {
 			return name == r.Name()
@@ -88,7 +88,7 @@ func matchName(r space.Resource, q query.Query) bool {
 }
 
 func (a Plan) getGroupVersionResources(group, version string, q query.Query) ([]space.Resource, error) {
-	if m := q.Matcher(query.PKind); m != nil {
+	if m := q.Matcher(query.Kind); m != nil {
 		kind, ok := m.Predicate().Value().(string)
 		if ok && len(kind) > 0 {
 			r, ok := a.resources[group][version][kind]
@@ -119,7 +119,7 @@ func (a Plan) getGroupVersionResources(group, version string, q query.Query) ([]
 
 // getGroupResources returns all resource in group g matching q.
 func (a Plan) getGroupResources(g string, q query.Query) ([]space.Resource, error) {
-	if m := q.Matcher(query.PVersion); m != nil {
+	if m := q.Matcher(query.Version); m != nil {
 		v, ok := m.Predicate().Value().(string)
 		if ok && len(v) > 0 {
 			return a.getGroupVersionResources(g, v, q)
@@ -162,7 +162,7 @@ func (a Plan) Get(ctx context.Context, q query.Query) ([]space.Resource, error) 
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	if m := q.Matcher(query.PGroup); m != nil {
+	if m := q.Matcher(query.Group); m != nil {
 		g, ok := m.Predicate().Value().(string)
 		if ok && len(g) > 0 {
 			return a.getGroupResources(g, q)

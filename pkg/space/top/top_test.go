@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/query/base"
+	"github.com/milosgajdos/netscrape/pkg/query/predicate"
 	"github.com/milosgajdos/netscrape/pkg/space/plan"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -66,7 +66,7 @@ func TestGetUID(t *testing.T) {
 	}
 
 	for _, uid := range uids {
-		q := base.Build().Add(query.UID(uid), query.UUIDEqFunc(uid))
+		q := base.Build().Add(predicate.UID(uid))
 
 		objects, err := top.Get(context.TODO(), q)
 
@@ -120,7 +120,7 @@ func TestTopGet(t *testing.T) {
 	}
 
 	for _, ns := range namespaces {
-		q := base.Build().Add(query.Namespace(ns), query.StringEqFunc(ns))
+		q := base.Build().Add(predicate.Namespace(ns))
 
 		objects, err := top.Get(context.TODO(), q)
 		if err != nil {
@@ -135,7 +135,7 @@ func TestTopGet(t *testing.T) {
 		}
 
 		for _, kind := range kinds {
-			q = q.Add(query.Kind(kind), query.StringEqFunc(kind))
+			q = q.Add(predicate.Kind(kind))
 
 			objects, err = top.Get(context.TODO(), q)
 			if err != nil {
@@ -150,7 +150,7 @@ func TestTopGet(t *testing.T) {
 			}
 
 			for _, name := range names {
-				q = q.Add(query.Name(name), query.StringEqFunc(name))
+				q = q.Add(predicate.Name(name))
 
 				objects, err = top.Get(context.TODO(), q)
 				if err != nil {

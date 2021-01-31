@@ -4,19 +4,19 @@ import "errors"
 
 var (
 	// ErrInvalidUID is returned when uid could not be decoded from the query.
-	ErrInvalidUID = errors.New("invalid uid")
+	ErrInvalidUID = errors.New("ErrInvalidUID")
 	// ErrInvalidName is returned when name could not be decoded from the query.
-	ErrInvalidName = errors.New("invalid name")
+	ErrInvalidName = errors.New("ErrInvalidName")
 	// ErrInvalidGroup is returned when group could not be decoded from the query.
-	ErrInvalidGroup = errors.New("invalid group")
+	ErrInvalidGroup = errors.New("ErrInvalidGroup")
 	// ErrInvalidVersion is returned when version could not be decoded from query.
-	ErrInvalidVersion = errors.New("invalid version")
+	ErrInvalidVersion = errors.New("ErrInvalidVersion")
 	// ErrInvalidKind is returned when kind could not be decoded from query.
-	ErrInvalidKind = errors.New("invalid kind")
+	ErrInvalidKind = errors.New("ErrInvalidKind")
 	// ErrInvalidNamespace is returned when namespace could not be decoded from the query.
-	ErrInvalidNamespace = errors.New("invalid namespace")
+	ErrInvalidNamespace = errors.New("ErrInvalidNamespace")
 	// ErrInvalidEntity is returned when entity could not be decoded from the query.
-	ErrInvalidEntity = errors.New("invalid entity")
+	ErrInvalidEntity = errors.New("ErrInvalidEntity")
 	// ErrNotImplemented is returned when requesting a feature that has not been implemented yet
-	ErrNotImplemented = errors.New("not implemented")
+	ErrNotImplemented = errors.New("ErrNotImplemented")
 )

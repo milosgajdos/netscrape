@@ -11,6 +11,7 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/query/base"
+	"github.com/milosgajdos/netscrape/pkg/query/predicate"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -301,7 +302,7 @@ func TestWUGQueryEdge(t *testing.T) {
 		t.Fatalf("failed to create test graph: %v", err)
 	}
 
-	q := base.Build().Add(query.Entity(query.Edge))
+	q := base.Build().Add(predicate.Entity(query.Edge))
 
 	qedges, err := g.Query(context.TODO(), q)
 	if err != nil {
@@ -317,7 +318,7 @@ func TestWUGQueryEdge(t *testing.T) {
 		t.Errorf("expected edges: %d, got: %d", len(edges), len(qedges))
 	}
 
-	q = base.Build().Add(query.Entity(query.Node))
+	q = base.Build().Add(predicate.Entity(query.Node))
 
 	nodes, err := g.Query(context.TODO(), q)
 	if err != nil {
@@ -344,8 +345,8 @@ func TestWUGQueryEdge(t *testing.T) {
 			a.Set("relation", r)
 
 			q = base.Build().
-				Add(query.Entity(query.Edge)).
-				Add(query.Attrs(a), query.HasAttrsFunc(a))
+				Add(predicate.Entity(query.Edge)).
+				Add(predicate.Attrs(a))
 
 			edges, err := g.Query(context.TODO(), q)
 			if err != nil {
@@ -370,7 +371,7 @@ func TestWUGQueryNode(t *testing.T) {
 		t.Fatalf("failed to create test graph: %v", err)
 	}
 
-	q := base.Build().Add(query.Entity(query.Node))
+	q := base.Build().Add(predicate.Entity(query.Node))
 
 	qnodes, err := g.Query(context.TODO(), q)
 	if err != nil {
@@ -396,10 +397,10 @@ func TestWUGQueryNode(t *testing.T) {
 		names[i] = n.Name()
 	}
 
-	q = base.Build().Add(query.Entity(query.Node))
+	q = base.Build().Add(predicate.Entity(query.Node))
 
 	for _, ns := range namespaces {
-		q = q.Add(query.Namespace(ns), query.StringEqFunc(ns))
+		q = q.Add(predicate.Namespace(ns))
 
 		nodes, err := g.Query(context.TODO(), q)
 		if err != nil {
@@ -414,7 +415,7 @@ func TestWUGQueryNode(t *testing.T) {
 		}
 
 		for _, kind := range kinds {
-			q = q.Add(query.Kind(kind), query.StringEqFunc(kind))
+			q = q.Add(predicate.Kind(kind))
 
 			nodes, err := g.Query(context.TODO(), q)
 			if err != nil {
@@ -440,7 +441,7 @@ func TestWUGQuery(t *testing.T) {
 
 	// NOTE: EntityVal is an enum/iota starting with 0 with only two values: Node and Edge
 	// Any other number higher than 1 is considered a non-existent Entity
-	q := base.Build().Add(query.Entity(query.EntityVal(10000)), query.IsAnyFunc)
+	q := base.Build().Add(predicate.Entity(query.EntityVal(10000)), base.IsAnyFunc)
 
 	if _, err := g.Query(context.TODO(), q); !errors.Is(err, graph.ErrUnknownEntity) {
 		t.Errorf("expected: %v, got: %v", graph.ErrUnknownEntity, err)

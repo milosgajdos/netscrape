@@ -2,17 +2,17 @@
   - from: fooGroup/v1/fooKind/fooNs/foo1
     to: fooGroup/v2/fooKind/fooNs/foo4
     uid: fooGroup/v1/fooKind/fooNs/foo1-fooGroup/v2/fooKind/fooNs/foo4
-    metadata:
+    attrs:
       relation: foo-foo
   - from: fooGroup/v1/fooKind/fooNs/foo1
     to: fooGroup/v2/fooKind/fooNs/foo5
     uid: fooGroup/v1/fooKind/fooNs/foo1-fooGroup/v2/fooKind/fooNs/foo5
-    metadata:
+    attrs:
       relation: foo-foo
   - from: fooGroup/v1/fooKind/fooNs/foo1
     to: barGroup/v2/barGroup/global/bar5
     uid: fooGroup/v1/fooKind/fooNs/foo1-barGroup/v2/barGroup/global/bar5
-    metadata:
+    attrs:
       relation: foo-bar
   name: foo1
   namespace: fooNs
@@ -47,7 +47,7 @@
   - from: fooGroup/v2/fooKind/fooNs/foo4
     to: fooGroup/v1/fooKind/fooNs/foo3
     uid: fooGroup/v2/fooKind/fooNs/foo4-fooGroup/v1/fooKind/fooNs/foo3
-    metadata:
+    attrs:
       relation: foo-foo
   name: foo4
   namespace: fooNs
@@ -72,7 +72,7 @@
   - from: barGroup/v2/barGroup/global/bar5
     to: rndGroup/v6/rndKind/rndNs/rnd6
     uid: barGroup/v2/barGroup/global/bar5-rndGroup/v6/rndKind/rndNs/rnd6
-    metadata:
+    attrs:
       relation: bar-rnd
   name: bar5
   namespace: global
@@ -97,12 +97,12 @@
   - from: rndGroup/v2/rndKind/rndNs/rnd2
     to: fooGroup/v1/fooKind/fooNs/foo1
     uid: rndGroup/v2/rndKind/rndNs/rnd2-fooGroup/v1/fooKind/fooNs/foo1
-    metadata:
+    attrs:
       relation: rnd-foo
   - from: rndGroup/v2/rndKind/rndNs/rnd2
     to: rndGroup/v6/rndKind/rndNs/rnd6
     uid: rndGroup/v2/rndKind/rndNs/rnd2-rndGroup/v6/rndKind/rndNs/rnd6
-    metadata:
+    attrs:
       relation: rnd-rnd
   name: rnd2
   namespace: rndNs
@@ -117,7 +117,7 @@
   - from: rndGroup/v2/rndKind/rndNs/rnd3
     to: rndGroup/v6/rndKind/rndNs/rnd6
     uid: rndGroup/v2/rndKind/rndNs/rnd3-rndGroup/v6/rndKind/rndNs/rnd6
-    metadata:
+    attrs:
       relation: rnd-rnd
   name: rnd3
   namespace: rndNs

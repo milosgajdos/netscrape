@@ -107,8 +107,8 @@ func (o *Object) link(u uuid.UID, opts ...space.Option) error {
 
 // Link links object to object to with the given UID.
 // If link merging is requested, the new link will contain
-// all the metadata of the existing link with addition to the metadata
-/// that are not in the original link. The original metadata are updated.
+// all the attributes of the existing link with addition to the attributes
+// that are not in the original link. The original attributes are updated.
 func (o *Object) Link(to uuid.UID, opts ...space.Option) error {
 	lopts := space.Options{}
 	for _, apply := range opts {
