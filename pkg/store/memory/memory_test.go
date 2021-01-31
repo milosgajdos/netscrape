@@ -14,10 +14,6 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-const (
-	testID = "testID"
-)
-
 func TestNew(t *testing.T) {
 	m, err := New(nil)
 	if err != nil {
