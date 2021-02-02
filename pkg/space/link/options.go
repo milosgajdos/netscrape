@@ -5,7 +5,7 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Options are Space options.
+// Options configure Links
 type Options struct {
 	// UID options
 	UID uuid.UID

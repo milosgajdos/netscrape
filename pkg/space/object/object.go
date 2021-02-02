@@ -1,6 +1,8 @@
 package object
 
 import (
+	"sync"
+
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/link"
@@ -15,11 +17,15 @@ type Object struct {
 	res  space.Resource
 	// links indexes all links to this object
 	// for faster link lookups
+	// NOTE: index key is the UID of the *link*
 	links map[string]space.Link
 	// olinks indexes links from this object to
-	// other object for faster object lookups.
+	// other objects for faster lookups.
+	// NOTE: index key is the UID of the *object* on the opposite end
 	olinks map[string]space.Link
 	attrs  attrs.Attrs
+	// mu synchronizes access to Top
+	mu *sync.RWMutex
 }
 
 // New creates a new Object and returns it.
@@ -55,6 +61,7 @@ func New(name, ns string, res space.Resource, opts ...Option) (*Object, error) {
 		links:  make(map[string]space.Link),
 		olinks: make(map[string]space.Link),
 		attrs:  a,
+		mu:     &sync.RWMutex{},
 	}, nil
 }
 
@@ -79,7 +86,7 @@ func (o Object) Resource() space.Resource {
 }
 
 // link creates a new link to object to.
-func (o *Object) link(u uuid.UID, opts ...space.Option) error {
+func (o *Object) link(to uuid.UID, opts ...space.Option) error {
 	lopts := space.Options{}
 	for _, apply := range opts {
 		apply(&lopts)
@@ -91,7 +98,7 @@ func (o *Object) link(u uuid.UID, opts ...space.Option) error {
 		link.WithMerge(lopts.Merge),
 	}
 
-	link, err := link.New(o.uid, u, nopts...)
+	link, err := link.New(o.uid, to, nopts...)
 	if err != nil {
 		return err
 	}
@@ -100,16 +107,19 @@ func (o *Object) link(u uuid.UID, opts ...space.Option) error {
 		o.links[link.UID().Value()] = link
 	}
 
-	o.olinks[u.Value()] = link
+	o.olinks[to.Value()] = link
 
 	return nil
 }
 
 // Link links object to object to with the given UID.
-// If link merging is requested, the new link will contain
-// all the attributes of the existing link with addition to the attributes
-// that are not in the original link. The original attributes are updated.
+// If WithMergeAttrs option is set to true, existing link attributes
+// linking to the same object are merged in with the passed in attributes.
+// NOTE: the original attributes can be overridden in place.
 func (o *Object) Link(to uuid.UID, opts ...space.Option) error {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
 	lopts := space.Options{}
 	for _, apply := range opts {
 		apply(&lopts)
@@ -133,6 +143,9 @@ func (o *Object) Link(to uuid.UID, opts ...space.Option) error {
 
 // Links returns a slice of all object links.
 func (o Object) Links() []space.Link {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
 	links := make([]space.Link, len(o.links))
 
 	i := 0
@@ -145,6 +158,7 @@ func (o Object) Links() []space.Link {
 }
 
 // Attrs returns attributes.
+// NOTE: Attrs is not thread-safe
 func (o *Object) Attrs() attrs.Attrs {
 	return o.attrs
 }

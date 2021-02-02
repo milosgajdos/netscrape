@@ -199,8 +199,8 @@ func (g *WUG) Edge(ctx context.Context, uid, vid uuid.UID) (graph.Edge, error) {
 	}
 
 	// NOTE: it's safe to typecast without checking as
-	// the nodes in g.nodes have *Node type since the only
-	// way to add the nodes in is via AddNode which does type assertion
+	// the nodes in g.nodes are *Nodes since the only
+	// way to add nodes in is via AddNode which does type assertion
 	if e := g.WeightedEdge(from.(*Node).ID(), to.(*Node).ID()); e != nil {
 		return e.(*Edge), nil
 	}

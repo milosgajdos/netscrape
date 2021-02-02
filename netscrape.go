@@ -21,8 +21,8 @@ type netscraper struct {
 }
 
 // New creates a netscraper and returns it.
-// If no store option is given memory store is created
-// backed by memory WUG (Weighted Undirected Graph).
+// If no store option is given a memory store is created
+// backed by memory.WUG (Weighted Undirected Graph).
 func New(opts ...Option) (*netscraper, error) {
 	nopts := Options{}
 	for _, apply := range opts {
@@ -51,10 +51,18 @@ func New(opts ...Option) (*netscraper, error) {
 }
 
 // skip returns true if o matches any of the filters.
-func skip(o space.Object, filters ...Filter) bool {
-	for _, filter := range filters {
-		if filter(o) {
-			return false
+func (n netscraper) skip(o space.Object, fx ...Filter) bool {
+	for _, f := range fx {
+		if f(o) {
+			return true
+		}
+	}
+
+	// NOTE: we avoid appending n.fx to fx and iterating in
+	// simple loop for the sake of better performance
+	for _, f := range n.fx {
+		if f(o) {
+			return true
 		}
 	}
 
@@ -77,16 +85,16 @@ func (n *netscraper) linkObjects(ctx context.Context, g graph.Graph, from, to sp
 func (n *netscraper) addObject(ctx context.Context, g graph.Graph, o space.Object) error {
 	ga, ok := g.(graph.NodeAdder)
 	if !ok {
-		return fmt.Errorf("add objects: %w", graph.ErrUnsupported)
+		return fmt.Errorf("add object: %w", graph.ErrUnsupported)
 	}
 
 	from, err := ga.NewNode(ctx, o)
 	if err != nil {
-		return fmt.Errorf("create node: %v", err)
+		return fmt.Errorf("new node: %v", err)
 	}
 
 	if err := n.s.Add(ctx, from); err != nil {
-		return fmt.Errorf("add node: %w", err)
+		return fmt.Errorf("store node: %w", err)
 	}
 
 	return nil
@@ -118,13 +126,16 @@ func (n *netscraper) buildGraph(ctx context.Context, top space.Top, fx ...Filter
 		return err
 	}
 
+	// TODO: make this an iterator
 	objects, err := top.Objects(ctx)
 	if err != nil {
 		return err
 	}
 
 	for _, object := range objects {
-		if skip(object, append(n.fx, fx...)...) {
+		// TODO: avoid append for better performance
+		// Maybe skip should be a method on netscraper
+		if n.skip(object, fx...) {
 			continue
 		}
 
@@ -136,6 +147,7 @@ func (n *netscraper) buildGraph(ctx context.Context, top space.Top, fx ...Filter
 			continue
 		}
 
+		// TODO: make this an iterator
 		for _, link := range object.Links() {
 			uid := link.To()
 
@@ -162,6 +174,8 @@ func (n *netscraper) buildGraph(ctx context.Context, top space.Top, fx ...Filter
 }
 
 // Run runs netscraping using scraper s on the origin o with filters fx.
+// It first creates a space.Plan for the given origin and then maps it into space Topology.
+// The mapped topology s used for building a graph which is stored in the configured store.
 func (n *netscraper) Run(ctx context.Context, s space.Scraper, o space.Origin, fx ...Filter) error {
 	plan, err := s.Plan(ctx, o)
 	if err != nil {

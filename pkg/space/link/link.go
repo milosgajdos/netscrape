@@ -62,6 +62,7 @@ func (l Link) To() uuid.UID {
 }
 
 // Attrs returns attributes.
+// NOTE: Attrs is not thread-safe
 func (l Link) Attrs() attrs.Attrs {
 	return l.attrs
 }
