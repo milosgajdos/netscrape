@@ -77,8 +77,6 @@ func (t *Top) add(o space.Object) error {
 }
 
 // Add adds o to topology with the given options.
-// If an object already exists in topology and MergeLinks option is enabled
-// the existing object links are merged with the links of o.
 func (t *Top) Add(ctx context.Context, o space.Object, opts ...space.Option) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -87,16 +85,16 @@ func (t *Top) Add(ctx context.Context, o space.Object, opts ...space.Option) err
 		if err := t.add(o); err != nil {
 			return err
 		}
+	}
 
-		for _, l := range o.Links() {
-			if to, ok := t.objects[l.To().Value()]; ok {
-				if err := to.Link(o.UID(), opts...); err != nil {
-					return err
-				}
-			}
+	topObj := t.objects[o.UID().Value()]
+
+	// topObj and o have the same UID so we need to
+	// update topObj links with all the o links
+	for _, l := range o.Links() {
+		if err := topObj.Link(l.To(), space.WithAttrs(l.Attrs()), space.WithMerge(true)); err != nil {
+			return err
 		}
-
-		return nil
 	}
 
 	return nil
