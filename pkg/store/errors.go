@@ -3,8 +3,8 @@ package store
 import "errors"
 
 var (
-	// ErrUnknownEntity is returned when trying to use unknown entity
-	ErrUnknownEntity = errors.New("ErrUnknownEntity")
+	// ErrUnknownObject is returned when trying to manage unknown store.Object
+	ErrUnknownObject = errors.New("ErrUnknownObject")
 	// ErrNotImplemented is returned when requesting unimplemented functionality
 	ErrNotImplemented = errors.New("ErrNotImplemented")
 	// ErrUnsupported is returned when requesting unsupported functionality

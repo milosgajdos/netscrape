@@ -6,10 +6,10 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/space"
 )
 
-// DOTIDFromObject returns GraphViz DOT ID for given space.Object.
-// NOTE: the returned DOTIDFromObject follows the below naming convention:
-// resourceGroup/resourceVersion/resourceKind/objectNamespace/objectName
-func DOTIDFromObject(o space.Object) (string, error) {
+// DOTIDFromEntity returns GraphViz DOT ID for given space.Entity.
+// NOTE: the returned DOTIDFromEntity follows the below naming convention:
+// resourceGroup/resourceVersion/resourceKind/entityNamespace/entityName
+func DOTIDFromEntity(o space.Entity) (string, error) {
 	if o.Resource() == nil {
 		return "", ErrMissingResource
 	}

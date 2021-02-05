@@ -18,8 +18,8 @@ type Link struct {
 	Attrs map[string]string `json:"attrs,omitempty"`
 }
 
-// Object is Space object
-type Object struct {
+// Entity is Space object
+type Entity struct {
 	UID       string            `json:"uid"`
 	Name      string            `json:"name"`
 	Namespace string            `json:"namespace"`

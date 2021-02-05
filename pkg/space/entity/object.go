@@ -1,4 +1,4 @@
-package object
+package entity
 
 import (
 	"sync"
@@ -9,8 +9,8 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Object is a space object
-type Object struct {
+// Entity is a space entity.
+type Entity struct {
 	uid  uuid.UID
 	name string
 	ns   string
@@ -28,8 +28,8 @@ type Object struct {
 	mu *sync.RWMutex
 }
 
-// New creates a new Object and returns it.
-func New(name, ns string, res space.Resource, opts ...Option) (*Object, error) {
+// New creates a new Entity and returns it.
+func New(name, ns string, res space.Resource, opts ...Option) (*Entity, error) {
 	oopts := Options{}
 	for _, apply := range opts {
 		apply(&oopts)
@@ -53,7 +53,7 @@ func New(name, ns string, res space.Resource, opts ...Option) (*Object, error) {
 		}
 	}
 
-	return &Object{
+	return &Entity{
 		uid:    uid,
 		name:   name,
 		ns:     ns,
@@ -66,27 +66,27 @@ func New(name, ns string, res space.Resource, opts ...Option) (*Object, error) {
 }
 
 // UID returns object uid.
-func (o Object) UID() uuid.UID {
+func (o Entity) UID() uuid.UID {
 	return o.uid
 }
 
 // Name returns object name.
-func (o Object) Name() string {
+func (o Entity) Name() string {
 	return o.name
 }
 
 // Namespace returns object namespace.
-func (o Object) Namespace() string {
+func (o Entity) Namespace() string {
 	return o.ns
 }
 
 // Resource returns the resource the object is an instance of.
-func (o Object) Resource() space.Resource {
+func (o Entity) Resource() space.Resource {
 	return o.res
 }
 
 // link creates a new link to object to.
-func (o *Object) link(to uuid.UID, opts ...space.Option) error {
+func (o *Entity) link(to uuid.UID, opts ...space.Option) error {
 	lopts := space.Options{}
 	for _, apply := range opts {
 		apply(&lopts)
@@ -116,7 +116,7 @@ func (o *Object) link(to uuid.UID, opts ...space.Option) error {
 // If WithMergeAttrs option is set to true, existing link attributes
 // linking to the same object are merged in with the passed in attributes.
 // NOTE: the original attributes can be overridden in place.
-func (o *Object) Link(to uuid.UID, opts ...space.Option) error {
+func (o *Entity) Link(to uuid.UID, opts ...space.Option) error {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
@@ -142,7 +142,7 @@ func (o *Object) Link(to uuid.UID, opts ...space.Option) error {
 }
 
 // Links returns a slice of all object links.
-func (o Object) Links() []space.Link {
+func (o Entity) Links() []space.Link {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
@@ -159,6 +159,6 @@ func (o Object) Links() []space.Link {
 
 // Attrs returns attributes.
 // NOTE: Attrs is not thread-safe
-func (o *Object) Attrs() attrs.Attrs {
+func (o *Entity) Attrs() attrs.Attrs {
 	return o.attrs
 }

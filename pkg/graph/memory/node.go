@@ -9,7 +9,7 @@ import (
 
 // Node is a graph node.
 type Node struct {
-	space.Object
+	space.Entity
 	id    int64
 	dotid string
 	attrs attrs.Attrs
@@ -17,7 +17,7 @@ type Node struct {
 
 // NewNode creates new Node and returns it.
 // NOTE: if WithAttrs is passed it, its values ovverride Object.Attrs
-func NewNode(id int64, obj space.Object, opts ...graph.Option) (*Node, error) {
+func NewNode(id int64, e space.Entity, opts ...graph.Option) (*Node, error) {
 	nopts := graph.Options{}
 	for _, apply := range opts {
 		apply(&nopts)
@@ -26,13 +26,13 @@ func NewNode(id int64, obj space.Object, opts ...graph.Option) (*Node, error) {
 	dotid := nopts.DOTID
 	if dotid == "" {
 		var err error
-		dotid, err = graph.DOTIDFromObject(obj)
+		dotid, err = graph.DOTIDFromEntity(e)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	attrs := attrs.NewCopyFrom(obj.Attrs())
+	attrs := attrs.NewCopyFrom(e.Attrs())
 	if nopts.Attrs != nil {
 		for _, k := range nopts.Attrs.Keys() {
 			attrs.Set(k, nopts.Attrs.Get(k))
@@ -42,7 +42,7 @@ func NewNode(id int64, obj space.Object, opts ...graph.Option) (*Node, error) {
 	attrs.Set("name", dotid)
 
 	return &Node{
-		Object: obj,
+		Entity: e,
 		id:     id,
 		dotid:  dotid,
 		attrs:  attrs,

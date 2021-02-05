@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	wugObjPath = "testdata/wug/objects.yaml"
+	wugObjPath = "testdata/wug/entities.yaml"
 )
 
 func TestWUGAddGetRemoveNode(t *testing.T) {
@@ -34,9 +34,9 @@ func TestWUGAddGetRemoveNode(t *testing.T) {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	o, err := newTestObject(nodeID, nodeName, nodeNs, r)
+	o, err := newTestEntity(nodeID, nodeName, nodeNs, r)
 	if err != nil {
-		t.Fatalf("failed to create object: %v", err)
+		t.Fatalf("failed to create entity: %v", err)
 	}
 
 	n, err := g.NewNode(context.TODO(), o)
@@ -127,9 +127,9 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 	node1UID := "foo1UID"
 	node1Name := "foo1Name"
 
-	o1, err := newTestObject(node1UID, node1Name, nodeNs, r)
+	o1, err := newTestEntity(node1UID, node1Name, nodeNs, r)
 	if err != nil {
-		t.Fatalf("failed to create object %q: %v", node1UID, err)
+		t.Fatalf("failed to create entity %q: %v", node1UID, err)
 	}
 
 	n1, err := g.NewNode(context.TODO(), o1)
@@ -144,9 +144,9 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 	node2UID := "foo2UID"
 	node2Name := "foo2Name"
 
-	o2, err := newTestObject(node2UID, node2Name, nodeNs, r)
+	o2, err := newTestEntity(node2UID, node2Name, nodeNs, r)
 	if err != nil {
-		t.Fatalf("failed to create object %q: %v", node2UID, err)
+		t.Fatalf("failed to create entity %q: %v", node2UID, err)
 	}
 
 	n2, err := g.NewNode(context.TODO(), o2)
@@ -158,13 +158,13 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 		t.Errorf("failed adding node to graph: %v", err)
 	}
 
-	ox, err := newTestObject("nonExUID", "nonExName", nodeNs, r)
+	ox, err := newTestEntity("nonExUID", "nonExName", nodeNs, r)
 	if err != nil {
-		t.Fatalf("failed to create object %q: %v", node2UID, err)
+		t.Fatalf("failed to create entity %q: %v", node2UID, err)
 	}
 
 	nodeX := &Node{
-		Object: ox,
+		Entity: ox,
 		id:     123334444,
 	}
 

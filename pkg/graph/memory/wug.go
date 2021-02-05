@@ -71,10 +71,10 @@ func (g WUG) UID() uuid.UID {
 // ID does not already exist in the graph relieving you
 // from the necessity to make sure your new Node.ID()
 // returns unique ID in the underlying graph.
-func (g *WUG) NewNode(ctx context.Context, obj space.Object, opts ...graph.Option) (graph.Node, error) {
+func (g *WUG) NewNode(ctx context.Context, ent space.Entity, opts ...graph.Option) (graph.Node, error) {
 	gnode := g.WeightedUndirectedGraph.NewNode()
 
-	node, err := NewNode(gnode.ID(), obj, opts...)
+	node, err := NewNode(gnode.ID(), ent, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +405,7 @@ func (g WUG) queryNode(q query.Query) ([]graph.Node, error) {
 }
 
 // Query queries the in-memory graph and returns the matched results.
-func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
+func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Object, error) {
 	var e query.EntityVal
 
 	if m := q.Matcher(query.Entity); m != nil {
@@ -416,7 +416,7 @@ func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
 		}
 	}
 
-	var entities []graph.Entity
+	var entities []graph.Object
 
 	switch e {
 	case query.Node:

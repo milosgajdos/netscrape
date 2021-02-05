@@ -9,7 +9,12 @@ import (
 	"gonum.org/v1/gonum/graph/encoding"
 )
 
-// Entity is graph entity
+// Object is graph object.
+type Object interface {
+	space.Object
+}
+
+// Entity is graph entity.
 type Entity interface {
 	space.Entity
 }
@@ -36,13 +41,13 @@ type DOTEdge interface {
 
 // Node is a graph node.
 type Node interface {
-	Entity
-	space.Object
+	Object
+	space.Entity
 }
 
 // Edge is an edge between two graph nodes.
 type Edge interface {
-	Entity
+	Object
 	// FromNode returns the from node of the edge.
 	FromNode(context.Context) (Node, error)
 	// ToNode returns the to node of the edge.
@@ -72,13 +77,13 @@ type SubGrapher interface {
 // Querier queries graph.
 type Querier interface {
 	// Query the graph and return the results.
-	Query(context.Context, query.Query) ([]Entity, error)
+	Query(context.Context, query.Query) ([]Object, error)
 }
 
 // NodeAdder adds new Nodes to graph.
 type NodeAdder interface {
 	// NewNode returns a new Node.
-	NewNode(context.Context, space.Object, ...Option) (Node, error)
+	NewNode(context.Context, space.Entity, ...Option) (Node, error)
 	// AddNode adds a new node to the graph.
 	AddNode(context.Context, Node) error
 }
@@ -101,7 +106,7 @@ type LinkRemover interface {
 	RemoveLink(ctx context.Context, from, to uuid.UID) error
 }
 
-// Graph is a graph of Space objects.
+// Graph is a graph of space entities.
 type Graph interface {
 	// UID returns graph uid.
 	UID() uuid.UID

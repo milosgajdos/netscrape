@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/milosgajdos/netscrape/pkg/space/object"
+	"github.com/milosgajdos/netscrape/pkg/space/entity"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -25,12 +25,12 @@ func TestDOTID(t *testing.T) {
 		t.Fatalf("failed to create new uid from string %q: %v", objUID, err)
 	}
 
-	o, err := object.New(objName, objNs, nil, object.WithUID(uid))
+	o, err := entity.New(objName, objNs, nil, entity.WithUID(uid))
 	if err != nil {
-		t.Fatalf("failed to create new object: %v", err)
+		t.Fatalf("failed to create new entity: %v", err)
 	}
 
-	if _, err := DOTIDFromObject(o); err == nil {
+	if _, err := DOTIDFromEntity(o); err == nil {
 		t.Errorf("expected error, got: %v", err)
 	}
 
@@ -39,9 +39,9 @@ func TestDOTID(t *testing.T) {
 		t.Fatalf("failed to create new resource: %v", err)
 	}
 
-	o, err = object.New(objName, objNs, r, object.WithUID(uid))
+	o, err = entity.New(objName, objNs, r, entity.WithUID(uid))
 	if err != nil {
-		t.Fatalf("failed to create new object: %v", err)
+		t.Fatalf("failed to create new entity: %v", err)
 	}
 
 	exp := strings.Join([]string{
@@ -51,7 +51,7 @@ func TestDOTID(t *testing.T) {
 		objNs,
 		objName}, "/")
 
-	dotid, err := DOTIDFromObject(o)
+	dotid, err := DOTIDFromEntity(o)
 	if err != nil {
 		t.Fatalf("failed to generate DOTID: %v", err)
 	}

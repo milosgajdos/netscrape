@@ -9,8 +9,8 @@ import (
 )
 
 func TestNode(t *testing.T) {
-	if _, err := newTestObject(nodeID, nodeName, nodeNs, nil); err != nil {
-		t.Fatalf("failed to create object: %v", err)
+	if _, err := newTestEntity(nodeID, nodeName, nodeNs, nil); err != nil {
+		t.Fatalf("failed to create entity: %v", err)
 	}
 
 	r, err := newTestResource(nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
@@ -18,12 +18,12 @@ func TestNode(t *testing.T) {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	o, err := newTestObject(nodeID, nodeName, nodeNs, r)
+	o, err := newTestEntity(nodeID, nodeName, nodeNs, r)
 	if err != nil {
-		t.Fatalf("failed to create object: %v", err)
+		t.Fatalf("failed to create entity: %v", err)
 	}
 
-	dotid, err := graph.DOTIDFromObject(o)
+	dotid, err := graph.DOTIDFromEntity(o)
 	if err != nil {
 		t.Fatalf("failed to build DOTID: %v", err)
 	}
@@ -36,15 +36,15 @@ func TestNode(t *testing.T) {
 
 	node, err := NewNode(nodeGID, o, graph.WithAttrs(a))
 	if err != nil {
-		t.Fatalf("failed to create new node from Space object: %v", err)
+		t.Fatalf("failed to create new node from Space entity: %v", err)
 	}
 
 	if id := node.ID(); id != nodeGID {
 		t.Errorf("expected ID: %d, got: %d", nodeGID, id)
 	}
 
-	if nodeObj := node.Object; !reflect.DeepEqual(nodeObj, o) {
-		t.Errorf("invalid space.Object for node: %s", node.UID())
+	if nodeObj := node.Entity; !reflect.DeepEqual(nodeObj, o) {
+		t.Errorf("invalid space.Entity for node: %s", node.UID())
 	}
 
 	if dotID := node.DOTID(); dotID != dotid {
@@ -77,9 +77,9 @@ func TestNodeWithDOTID(t *testing.T) {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	o, err := newTestObject(nodeID, nodeName, nodeNs, r)
+	o, err := newTestEntity(nodeID, nodeName, nodeNs, r)
 	if err != nil {
-		t.Fatalf("failed to create object: %v", err)
+		t.Fatalf("failed to create entity: %v", err)
 	}
 
 	a, err := attrs.New()

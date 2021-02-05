@@ -8,7 +8,7 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/space"
-	"github.com/milosgajdos/netscrape/pkg/space/object"
+	"github.com/milosgajdos/netscrape/pkg/space/entity"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/space/types"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
@@ -29,31 +29,31 @@ func newTestResource(name, group, version, kind string, namespaced bool, opts ..
 	return resource.New(name, group, version, kind, namespaced, opts...)
 }
 
-func newTestObject(uid, name, ns string, res space.Resource, opts ...object.Option) (space.Object, error) {
+func newTestEntity(uid, name, ns string, res space.Resource, opts ...entity.Option) (space.Entity, error) {
 	u, err := uuid.NewFromString(uid)
 	if err != nil {
 		return nil, err
 	}
 
-	opts = append(opts, object.WithUID(u))
+	opts = append(opts, entity.WithUID(u))
 
-	return object.New(name, ns, res, opts...)
+	return entity.New(name, ns, res, opts...)
 }
 
-func makeTestSpaceObjects(path string) (map[string]space.Object, error) {
+func makeTestSpaceEntities(path string) (map[string]space.Entity, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	var testObjects []types.Object
-	if err := yaml.Unmarshal(data, &testObjects); err != nil {
+	var testEntities []types.Entity
+	if err := yaml.Unmarshal(data, &testEntities); err != nil {
 		return nil, err
 	}
 
-	objects := make(map[string]space.Object)
+	entities := make(map[string]space.Entity)
 
-	for _, o := range testObjects {
+	for _, o := range testEntities {
 		a, err := attrs.NewFromMap(o.Resource.Attrs)
 		if err != nil {
 			return nil, err
@@ -81,7 +81,7 @@ func makeTestSpaceObjects(path string) (map[string]space.Object, error) {
 			return nil, err
 		}
 
-		obj, err := object.New(o.Name, o.Namespace, res, object.WithUID(uid), object.WithAttrs(a))
+		obj, err := entity.New(o.Name, o.Namespace, res, entity.WithUID(uid), entity.WithAttrs(a))
 		if err != nil {
 			return nil, err
 		}
@@ -102,10 +102,10 @@ func makeTestSpaceObjects(path string) (map[string]space.Object, error) {
 			}
 		}
 
-		objects[o.UID] = obj
+		entities[o.UID] = obj
 	}
 
-	return objects, nil
+	return entities, nil
 }
 
 func makeTestGraph(path string) (*WUG, error) {
@@ -114,13 +114,13 @@ func makeTestGraph(path string) (*WUG, error) {
 		return nil, err
 	}
 
-	objects, err := makeTestSpaceObjects(path)
+	entities, err := makeTestSpaceEntities(path)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, object := range objects {
-		n, err := g.NewNode(context.TODO(), object)
+	for _, ent := range entities {
+		n, err := g.NewNode(context.TODO(), ent)
 		if err != nil {
 			return nil, err
 		}
@@ -129,10 +129,10 @@ func makeTestGraph(path string) (*WUG, error) {
 			return nil, err
 		}
 
-		for _, link := range object.Links() {
-			object2 := objects[link.To().Value()]
+		for _, link := range ent.Links() {
+			ent2 := entities[link.To().Value()]
 
-			n2, err := g.NewNode(context.TODO(), object2)
+			n2, err := g.NewNode(context.TODO(), ent2)
 			if err != nil {
 				return nil, err
 			}
