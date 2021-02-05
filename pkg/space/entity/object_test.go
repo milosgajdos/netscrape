@@ -1,4 +1,4 @@
-package object
+package entity
 
 import (
 	"reflect"
@@ -86,7 +86,7 @@ func TestNewWithOptions(t *testing.T) {
 	}
 }
 
-func TestObjectLink(t *testing.T) {
+func TestLink(t *testing.T) {
 	r, err := newTestResource(resName, resGroup, resVersion, resKind, true)
 	if err != nil {
 		t.Fatalf("failed creating test resource: %v", err)

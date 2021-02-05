@@ -9,8 +9,8 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Entity is space Entity.
-type Entity interface {
+// Object is space Object.
+type Object interface {
 	// UID returns unique ID.
 	UID() uuid.UID
 	// Attrs returns attributes.
@@ -33,7 +33,7 @@ type Resource interface {
 	Attrs() attrs.Attrs
 }
 
-// Link links space objects.
+// Link links space entities.
 type Link interface {
 	// UID returns unique ID.
 	UID() uuid.UID
@@ -45,19 +45,19 @@ type Link interface {
 	Attrs() attrs.Attrs
 }
 
-// Object is an instance of Resource.
-type Object interface {
+// Entity is an instance of Resource.
+type Entity interface {
 	// UID returns unique ID.
 	UID() uuid.UID
-	// Name returns Object name.
+	// Name returns name.
 	Name() string
-	// Namespace returns Object namespace.
+	// Namespace returns namespace.
 	Namespace() string
-	// Resource returns Object Resource.
+	// Resource returns Resource.
 	Resource() Resource
-	// Link links two Objects.
+	// Link links two entities.
 	Link(uuid.UID, ...Option) error
-	// Links returns all Object links.
+	// Links returns all links.
 	Links() []Link
 	// Attrs returns attributes.
 	Attrs() attrs.Attrs
@@ -81,16 +81,16 @@ type Plan interface {
 	Get(context.Context, query.Query) ([]Resource, error)
 }
 
-// Top is space topology i.e. map of space Objects.
+// Top is space topology i.e. map of space Entities.
 type Top interface {
 	// Plan returns topology Plan.
 	Plan(context.Context) (Plan, error)
-	// Add adds Object to topology.
-	Add(context.Context, Object, ...Option) error
-	// Objects returns all topology Objects.
-	Objects(context.Context) ([]Object, error)
-	// Get returns all Objects matching query.
-	Get(context.Context, query.Query) ([]Object, error)
+	// Add adds Entity to topology.
+	Add(context.Context, Entity, ...Option) error
+	// Entities returns all topology Entities.
+	Entities(context.Context) ([]Entity, error)
+	// Get returns all Entities matching query.
+	Get(context.Context, query.Query) ([]Entity, error)
 }
 
 // Planner builds space plans.

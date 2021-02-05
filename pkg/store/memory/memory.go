@@ -44,53 +44,53 @@ func (m *Store) Add(ctx context.Context, e store.Entity, opts ...store.Option) e
 		apply(&aopts)
 	}
 
-	switch v := e.(type) {
-	case graph.Node:
-		return m.g.AddNode(ctx, v)
-	case graph.Edge:
-		from, err := v.FromNode(ctx)
-		if err != nil {
-			return fmt.Errorf("add: %s FromNode: %w", v.UID(), store.ErrNodeNotFound)
-		}
-
-		to, err := v.ToNode(ctx)
-		if err != nil {
-			return fmt.Errorf("add: %s ToNode: %w", v.UID(), store.ErrNodeNotFound)
-		}
-
-		if _, err := m.g.Link(ctx, from.UID(), to.UID(), graph.WithAttrs(aopts.Attrs)); err != nil {
-			return err
-		}
-
-		return nil
+	n, err := m.g.NewNode(ctx, e, graph.WithAttrs(aopts.Attrs))
+	if err != nil {
+		return err
 	}
 
-	return store.ErrUnknownEntity
+	return m.g.AddNode(ctx, n)
+}
+
+// Link links two entities in store.
+func (m *Store) Link(ctx context.Context, from, to store.Entity, opts ...store.Option) error {
+	aopts := store.Options{}
+	for _, apply := range opts {
+		apply(&aopts)
+	}
+
+	if _, err := m.g.Link(ctx, from.UID(), to.UID(), graph.WithAttrs(aopts.Attrs)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Delete deletes e from memory store.
 func (m *Store) Delete(ctx context.Context, e store.Entity, opts ...store.Option) error {
-	switch v := e.(type) {
-	case graph.Node:
-		return m.g.RemoveNode(ctx, v.UID())
-	case graph.Edge:
-		from, err := v.FromNode(ctx)
-		if err != nil {
-			return fmt.Errorf("delete: %s FromNode: %w", v.UID(), store.ErrNodeNotFound)
-		}
-
-		to, err := v.ToNode(ctx)
-		if err != nil {
-			return fmt.Errorf("delete: %s ToNode: %w", v.UID(), store.ErrNodeNotFound)
-		}
-
-		return m.g.RemoveLink(ctx, from.UID(), to.UID())
+	aopts := store.Options{}
+	for _, apply := range opts {
+		apply(&aopts)
 	}
 
-	return store.ErrUnknownEntity
+	return m.g.RemoveNode(ctx, e.UID())
 }
 
-// Query queries the store and returns the results
+// Unlink two entities in store.
+func (m *Store) Unlink(ctx context.Context, from, to store.Entity, opts ...store.Option) error {
+	aopts := store.Options{}
+	for _, apply := range opts {
+		apply(&aopts)
+	}
+
+	if err := m.g.RemoveLink(ctx, from.UID(), to.UID()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Query queries the store and returns the results.
 func (m Store) Query(ctx context.Context, q query.Query) ([]store.Entity, error) {
 	g, ok := m.g.(graph.Querier)
 	if !ok {

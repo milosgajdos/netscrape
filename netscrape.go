@@ -51,7 +51,7 @@ func New(opts ...Option) (*netscraper, error) {
 }
 
 // skip returns true if o matches any of the filters.
-func (n netscraper) skip(o space.Object, fx ...Filter) bool {
+func (n netscraper) skip(o space.Entity, fx ...Filter) bool {
 	for _, f := range fx {
 		if f(o) {
 			return true
@@ -69,7 +69,7 @@ func (n netscraper) skip(o space.Object, fx ...Filter) bool {
 	return false
 }
 
-func (n *netscraper) linkObjects(ctx context.Context, g graph.Graph, from, to space.Object, opts ...graph.Option) error {
+func (n *netscraper) linkObjects(ctx context.Context, g graph.Graph, from, to space.Entity, opts ...graph.Option) error {
 	gl, ok := g.(graph.NodeLinker)
 	if !ok {
 		return fmt.Errorf("link objects: %w", graph.ErrUnsupported)
@@ -82,7 +82,7 @@ func (n *netscraper) linkObjects(ctx context.Context, g graph.Graph, from, to sp
 	return nil
 }
 
-func (n *netscraper) addObject(ctx context.Context, g graph.Graph, o space.Object) error {
+func (n *netscraper) addObject(ctx context.Context, g graph.Graph, o space.Entity) error {
 	ga, ok := g.(graph.NodeAdder)
 	if !ok {
 		return fmt.Errorf("add object: %w", graph.ErrUnsupported)
@@ -101,7 +101,7 @@ func (n *netscraper) addObject(ctx context.Context, g graph.Graph, o space.Objec
 }
 
 // link links object o with its topology peers.
-func (n *netscraper) link(ctx context.Context, g graph.Graph, o space.Object, peers []space.Object, opts ...graph.Option) error {
+func (n *netscraper) link(ctx context.Context, g graph.Graph, o space.Entity, peers []space.Entity, opts ...graph.Option) error {
 	if err := n.addObject(ctx, g, o); err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func (n *netscraper) buildGraph(ctx context.Context, top space.Top, fx ...Filter
 	}
 
 	// TODO: make this an iterator
-	objects, err := top.Objects(ctx)
+	objects, err := top.Entities(ctx)
 	if err != nil {
 		return err
 	}

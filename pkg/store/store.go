@@ -7,6 +7,11 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/query"
 )
 
+// Object is store object
+type Object interface {
+	graph.Object
+}
+
 // Entity is store entity.
 type Entity interface {
 	graph.Entity
@@ -26,10 +31,14 @@ type Querier interface {
 
 // Store stores entities.
 type Store interface {
-	// Graph returns store graph handle.
+	// Graph returns graph handle.
 	Graph(context.Context) (graph.Graph, error)
-	// Add entity to the store.
+	// Add Entity to store.
 	Add(context.Context, Entity, ...Option) error
-	// Delete entity from the store.
+	// Link two entities in store
+	Link(ctx context.Context, from, to Entity, opts ...Option) error
+	// Delete Entity from store.
 	Delete(context.Context, Entity, ...Option) error
+	// Unlink two entities in store
+	Unlink(ctx context.Context, from, to Entity, opts ...Option) error
 }

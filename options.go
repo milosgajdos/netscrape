@@ -6,7 +6,7 @@ import (
 )
 
 // Filter filters scrapes Objects.
-type Filter func(space.Object) bool
+type Filter func(space.Entity) bool
 
 // Options are kraph options.
 type Options struct {

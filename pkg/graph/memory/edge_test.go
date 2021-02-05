@@ -22,9 +22,9 @@ func TestEdge(t *testing.T) {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	o, err := newTestObject(nodeID, nodeName, nodeNs, r)
+	o, err := newTestEntity(nodeID, nodeName, nodeNs, r)
 	if err != nil {
-		t.Fatalf("failed to create object: %v", err)
+		t.Fatalf("failed to create entity: %v", err)
 	}
 
 	n1, err := NewNode(1, o, graph.WithDOTID(node1DOTID))
@@ -32,9 +32,9 @@ func TestEdge(t *testing.T) {
 		t.Fatalf("failed to create new node: %v", err)
 	}
 
-	o2, err := newTestObject(nodeID, nodeName, nodeNs, r)
+	o2, err := newTestEntity(nodeID, nodeName, nodeNs, r)
 	if err != nil {
-		t.Fatalf("failed to create object: %v", err)
+		t.Fatalf("failed to create entity: %v", err)
 	}
 
 	n2, err := NewNode(2, o2, graph.WithDOTID(node2DOTID))
