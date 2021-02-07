@@ -20,9 +20,10 @@ type netscraper struct {
 	fx []Filter
 }
 
-// New creates a netscraper and returns it.
-// If no store option is given a memory store is created
-// backed by memory.WUG (Weighted Undirected Graph).
+// New creates a new netscraper and returns it.
+// If no store option is provided a memory store
+// backed by memory.WUG (Weighted Undirected Graph)
+// is used.
 func New(opts ...Option) (*netscraper, error) {
 	nopts := Options{}
 	for _, apply := range opts {
@@ -69,10 +70,10 @@ func (n netscraper) skip(o space.Entity, fx ...Filter) bool {
 	return false
 }
 
-func (n *netscraper) linkObjects(ctx context.Context, g graph.Graph, from, to space.Entity, opts ...graph.Option) error {
+func (n *netscraper) linkEntities(ctx context.Context, g graph.Graph, from, to space.Entity, opts ...graph.Option) error {
 	gl, ok := g.(graph.NodeLinker)
 	if !ok {
-		return fmt.Errorf("link objects: %w", graph.ErrUnsupported)
+		return fmt.Errorf("link entities: %w", graph.ErrUnsupported)
 	}
 
 	if _, err := gl.Link(ctx, from.UID(), to.UID(), opts...); err != nil {
@@ -82,13 +83,13 @@ func (n *netscraper) linkObjects(ctx context.Context, g graph.Graph, from, to sp
 	return nil
 }
 
-func (n *netscraper) addObject(ctx context.Context, g graph.Graph, o space.Entity) error {
+func (n *netscraper) addEntity(ctx context.Context, g graph.Graph, e space.Entity) error {
 	ga, ok := g.(graph.NodeAdder)
 	if !ok {
-		return fmt.Errorf("add object: %w", graph.ErrUnsupported)
+		return fmt.Errorf("add entity: %w", graph.ErrUnsupported)
 	}
 
-	from, err := ga.NewNode(ctx, o)
+	from, err := ga.NewNode(ctx, e)
 	if err != nil {
 		return fmt.Errorf("new node: %v", err)
 	}
@@ -100,18 +101,18 @@ func (n *netscraper) addObject(ctx context.Context, g graph.Graph, o space.Entit
 	return nil
 }
 
-// link links object o with its topology peers.
-func (n *netscraper) link(ctx context.Context, g graph.Graph, o space.Entity, peers []space.Entity, opts ...graph.Option) error {
-	if err := n.addObject(ctx, g, o); err != nil {
+// link links entity e with its topology peers.
+func (n *netscraper) link(ctx context.Context, g graph.Graph, e space.Entity, peers []space.Entity, opts ...graph.Option) error {
+	if err := n.addEntity(ctx, g, e); err != nil {
 		return err
 	}
 
 	for _, peer := range peers {
-		if err := n.addObject(ctx, g, peer); err != nil {
+		if err := n.addEntity(ctx, g, peer); err != nil {
 			return err
 		}
 
-		if err := n.linkObjects(ctx, g, o, peer, opts...); err != nil {
+		if err := n.linkEntities(ctx, g, e, peer, opts...); err != nil {
 			return err
 		}
 	}
@@ -119,36 +120,33 @@ func (n *netscraper) link(ctx context.Context, g graph.Graph, o space.Entity, pe
 	return nil
 }
 
-// buildGraph builds a graph from given topology skipping objects that match filters.
+// buildGraph builds a graph from given topology skipping entities that match filters.
 func (n *netscraper) buildGraph(ctx context.Context, top space.Top, fx ...Filter) error {
 	g, err := n.s.Graph(ctx)
 	if err != nil {
 		return err
 	}
 
-	// TODO: make this an iterator
-	objects, err := top.Entities(ctx)
+	entities, err := top.Entities(ctx)
 	if err != nil {
 		return err
 	}
 
-	for _, object := range objects {
-		// TODO: avoid append for better performance
-		// Maybe skip should be a method on netscraper
-		if n.skip(object, fx...) {
+	for _, ent := range entities {
+		if n.skip(ent, fx...) {
 			continue
 		}
 
-		if len(object.Links()) == 0 {
-			if err := n.addObject(ctx, g, object); err != nil {
-				return err
-			}
-
-			continue
+		if err := n.addEntity(ctx, g, ent); err != nil {
+			return err
 		}
 
-		// TODO: make this an iterator
-		for _, link := range object.Links() {
+		links, err := top.Links(ctx, ent.UID())
+		if err != nil {
+			return err
+		}
+
+		for _, link := range links {
 			uid := link.To()
 
 			q := base.Build().Add(predicate.UID(uid))
@@ -164,7 +162,7 @@ func (n *netscraper) buildGraph(ctx context.Context, top space.Top, fx ...Filter
 				a.Set("weight", fmt.Sprintf("%f", graph.DefaultWeight))
 			}
 
-			if err := n.link(ctx, g, object, peers, graph.WithAttrs(a)); err != nil {
+			if err := n.link(ctx, g, ent, peers, graph.WithAttrs(a)); err != nil {
 				return err
 			}
 		}
@@ -175,7 +173,7 @@ func (n *netscraper) buildGraph(ctx context.Context, top space.Top, fx ...Filter
 
 // Run runs netscraping using scraper s on the origin o with filters fx.
 // It first creates a space.Plan for the given origin and then maps it into space Topology.
-// The mapped topology s used for building a graph which is stored in the configured store.
+// The topology is used for building a graph which is stored in the configured store.
 func (n *netscraper) Run(ctx context.Context, s space.Scraper, o space.Origin, fx ...Filter) error {
 	plan, err := s.Plan(ctx, o)
 	if err != nil {

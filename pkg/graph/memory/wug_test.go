@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	wugObjPath = "testdata/wug/entities.yaml"
+	wugEntPath = "testdata/wug/entities.yaml"
 )
 
 func TestWUGAddGetRemoveNode(t *testing.T) {
@@ -245,7 +245,7 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 }
 
 func TestWUGSubGraph(t *testing.T) {
-	g, err := makeTestGraph(wugObjPath)
+	g, err := makeTestGraph(wugEntPath)
 	if err != nil {
 		t.Fatalf("failed to create new memory graph: %v", err)
 	}
@@ -297,7 +297,7 @@ func TestWUGSubGraph(t *testing.T) {
 }
 
 func TestWUGQueryEdge(t *testing.T) {
-	g, err := makeTestGraph(wugObjPath)
+	g, err := makeTestGraph(wugEntPath)
 	if err != nil {
 		t.Fatalf("failed to create test graph: %v", err)
 	}
@@ -320,18 +320,11 @@ func TestWUGQueryEdge(t *testing.T) {
 
 	q = base.Build().Add(predicate.Entity(query.Node))
 
-	nodes, err := g.Query(context.TODO(), q)
-	if err != nil {
-		t.Errorf("failed to query nodes: %v", err)
-	}
-
 	relations := make(map[string]bool)
 
-	for _, n := range nodes {
-		for _, l := range n.(graph.Node).Links() {
-			if r := l.Attrs().Get("relation"); r != "" {
-				relations[r] = true
-			}
+	for _, e := range edges {
+		if r := e.Attrs().Get("relation"); r != "" {
+			relations[r] = true
 		}
 	}
 
@@ -366,7 +359,7 @@ func TestWUGQueryEdge(t *testing.T) {
 }
 
 func TestWUGQueryNode(t *testing.T) {
-	g, err := makeTestGraph(wugObjPath)
+	g, err := makeTestGraph(wugEntPath)
 	if err != nil {
 		t.Fatalf("failed to create test graph: %v", err)
 	}
@@ -434,7 +427,7 @@ func TestWUGQueryNode(t *testing.T) {
 }
 
 func TestWUGQuery(t *testing.T) {
-	g, err := makeTestGraph(wugObjPath)
+	g, err := makeTestGraph(wugEntPath)
 	if err != nil {
 		t.Fatalf("failed to create new memory graph: %v", err)
 	}

@@ -39,13 +39,13 @@ type DOTEdge interface {
 	Edge
 }
 
-// Node is a graph node.
+// Node is a Graph node.
 type Node interface {
 	Object
-	space.Entity
+	Entity
 }
 
-// Edge is an edge between two graph nodes.
+// Edge is an edge between two Graph nodes.
 type Edge interface {
 	Object
 	// FromNode returns the from node of the edge.

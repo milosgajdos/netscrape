@@ -31,6 +31,8 @@ func NewMock(a space.Plan, path string) (*Top, error) {
 		return nil, err
 	}
 
+	ctx := context.Background()
+
 	for _, o := range entities {
 		r, err := resource.New(
 			o.Resource.Name,
@@ -53,7 +55,7 @@ func NewMock(a space.Plan, path string) (*Top, error) {
 			return nil, err
 		}
 
-		obj, err := entity.New(
+		ent, err := entity.New(
 			o.Name,
 			o.Namespace,
 			r,
@@ -62,6 +64,10 @@ func NewMock(a space.Plan, path string) (*Top, error) {
 		)
 
 		if err != nil {
+			return nil, err
+		}
+
+		if err := t.Add(ctx, ent); err != nil {
 			return nil, err
 		}
 
@@ -81,13 +87,9 @@ func NewMock(a space.Plan, path string) (*Top, error) {
 				return nil, err
 			}
 
-			if err := obj.Link(toUID, space.WithUID(lUID), space.WithAttrs(a)); err != nil {
+			if err := t.Link(ctx, ent.UID(), toUID, space.WithUID(lUID), space.WithAttrs(a)); err != nil {
 				return nil, err
 			}
-		}
-
-		if err := t.Add(context.TODO(), obj); err != nil {
-			return nil, err
 		}
 	}
 

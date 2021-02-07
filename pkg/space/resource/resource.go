@@ -62,7 +62,7 @@ func (r Resource) Kind() string {
 	return r.kind
 }
 
-// Namespaced returns true if the resource objects are namespaced.
+// Namespaced returns true if the resource is namespaced.
 func (r Resource) Namespaced() bool {
 	return r.namespaced
 }
