@@ -9,7 +9,7 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Object is space Object.
+// Object defines space object.
 type Object interface {
 	// UID returns unique ID.
 	UID() uuid.UID
@@ -19,15 +19,15 @@ type Object interface {
 
 // Resource is space resource.
 type Resource interface {
-	// Name returns Resource name.
+	// Name returns name.
 	Name() string
-	// Group retrurns Resource group.
+	// Group retrurns group.
 	Group() string
-	// Version returns Resource version.
+	// Version returns version.
 	Version() string
-	// Kind returns Resource kind.
+	// Kind returns kind.
 	Kind() string
-	// Namespaced returns true if Resource is namespaced.
+	// Namespaced
 	Namespaced() bool
 	// Attrs returns attributes.
 	Attrs() attrs.Attrs
@@ -37,15 +37,15 @@ type Resource interface {
 type Link interface {
 	// UID returns unique ID.
 	UID() uuid.UID
-	// From returns uid of the origin of the link.
+	// From returns uid of the origin of link.
 	From() uuid.UID
-	// To returns uid of the end of the link.
+	// To returns uid of the end of link.
 	To() uuid.UID
 	// Attrs returns attributes.
 	Attrs() attrs.Attrs
 }
 
-// Entity is an instance of Resource.
+// Entity is an instance of resource.
 type Entity interface {
 	// UID returns unique ID.
 	UID() uuid.UID
@@ -59,7 +59,7 @@ type Entity interface {
 	Attrs() attrs.Attrs
 }
 
-// Origin identifies the origin of resources.
+// Origin identifies the origin of space.
 type Origin interface {
 	// URL returns source URL
 	URL() *url.URL
@@ -69,11 +69,11 @@ type Origin interface {
 type Plan interface {
 	// Origin returns origin.
 	Origin(context.Context) (Origin, error)
-	// Add adds resource to Plan.
+	// Add adds resource to plan.
 	Add(context.Context, Resource, ...Option) error
-	// Remove removes Resource from Plan.
+	// Remove removes Resource from plan.
 	Remove(context.Context, Resource, ...Option) error
-	// Resources returns all Plan resources.
+	// Resources returns all plan resources.
 	Resources(context.Context) ([]Resource, error)
 	// Get returns all Resources matching query.
 	Get(context.Context, query.Query) ([]Resource, error)
@@ -97,9 +97,9 @@ type Top interface {
 	Links(context.Context, uuid.UID) ([]Link, error)
 }
 
-// Planner builds Plan.
+// Planner builds plan.
 type Planner interface {
-	// Plan builds plan for given Origin and returns it.
+	// Plan builds plan for given origin and returns it.
 	Plan(context.Context, Origin) (Plan, error)
 }
 
@@ -109,7 +109,7 @@ type Mapper interface {
 	Map(context.Context, Plan) (Top, error)
 }
 
-// Scraper builds Plan and maps topology.
+// Scraper builds plan and maps topology.
 type Scraper interface {
 	Planner
 	Mapper

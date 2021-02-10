@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
@@ -158,7 +159,7 @@ func (g *WUG) RemoveNode(ctx context.Context, uid uuid.UID) error {
 // It returns error if either of the nodes does not exist in the graph.
 func (g *WUG) Link(ctx context.Context, from, to uuid.UID, opts ...graph.Option) (graph.Edge, error) {
 	e, err := g.Edge(ctx, from, to)
-	if err != nil && err != graph.ErrEdgeNotExist {
+	if err != nil && !errors.Is(err, graph.ErrEdgeNotExist) {
 		return nil, err
 	}
 
@@ -205,7 +206,7 @@ func (g *WUG) Edge(ctx context.Context, uid, vid uuid.UID) (graph.Edge, error) {
 		return e.(*Edge), nil
 	}
 
-	return nil, graph.ErrEdgeNotExist
+	return nil, fmt.Errorf("%w", graph.ErrEdgeNotExist)
 }
 
 // Edges returns all the edges (lines) from u to v.

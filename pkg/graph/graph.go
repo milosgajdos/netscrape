@@ -67,9 +67,9 @@ type DOTGraph interface {
 	DOT() (string, error)
 }
 
-// SubGrapher returns the maximal reachable subgraph of graph.
+// SubGrapher returns the maximum subgraph of a graph.
 type SubGrapher interface {
-	// SubGraph returns the max subgraph of graph
+	// SubGraph returns the maximum subgraph of a graph
 	// starting at node with given uid up to given depth.
 	SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...Option) (Graph, error)
 }
@@ -80,21 +80,21 @@ type Querier interface {
 	Query(context.Context, query.Query) ([]Object, error)
 }
 
-// NodeAdder adds new Nodes to graph.
+// NodeAdder adds nodes to graph.
 type NodeAdder interface {
-	// NewNode returns a new Node.
+	// NewNode returns a new node.
 	NewNode(context.Context, space.Entity, ...Option) (Node, error)
-	// AddNode adds a new node to the graph.
+	// AddNode adds a new node to graph.
 	AddNode(context.Context, Node) error
 }
 
-// NodeRemover removes node from Grapg
+// NodeRemover removes node from graph
 type NodeRemover interface {
-	// RemoveNode removes node from the graph.
+	// RemoveNode removes node from graph.
 	RemoveNode(context.Context, uuid.UID) error
 }
 
-// NodeLinker links arbitrary nodes in graph.
+// NodeLinker links two nodes in graph.
 type NodeLinker interface {
 	// Link links two nodes and returns the new edge.
 	Link(ctx context.Context, from, to uuid.UID, opts ...Option) (Edge, error)
@@ -102,11 +102,11 @@ type NodeLinker interface {
 
 // LinkRemover removes link between two Nodes.
 type LinkRemover interface {
-	// RemoveEdge removes edge(s) from the graph.
+	// RemoveEdge removes link(s) from graph.
 	RemoveLink(ctx context.Context, from, to uuid.UID) error
 }
 
-// Graph is a graph of space entities.
+// Graph is a graph of entities.
 type Graph interface {
 	// UID returns graph uid.
 	UID() uuid.UID
@@ -114,7 +114,7 @@ type Graph interface {
 	Node(context.Context, uuid.UID) (Node, error)
 	// Nodes returns all graph nodes.
 	Nodes(context.Context) ([]Node, error)
-	// Edge returns the edge between the two nodes.
+	// Edge returns the edge between two nodes.
 	Edge(ctx context.Context, from, to uuid.UID) (Edge, error)
 	// Edges returns all graph edges.
 	Edges(context.Context) ([]Edge, error)

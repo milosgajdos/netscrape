@@ -2,6 +2,7 @@ package netscrape
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
@@ -60,7 +61,7 @@ func (n netscraper) skip(o space.Entity, fx ...Filter) bool {
 	}
 
 	// NOTE: we avoid appending n.fx to fx and iterating in
-	// simple loop for the sake of better performance
+	// single loop for the sake of better performance
 	for _, f := range n.fx {
 		if f(o) {
 			return true
@@ -142,7 +143,8 @@ func (n *netscraper) buildGraph(ctx context.Context, top space.Top, fx ...Filter
 		}
 
 		links, err := top.Links(ctx, ent.UID())
-		if err != nil {
+		// don't return error if there are no outgoing links from ent
+		if err != nil && !errors.Is(err, space.ErrEntityNotFound) {
 			return err
 		}
 
@@ -171,9 +173,9 @@ func (n *netscraper) buildGraph(ctx context.Context, top space.Top, fx ...Filter
 	return nil
 }
 
-// Run runs netscraping using scraper s on the origin o with filters fx.
-// It first creates a space.Plan for the given origin and then maps it into space Topology.
-// The topology is used for building a graph which is stored in the configured store.
+// Run runs netscraping using scraper s on origin o with filters fx.
+// It first creates a space.Plan for the given origin and then maps it into space.Top.
+// The topology is used for building a graph which is stored in configured store.
 func (n *netscraper) Run(ctx context.Context, s space.Scraper, o space.Origin, fx ...Filter) error {
 	plan, err := s.Plan(ctx, o)
 	if err != nil {
@@ -188,7 +190,7 @@ func (n *netscraper) Run(ctx context.Context, s space.Scraper, o space.Origin, f
 	return n.buildGraph(ctx, top, fx...)
 }
 
-// Store returns Store handle.
+// Store returns store handle.
 func (n *netscraper) Store() store.Store {
 	return n.s
 }
