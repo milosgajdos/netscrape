@@ -86,7 +86,7 @@ func (p *Plan) Remove(ctx context.Context, r space.Resource, opts ...space.Optio
 
 	kind := r.Kind()
 
-	if _, ok := p.resources[group][version][kind]; ok {
+	if p.resources[group][version] != nil {
 		delete(p.resources[group][version], kind)
 	}
 

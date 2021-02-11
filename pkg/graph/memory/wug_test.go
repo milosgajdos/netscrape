@@ -318,8 +318,6 @@ func TestWUGQueryEdge(t *testing.T) {
 		t.Errorf("expected edges: %d, got: %d", len(edges), len(qedges))
 	}
 
-	q = base.Build().Add(predicate.Entity(query.Node))
-
 	relations := make(map[string]bool)
 
 	for _, e := range edges {

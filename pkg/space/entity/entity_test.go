@@ -18,7 +18,6 @@ const (
 	entUID     = "testID"
 	entName    = "testName"
 	entNs      = "testNs"
-	toUID      = "toUID"
 )
 
 func newTestResource(name, group, version, kind string, namespaced bool, opts ...resource.Option) (space.Resource, error) {
