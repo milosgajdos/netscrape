@@ -8,6 +8,7 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/graph/memory"
 	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/store"
+	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 // Store is in-memory store.
@@ -52,14 +53,14 @@ func (m *Store) Add(ctx context.Context, e store.Entity, opts ...store.Option) e
 	return m.g.AddNode(ctx, n)
 }
 
-// Link links two entities in store.
-func (m *Store) Link(ctx context.Context, from, to store.Entity, opts ...store.Option) error {
-	aopts := store.Options{}
+// Link links entities with given UIDs in store.
+func (m *Store) Link(ctx context.Context, from, to uuid.UID, opts ...store.Option) error {
+	lopts := store.Options{}
 	for _, apply := range opts {
-		apply(&aopts)
+		apply(&lopts)
 	}
 
-	if _, err := m.g.Link(ctx, from.UID(), to.UID(), graph.WithAttrs(aopts.Attrs)); err != nil {
+	if _, err := m.g.Link(ctx, from, to, graph.WithAttrs(lopts.Attrs)); err != nil {
 		return err
 	}
 
@@ -68,22 +69,22 @@ func (m *Store) Link(ctx context.Context, from, to store.Entity, opts ...store.O
 
 // Delete deletes e from memory store.
 func (m *Store) Delete(ctx context.Context, e store.Entity, opts ...store.Option) error {
-	aopts := store.Options{}
+	dopts := store.Options{}
 	for _, apply := range opts {
-		apply(&aopts)
+		apply(&dopts)
 	}
 
 	return m.g.RemoveNode(ctx, e.UID())
 }
 
-// Unlink two entities in store.
-func (m *Store) Unlink(ctx context.Context, from, to store.Entity, opts ...store.Option) error {
-	aopts := store.Options{}
+// Unlink two entities with given UIDs in store.
+func (m *Store) Unlink(ctx context.Context, from, to uuid.UID, opts ...store.Option) error {
+	ulopts := store.Options{}
 	for _, apply := range opts {
-		apply(&aopts)
+		apply(&ulopts)
 	}
 
-	if err := m.g.RemoveLink(ctx, from.UID(), to.UID()); err != nil {
+	if err := m.g.Unlink(ctx, from, to); err != nil {
 		return err
 	}
 

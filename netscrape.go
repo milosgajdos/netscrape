@@ -71,63 +71,8 @@ func (n netscraper) skip(o space.Entity, fx ...Filter) bool {
 	return false
 }
 
-func (n *netscraper) linkEntities(ctx context.Context, g graph.Graph, from, to space.Entity, opts ...graph.Option) error {
-	gl, ok := g.(graph.NodeLinker)
-	if !ok {
-		return fmt.Errorf("link entities: %w", graph.ErrUnsupported)
-	}
-
-	if _, err := gl.Link(ctx, from.UID(), to.UID(), opts...); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (n *netscraper) addEntity(ctx context.Context, g graph.Graph, e space.Entity) error {
-	ga, ok := g.(graph.NodeAdder)
-	if !ok {
-		return fmt.Errorf("add entity: %w", graph.ErrUnsupported)
-	}
-
-	from, err := ga.NewNode(ctx, e)
-	if err != nil {
-		return fmt.Errorf("new node: %v", err)
-	}
-
-	if err := n.s.Add(ctx, from); err != nil {
-		return fmt.Errorf("store node: %w", err)
-	}
-
-	return nil
-}
-
-// link links entity e with its topology peers.
-func (n *netscraper) link(ctx context.Context, g graph.Graph, e space.Entity, peers []space.Entity, opts ...graph.Option) error {
-	if err := n.addEntity(ctx, g, e); err != nil {
-		return err
-	}
-
-	for _, peer := range peers {
-		if err := n.addEntity(ctx, g, peer); err != nil {
-			return err
-		}
-
-		if err := n.linkEntities(ctx, g, e, peer, opts...); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// buildGraph builds a graph from given topology skipping entities that match filters.
-func (n *netscraper) buildGraph(ctx context.Context, top space.Top, fx ...Filter) error {
-	g, err := n.s.Graph(ctx)
-	if err != nil {
-		return err
-	}
-
+// buildNetwork builds a network from given topology top skipping entities that match filters fx.
+func (n *netscraper) buildNetwork(ctx context.Context, top space.Top, fx ...Filter) error {
 	entities, err := top.Entities(ctx)
 	if err != nil {
 		return err
@@ -138,8 +83,8 @@ func (n *netscraper) buildGraph(ctx context.Context, top space.Top, fx ...Filter
 			continue
 		}
 
-		if err := n.addEntity(ctx, g, ent); err != nil {
-			return err
+		if err := n.s.Add(ctx, ent); err != nil {
+			return fmt.Errorf("store entity: %w", err)
 		}
 
 		links, err := top.Links(ctx, ent.UID())
@@ -164,8 +109,14 @@ func (n *netscraper) buildGraph(ctx context.Context, top space.Top, fx ...Filter
 				a.Set("weight", fmt.Sprintf("%f", graph.DefaultWeight))
 			}
 
-			if err := n.link(ctx, g, ent, peers, graph.WithAttrs(a)); err != nil {
-				return err
+			for _, peer := range peers {
+				if err := n.s.Add(ctx, peer); err != nil {
+					return fmt.Errorf("store peer: %w", err)
+				}
+
+				if err := n.s.Link(ctx, ent.UID(), peer.UID(), store.WithAttrs(a)); err != nil {
+					return fmt.Errorf("link peers: %w", err)
+				}
 			}
 		}
 	}
@@ -187,7 +138,7 @@ func (n *netscraper) Run(ctx context.Context, s space.Scraper, o space.Origin, f
 		return fmt.Errorf("map: %w", err)
 	}
 
-	return n.buildGraph(ctx, top, fx...)
+	return n.buildNetwork(ctx, top, fx...)
 }
 
 // Store returns store handle.

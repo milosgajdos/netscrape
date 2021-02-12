@@ -226,7 +226,7 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 	}
 
 	// remove edge between previously linked nodes which are still present in the graph
-	if err := g.RemoveLink(context.TODO(), n1.UID(), n2.UID()); err != nil {
+	if err := g.Unlink(context.TODO(), n1.UID(), n2.UID()); err != nil {
 		t.Errorf("failed removing edge between %s and %s: %v", n1.UID(), n2.UID(), err)
 	}
 
@@ -235,11 +235,11 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 	}
 
 	// remoe edge between non-existen nodes should return nil
-	if err := g.RemoveLink(context.TODO(), nodeX.UID(), n1.UID()); err != nil {
+	if err := g.Unlink(context.TODO(), nodeX.UID(), n1.UID()); err != nil {
 		t.Errorf("failed removing edge between %s and %s: %v", nodeX.UID(), n1.UID(), err)
 	}
 
-	if err := g.RemoveLink(context.TODO(), n1.UID(), nodeX.UID()); err != nil {
+	if err := g.Unlink(context.TODO(), n1.UID(), nodeX.UID()); err != nil {
 		t.Errorf("failed removing edge between %s and %s: %v", nodeX.UID(), n1.UID(), err)
 	}
 }

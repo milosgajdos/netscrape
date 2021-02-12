@@ -224,8 +224,8 @@ func (g *WUG) Edges(ctx context.Context) ([]graph.Edge, error) {
 	return edges, nil
 }
 
-// RemoveLink removes link between two nodes.
-func (g *WUG) RemoveLink(ctx context.Context, from, to uuid.UID) error {
+// Unlink removes link between two nodes.
+func (g *WUG) Unlink(ctx context.Context, from, to uuid.UID) error {
 	f, ok := g.nodes[from.Value()]
 	if !ok {
 		return nil

@@ -94,16 +94,16 @@ type NodeRemover interface {
 	RemoveNode(context.Context, uuid.UID) error
 }
 
-// NodeLinker links two nodes in graph.
-type NodeLinker interface {
+// Linker links two nodes in graph.
+type Linker interface {
 	// Link links two nodes and returns the new edge.
 	Link(ctx context.Context, from, to uuid.UID, opts ...Option) (Edge, error)
 }
 
-// LinkRemover removes link between two Nodes.
-type LinkRemover interface {
-	// RemoveEdge removes link(s) from graph.
-	RemoveLink(ctx context.Context, from, to uuid.UID) error
+// Unlinker removes link between two Nodes.
+type Unlinker interface {
+	// Unlink removes link from graph.
+	Unlink(ctx context.Context, from, to uuid.UID) error
 }
 
 // Graph is a graph of entities.

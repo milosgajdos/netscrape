@@ -122,7 +122,7 @@ func TestLink(t *testing.T) {
 		t.Fatalf("failed storing node %s: %v", e2.UID(), err)
 	}
 
-	if err := m.Link(context.TODO(), e1, e2); err != nil {
+	if err := m.Link(context.TODO(), e1.UID(), e2.UID()); err != nil {
 		t.Errorf("failed linking %v to %v: %v", e1.UID(), e2.UID(), err)
 	}
 
@@ -141,7 +141,7 @@ func TestLink(t *testing.T) {
 		t.Errorf("expected links: %d, got: %d", expCount, linkCount)
 	}
 
-	if err := m.Unlink(context.TODO(), e1, e2); err != nil {
+	if err := m.Unlink(context.TODO(), e1.UID(), e2.UID()); err != nil {
 		t.Errorf("failed linking %v to %v: %v", e1.UID(), e2.UID(), err)
 	}
 
