@@ -18,7 +18,7 @@ func TestSource(t *testing.T) {
 
 	space, err := NewMock(src)
 	if err != nil {
-		t.Fatalf("failed to create mock Space: %v", err)
+		t.Fatalf("failed to create mock Plan: %v", err)
 	}
 
 	s, err := space.Origin(context.TODO())
@@ -36,7 +36,7 @@ func TestResources(t *testing.T) {
 
 	space, err := NewMock(src)
 	if err != nil {
-		t.Fatalf("failed to create mock Space: %v", err)
+		t.Fatalf("failed to create mock Plan: %v", err)
 	}
 
 	resources, err := space.Resources(context.TODO())
@@ -49,16 +49,16 @@ func TestResources(t *testing.T) {
 	}
 }
 
-func TestSpaceGet(t *testing.T) {
+func TestPlanGet(t *testing.T) {
 	src := "file:///" + resPath
 
-	space, err := NewMock(src)
+	plan, err := NewMock(src)
 	if err != nil {
-		t.Errorf("failed to create mock Space: %v", err)
+		t.Errorf("failed to create mock Plan: %v", err)
 		return
 	}
 
-	resources, err := space.Resources(context.TODO())
+	resources, err := plan.Resources(context.TODO())
 	if err != nil {
 		t.Fatalf("failed to get plan resources: %v", err)
 	}
@@ -79,7 +79,7 @@ func TestSpaceGet(t *testing.T) {
 	for _, group := range groups {
 		q := base.Build().Add(predicate.Group(group))
 
-		resources, err := space.Get(context.TODO(), q)
+		resources, err := plan.Get(context.TODO(), q)
 		if err != nil {
 			t.Errorf("error querying group %s: %v", group, err)
 		}
@@ -93,7 +93,7 @@ func TestSpaceGet(t *testing.T) {
 		for _, version := range versions {
 			q = q.Add(predicate.Version(version))
 
-			resources, err := space.Get(context.TODO(), q)
+			resources, err := plan.Get(context.TODO(), q)
 			if err != nil {
 				t.Errorf("error querying g/v %s/%s: %v", group, version, err)
 			}
@@ -107,7 +107,7 @@ func TestSpaceGet(t *testing.T) {
 			for _, kind := range kinds {
 				q = q.Add(predicate.Kind(kind))
 
-				resources, err := space.Get(context.TODO(), q)
+				resources, err := plan.Get(context.TODO(), q)
 				if err != nil {
 					t.Errorf("error querying g/v/k: %s/%s/%s: %v", group, version, kind, err)
 				}
@@ -122,7 +122,7 @@ func TestSpaceGet(t *testing.T) {
 				for _, name := range names {
 					q = q.Add(predicate.Name(name))
 
-					resources, err := space.Get(context.TODO(), q)
+					resources, err := plan.Get(context.TODO(), q)
 					if err != nil {
 						t.Errorf("error querying g/v/k/n: %s/%s/%s/%s: %v", group, version, kind, name, err)
 					}
@@ -136,5 +136,37 @@ func TestSpaceGet(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestPlanRemove(t *testing.T) {
+	src := "file:///" + resPath
+
+	plan, err := NewMock(src)
+	if err != nil {
+		t.Errorf("failed to create mock Plan: %v", err)
+		return
+	}
+
+	ctx := context.Background()
+
+	rx, err := plan.Resources(ctx)
+	if err != nil {
+		t.Fatalf("failed to get plan resources: %v", err)
+	}
+
+	for _, r := range rx {
+		if err := plan.Remove(ctx, r); err != nil {
+			t.Errorf("failed removing resource %s/%s/%s: %v", r.Group(), r.Version(), r.Kind(), err)
+		}
+	}
+
+	rx, err = plan.Resources(ctx)
+	if err != nil {
+		t.Fatalf("failed to get plan resources: %v", err)
+	}
+
+	if count := len(rx); count != 0 {
+		t.Errorf("expected %d resources, got: %d", 0, count)
 	}
 }

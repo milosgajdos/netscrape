@@ -16,7 +16,7 @@ type Node struct {
 }
 
 // NewNode creates new Node and returns it.
-// NOTE: if WithAttrs is passed it, its values ovverride Object.Attrs
+// If WithAttrs is passed in, its values override e attributes.
 func NewNode(id int64, e space.Entity, opts ...graph.Option) (*Node, error) {
 	nopts := graph.Options{}
 	for _, apply := range opts {

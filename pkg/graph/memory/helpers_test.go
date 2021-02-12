@@ -9,6 +9,7 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/entity"
+	"github.com/milosgajdos/netscrape/pkg/space/link"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/space/types"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
@@ -40,7 +41,12 @@ func newTestEntity(uid, name, ns string, res space.Resource, opts ...entity.Opti
 	return entity.New(name, ns, res, opts...)
 }
 
-func makeTestSpaceEntities(path string) (map[string]space.Entity, error) {
+type testSpace struct {
+	entities map[string]space.Entity
+	links    map[string]map[string]space.Link
+}
+
+func makeTestSpace(path string) (*testSpace, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -52,42 +58,43 @@ func makeTestSpaceEntities(path string) (map[string]space.Entity, error) {
 	}
 
 	entities := make(map[string]space.Entity)
+	elinks := make(map[string]map[string]space.Link)
 
-	for _, o := range testEntities {
-		a, err := attrs.NewFromMap(o.Resource.Attrs)
+	for _, e := range testEntities {
+		a, err := attrs.NewFromMap(e.Resource.Attrs)
 		if err != nil {
 			return nil, err
 		}
 
 		res, err := resource.New(
-			o.Resource.Name,
-			o.Resource.Group,
-			o.Resource.Version,
-			o.Resource.Kind,
-			o.Resource.Namespaced,
+			e.Resource.Name,
+			e.Resource.Group,
+			e.Resource.Version,
+			e.Resource.Kind,
+			e.Resource.Namespaced,
 			resource.WithAttrs(a),
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		a, err = attrs.NewFromMap(o.Attrs)
+		a, err = attrs.NewFromMap(e.Attrs)
 		if err != nil {
 			return nil, err
 		}
 
-		uid, err := uuid.NewFromString(o.UID)
+		uid, err := uuid.NewFromString(e.UID)
 		if err != nil {
 			return nil, err
 		}
 
-		obj, err := entity.New(o.Name, o.Namespace, res, entity.WithUID(uid), entity.WithAttrs(a))
+		ent, err := entity.New(e.Name, e.Namespace, res, entity.WithUID(uid), entity.WithAttrs(a))
 		if err != nil {
 			return nil, err
 		}
 
-		for _, l := range o.Links {
-			toUID, err := uuid.NewFromString(l.To)
+		for _, l := range e.Links {
+			to, err := uuid.NewFromString(l.To)
 			if err != nil {
 				return nil, err
 			}
@@ -97,15 +104,27 @@ func makeTestSpaceEntities(path string) (map[string]space.Entity, error) {
 				return nil, err
 			}
 
-			if err := obj.Link(toUID, space.WithAttrs(a)); err != nil {
-				return nil, err
+			if elinks[uid.Value()] == nil {
+				elinks[uid.Value()] = make(map[string]space.Link)
+			}
+
+			if _, ok := elinks[uid.Value()][to.Value()]; !ok {
+				link, err := link.New(uid, to, link.WithAttrs(a))
+				if err != nil {
+					return nil, err
+				}
+
+				elinks[uid.Value()][to.Value()] = link
 			}
 		}
 
-		entities[o.UID] = obj
+		entities[e.UID] = ent
 	}
 
-	return entities, nil
+	return &testSpace{
+		entities: entities,
+		links:    elinks,
+	}, nil
 }
 
 func makeTestGraph(path string) (*WUG, error) {
@@ -114,12 +133,12 @@ func makeTestGraph(path string) (*WUG, error) {
 		return nil, err
 	}
 
-	entities, err := makeTestSpaceEntities(path)
+	t, err := makeTestSpace(path)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, ent := range entities {
+	for _, ent := range t.entities {
 		n, err := g.NewNode(context.TODO(), ent)
 		if err != nil {
 			return nil, err
@@ -129,8 +148,11 @@ func makeTestGraph(path string) (*WUG, error) {
 			return nil, err
 		}
 
-		for _, link := range ent.Links() {
-			ent2 := entities[link.To().Value()]
+		for _, link := range t.links[ent.UID().Value()] {
+			ent2, ok := t.entities[link.To().Value()]
+			if !ok {
+				continue
+			}
 
 			n2, err := g.NewNode(context.TODO(), ent2)
 			if err != nil {
@@ -141,14 +163,7 @@ func makeTestGraph(path string) (*WUG, error) {
 				return nil, err
 			}
 
-			a, err := attrs.New()
-			if err != nil {
-				return nil, err
-			}
-
-			if relation := link.Attrs().Get("relation"); relation != "" {
-				a.Set("relation", relation)
-			}
+			a := attrs.NewCopyFrom(link.Attrs())
 
 			if _, err = g.Link(context.TODO(), n.UID(), n2.UID(), graph.WithAttrs(a)); err != nil {
 				return nil, err

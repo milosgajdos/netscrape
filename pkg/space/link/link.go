@@ -5,7 +5,7 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Link links two unique space objects.
+// Link links two space entities.
 type Link struct {
 	uid   uuid.UID
 	from  uuid.UID
@@ -13,7 +13,7 @@ type Link struct {
 	attrs attrs.Attrs
 }
 
-// New creates a new link between two objects and returns it.
+// New creates a new link between two entities and returns it.
 func New(from, to uuid.UID, opts ...Option) (*Link, error) {
 	lopts := Options{}
 	for _, apply := range opts {
@@ -62,7 +62,6 @@ func (l Link) To() uuid.UID {
 }
 
 // Attrs returns attributes.
-// NOTE: Attrs is not thread-safe
 func (l Link) Attrs() attrs.Attrs {
 	return l.attrs
 }

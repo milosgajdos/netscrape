@@ -43,7 +43,7 @@ func TestNode(t *testing.T) {
 		t.Errorf("expected ID: %d, got: %d", nodeGID, id)
 	}
 
-	if nodeObj := node.Entity; !reflect.DeepEqual(nodeObj, o) {
+	if nodeEnt := node.Entity; !reflect.DeepEqual(nodeEnt, o) {
 		t.Errorf("invalid space.Entity for node: %s", node.UID())
 	}
 

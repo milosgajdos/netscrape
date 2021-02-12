@@ -2,14 +2,16 @@ package top
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/space"
+	"github.com/milosgajdos/netscrape/pkg/space/link"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Top is generic Space topology
+// Top is space topology
 type Top struct {
 	// space is the source of topology
 	space space.Plan
@@ -17,6 +19,14 @@ type Top struct {
 	entities map[string]space.Entity
 	// index is topology "search index" (ns/kind/name)
 	index map[string]map[string]map[string]space.Entity
+	// links indexes all links for the given entity
+	// NOTE: index key in this map is the UID of the *link*
+	links map[string]space.Link
+	// elinks indexes links from this entity to
+	// other entities for faster lookups.
+	// NOTE: index key in first level map is the UID of the from *entity*
+	// and index key in the second level map is the UID of the to *entity*
+	elinks map[string]map[string]space.Link
 	// mu synchronizes access to Top
 	mu *sync.RWMutex
 }
@@ -27,6 +37,8 @@ func New(a space.Plan) (*Top, error) {
 		space:    a,
 		entities: make(map[string]space.Entity),
 		index:    make(map[string]map[string]map[string]space.Entity),
+		links:    make(map[string]space.Link),
+		elinks:   make(map[string]map[string]space.Link),
 		mu:       &sync.RWMutex{},
 	}, nil
 }
@@ -36,7 +48,7 @@ func (t Top) Plan(ctx context.Context) (space.Plan, error) {
 	return t.space, nil
 }
 
-// Entities returns all entities in space topology.
+// Entities returns all entities stored in topology.
 func (t Top) Entities(ctx context.Context) ([]space.Entity, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
@@ -77,27 +89,119 @@ func (t *Top) add(o space.Entity) error {
 }
 
 // Add adds o to topology with the given options.
-func (t *Top) Add(ctx context.Context, o space.Entity, opts ...space.Option) error {
+func (t *Top) Add(ctx context.Context, e space.Entity, opts ...space.Option) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	if _, ok := t.entities[o.UID().Value()]; !ok {
-		if err := t.add(o); err != nil {
-			return err
-		}
-	}
-
-	topObj := t.entities[o.UID().Value()]
-
-	// topObj and o have the same UID so we need to
-	// update topObj links with all the o links
-	for _, l := range o.Links() {
-		if err := topObj.Link(l.To(), space.WithAttrs(l.Attrs()), space.WithMerge(true)); err != nil {
+	if _, ok := t.entities[e.UID().Value()]; !ok {
+		if err := t.add(e); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+// Remove removes Entity with given uid from topology.
+func (t *Top) Remove(ctx context.Context, uid uuid.UID, opts ...space.Option) error {
+	oopts := space.Options{}
+	for _, apply := range opts {
+		apply(&oopts)
+	}
+
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	delete(t.entities, uid.Value())
+	delete(t.elinks, uid.Value())
+
+	for luid, l := range t.links {
+		from := l.From().Value()
+		to := l.To().Value()
+
+		if from == uid.Value() || to == uid.Value() {
+			delete(t.links, luid)
+		}
+	}
+
+	return nil
+}
+
+// link links from and to entity
+func (t *Top) link(from, to uuid.UID, opts ...space.Option) error {
+	sopts := space.Options{}
+	for _, apply := range opts {
+		apply(&sopts)
+	}
+
+	lopts := []link.Option{
+		link.WithUID(sopts.UID),
+		link.WithAttrs(sopts.Attrs),
+		link.WithMerge(sopts.Merge),
+	}
+
+	link, err := link.New(from, to, lopts...)
+	if err != nil {
+		return err
+	}
+
+	t.links[link.UID().Value()] = link
+
+	if t.elinks[from.Value()] == nil {
+		t.elinks[from.Value()] = make(map[string]space.Link)
+	}
+
+	t.elinks[from.Value()][to.Value()] = link
+
+	return nil
+}
+
+// Link links entities with given UIDs.
+// If either from or to is not found in topology it returns error.
+func (t *Top) Link(ctx context.Context, from, to uuid.UID, opts ...space.Option) error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	l, ok := t.elinks[from.Value()][to.Value()]
+	if !ok {
+		return t.link(from, to, opts...)
+	}
+
+	lopts := space.Options{}
+	for _, apply := range opts {
+		apply(&lopts)
+	}
+
+	if lopts.Merge {
+		if lopts.Attrs != nil {
+			for _, k := range lopts.Attrs.Keys() {
+				l.Attrs().Set(k, lopts.Attrs.Get(k))
+			}
+		}
+	}
+
+	return nil
+}
+
+// Links returns all links with origin in the given entity.
+// If the entity is not found in Top it returns error.
+func (t Top) Links(ctx context.Context, uid uuid.UID) ([]space.Link, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if _, ok := t.elinks[uid.Value()]; !ok {
+		return nil, fmt.Errorf("link entity %s: %w", uid, space.ErrEntityNotFound)
+	}
+
+	links := make([]space.Link, len(t.elinks[uid.Value()]))
+
+	i := 0
+	for _, link := range t.elinks[uid.Value()] {
+		links[i] = link
+		i++
+	}
+
+	return links, nil
 }
 
 // getNamespaceKindEntities returns all entities in given namespace with given kind matching query q.
@@ -136,11 +240,11 @@ func (t Top) getNamespaceEntities(ns string, q query.Query) ([]space.Entity, err
 	// nolint:prealloc
 	var entities []space.Entity
 	for kind := range t.index[ns] {
-		objs, err := t.getNamespaceKindEntities(ns, kind, q)
+		ents, err := t.getNamespaceKindEntities(ns, kind, q)
 		if err != nil {
 			return nil, err
 		}
-		entities = append(entities, objs...)
+		entities = append(entities, ents...)
 	}
 
 	return entities, nil
@@ -152,11 +256,11 @@ func (t Top) getAllNamespacedEntities(q query.Query) ([]space.Entity, error) {
 	var entities []space.Entity
 
 	for ns := range t.index {
-		objs, err := t.getNamespaceEntities(ns, q)
+		ents, err := t.getNamespaceEntities(ns, q)
 		if err != nil {
 			return nil, err
 		}
-		entities = append(entities, objs...)
+		entities = append(entities, ents...)
 	}
 
 	return entities, nil
