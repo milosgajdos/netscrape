@@ -8,6 +8,6 @@ type Graph interface {
 	graph.SubGrapher
 	graph.NodeAdder
 	graph.NodeRemover
-	graph.NodeLinker
-	graph.LinkRemover
+	graph.Linker
+	graph.Unlinker
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/query"
+	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 // Object is store object
@@ -35,10 +36,10 @@ type Store interface {
 	Graph(context.Context) (graph.Graph, error)
 	// Add Entity to store.
 	Add(context.Context, Entity, ...Option) error
-	// Link two entities in store
-	Link(ctx context.Context, from, to Entity, opts ...Option) error
+	// Link two entities in store.
+	Link(ctx context.Context, from, to uuid.UID, opts ...Option) error
 	// Delete Entity from store.
 	Delete(context.Context, Entity, ...Option) error
-	// Unlink two entities in store
-	Unlink(ctx context.Context, from, to Entity, opts ...Option) error
+	// Unlink two entities in store.
+	Unlink(ctx context.Context, from, to uuid.UID, opts ...Option) error
 }
