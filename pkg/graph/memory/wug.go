@@ -314,6 +314,7 @@ func (g *WUG) SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...gra
 }
 
 // queryEdge returns all the edges that match given query
+// TODO: find edges with given UID
 func (g WUG) queryEdge(q query.Query) ([]graph.Edge, error) {
 	traversed := make(map[string]bool)
 

@@ -40,7 +40,7 @@ func New(opts ...Option) (*netscraper, error) {
 			return nil, err
 		}
 
-		s, err = memstore.New(g)
+		s, err = memstore.New(memstore.WithGraph(g))
 		if err != nil {
 			return nil, err
 		}

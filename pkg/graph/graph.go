@@ -3,7 +3,6 @@ package graph
 import (
 	"context"
 
-	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 	"gonum.org/v1/gonum/graph/encoding"
@@ -67,50 +66,18 @@ type DOTGraph interface {
 	DOT() (string, error)
 }
 
-// SubGrapher returns the maximum subgraph of a graph.
+// SubGrapher returns subgraph of a graph.
 type SubGrapher interface {
 	// SubGraph returns the maximum subgraph of a graph
 	// starting at node with given uid up to given depth.
 	SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...Option) (Graph, error)
 }
 
-// Querier queries graph.
-type Querier interface {
-	// Query the graph and return the results.
-	Query(context.Context, query.Query) ([]Object, error)
-}
-
-// NodeAdder adds nodes to graph.
-type NodeAdder interface {
-	// NewNode returns a new node.
-	NewNode(context.Context, space.Entity, ...Option) (Node, error)
-	// AddNode adds a new node to graph.
-	AddNode(context.Context, Node) error
-}
-
-// NodeRemover removes node from graph
-type NodeRemover interface {
-	// RemoveNode removes node from graph.
-	RemoveNode(context.Context, uuid.UID) error
-}
-
-// Linker links two nodes in graph.
-type Linker interface {
-	// Link links two nodes and returns the new edge.
-	Link(ctx context.Context, from, to uuid.UID, opts ...Option) (Edge, error)
-}
-
-// Unlinker removes link between two Nodes.
-type Unlinker interface {
-	// Unlink removes link from graph.
-	Unlink(ctx context.Context, from, to uuid.UID) error
-}
-
 // Graph is a graph of entities.
 type Graph interface {
 	// UID returns graph uid.
 	UID() uuid.UID
-	// Node returns node with given uid.
+	// Node returns the node with given uid.
 	Node(context.Context, uuid.UID) (Node, error)
 	// Nodes returns all graph nodes.
 	Nodes(context.Context) ([]Node, error)
