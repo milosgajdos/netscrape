@@ -52,10 +52,10 @@ func New(opts ...Option) (*netscraper, error) {
 	}, nil
 }
 
-// skip returns true if o matches any of the filters.
-func (n netscraper) skip(o space.Entity, fx ...Filter) bool {
+// skip returns true if e matches any of the filters.
+func (n netscraper) skip(e space.Entity, fx ...Filter) bool {
 	for _, f := range fx {
-		if f(o) {
+		if f(e) {
 			return true
 		}
 	}
@@ -63,7 +63,7 @@ func (n netscraper) skip(o space.Entity, fx ...Filter) bool {
 	// NOTE: we avoid appending n.fx to fx and iterating in
 	// single loop for the sake of better performance
 	for _, f := range n.fx {
-		if f(o) {
+		if f(e) {
 			return true
 		}
 	}

@@ -9,14 +9,11 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
+// Querier queries graph entities.
 // NOTE: this interface is a [temporary] hack!
-// Ideally, I would like to figure out how to parse
-// a generic GraphQL query into query.Query interface.
-// Or maybe graph.Query should simply accept a string,
-// which would then be parsed into query.Query.
 type Querier interface {
 	// Query the graph and return the results.
-	Query(context.Context, query.Query) ([]graph.Object, error)
+	Query(context.Context, query.Query) ([]graph.Entity, error)
 }
 
 // NodeAdder adds nodes to graph.

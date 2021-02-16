@@ -8,8 +8,8 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/space"
-	"github.com/milosgajdos/netscrape/pkg/space/entity"
 	"github.com/milosgajdos/netscrape/pkg/space/link"
+	"github.com/milosgajdos/netscrape/pkg/space/object"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/space/types"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
@@ -30,19 +30,19 @@ func newTestResource(name, group, version, kind string, namespaced bool, opts ..
 	return resource.New(name, group, version, kind, namespaced, opts...)
 }
 
-func newTestEntity(uid, name, ns string, res space.Resource, opts ...entity.Option) (space.Entity, error) {
+func newTestEntity(uid, name, ns string, res space.Resource, opts ...object.Option) (space.Object, error) {
 	u, err := uuid.NewFromString(uid)
 	if err != nil {
 		return nil, err
 	}
 
-	opts = append(opts, entity.WithUID(u))
+	opts = append(opts, object.WithUID(u))
 
-	return entity.New(name, ns, res, opts...)
+	return object.New(name, ns, res, opts...)
 }
 
 type testSpace struct {
-	entities map[string]space.Entity
+	entities map[string]space.Object
 	links    map[string]map[string]space.Link
 }
 
@@ -52,12 +52,12 @@ func makeTestSpace(path string) (*testSpace, error) {
 		return nil, err
 	}
 
-	var testEntities []types.Entity
+	var testEntities []types.Object
 	if err := yaml.Unmarshal(data, &testEntities); err != nil {
 		return nil, err
 	}
 
-	entities := make(map[string]space.Entity)
+	entities := make(map[string]space.Object)
 	elinks := make(map[string]map[string]space.Link)
 
 	for _, e := range testEntities {
@@ -88,7 +88,7 @@ func makeTestSpace(path string) (*testSpace, error) {
 			return nil, err
 		}
 
-		ent, err := entity.New(e.Name, e.Namespace, res, entity.WithUID(uid), entity.WithAttrs(a))
+		ent, err := object.New(e.Name, e.Namespace, res, object.WithUID(uid), object.WithAttrs(a))
 		if err != nil {
 			return nil, err
 		}

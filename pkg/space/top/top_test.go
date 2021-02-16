@@ -8,24 +8,16 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/query/base"
 	"github.com/milosgajdos/netscrape/pkg/query/predicate"
 	"github.com/milosgajdos/netscrape/pkg/space"
-	"github.com/milosgajdos/netscrape/pkg/space/plan"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 const (
-	entPath = "../testdata/undirected/entities.yaml"
+	objPath = "../testdata/undirected/objects.yaml"
 	resPath = "../testdata/undirected/resources.yaml"
 )
 
 func newTop(resPath, entPath string) (*Top, error) {
-	src := "file:///" + resPath
-
-	p, err := plan.NewMock(src)
-	if err != nil {
-		return nil, err
-	}
-
-	top, err := NewMock(p, entPath)
+	top, err := NewMock(entPath)
 	if err != nil {
 		return nil, err
 	}
@@ -34,37 +26,18 @@ func newTop(resPath, entPath string) (*Top, error) {
 }
 
 func TestNew(t *testing.T) {
-	src := "file:///" + resPath
-
-	p, err := plan.NewMock(src)
-	if err != nil {
-		t.Fatalf("failed to create space Plan: %v", err)
-	}
-
-	top, err := New(p)
+	top, err := New()
 	if err != nil {
 		t.Fatalf("failed to create space Top: %v", err)
 	}
 
-	ctx := context.Background()
-
-	plan, err := top.Plan(ctx)
-	if err != nil {
-		t.Fatalf("failed getting topology plan: %v", err)
-	}
-
-	o, err := plan.Origin(ctx)
-	if err != nil {
-		t.Fatalf("failed getting plan origin: %v", err)
-	}
-
-	if origin := o.URL().String(); origin != src {
-		t.Errorf("expected origin: %s, got: %s", src, origin)
+	if top == nil {
+		t.Fatalf("expected new Top, got: %v", top)
 	}
 }
 
 func TestEntities(t *testing.T) {
-	top, err := newTop(resPath, entPath)
+	top, err := newTop(resPath, objPath)
 	if err != nil {
 		t.Fatalf("failed to create mock Top: %v", err)
 	}
@@ -80,7 +53,7 @@ func TestEntities(t *testing.T) {
 }
 
 func TestGetUID(t *testing.T) {
-	top, err := newTop(resPath, entPath)
+	top, err := newTop(resPath, objPath)
 	if err != nil {
 		t.Fatalf("failed to create mock Top: %v", err)
 	}
@@ -118,7 +91,7 @@ func TestGetUID(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	top, err := newTop(resPath, entPath)
+	top, err := newTop(resPath, objPath)
 	if err != nil {
 		t.Fatalf("failed to create mock Top: %v", err)
 	}
@@ -130,78 +103,43 @@ func TestGet(t *testing.T) {
 		t.Errorf("error querying entities: %v", err)
 	}
 
-	allEntities, err := top.Entities(context.TODO())
+	// empty query should return empty slice
+	expCount := 0
+	if count := len(entities); count != expCount {
+		t.Errorf("expected: %d, got: %d", expCount, count)
+
+	}
+
+	entities, err = top.Entities(context.TODO())
 	if err != nil {
 		t.Fatalf("failed to get all topology entities: %v", err)
 	}
 
-	if len(entities) != len(allEntities) {
-		t.Errorf("expected: %d, got: %d", len(entities), len(allEntities))
+	names := make([]string, len(entities))
 
+	for i, e := range entities {
+		names[i] = e.Name()
 	}
 
-	namespaces := make([]string, len(allEntities))
-	kinds := make([]string, len(allEntities))
-	names := make([]string, len(allEntities))
-
-	for i, o := range allEntities {
-		namespaces[i] = o.Namespace()
-		kinds[i] = o.Resource().Kind()
-		names[i] = o.Name()
-	}
-
-	for _, ns := range namespaces {
-		q := base.Build().Add(predicate.Namespace(ns))
+	for _, name := range names {
+		q := base.Build().Add(predicate.Name(name))
 
 		entities, err := top.Get(context.TODO(), q)
 		if err != nil {
-			t.Errorf("error getting namespace %s entities: %v", ns, err)
+			t.Errorf("error getting ntities with name %s : %v", name, err)
 			continue
 		}
 
-		for _, o := range entities {
-			if o.Namespace() != ns {
-				t.Errorf("expected: %s, got: %s", ns, o.Namespace())
-			}
-		}
-
-		for _, kind := range kinds {
-			q = q.Add(predicate.Kind(kind))
-
-			entities, err = top.Get(context.TODO(), q)
-			if err != nil {
-				t.Errorf("error getting entities: %s/%s: %v", ns, kind, err)
-				continue
-			}
-
-			for _, o := range entities {
-				if o.Namespace() != ns || o.Resource().Kind() != kind {
-					t.Errorf("expected: %s/%s, got: %s/%s", ns, kind, o.Namespace(), o.Resource().Kind())
-				}
-			}
-
-			for _, name := range names {
-				q = q.Add(predicate.Name(name))
-
-				entities, err = top.Get(context.TODO(), q)
-				if err != nil {
-					t.Errorf("error getting entities: %s/%s/%s: %v", ns, kind, name, err)
-					continue
-				}
-
-				for _, o := range entities {
-					if o.Namespace() != ns || o.Resource().Kind() != kind || o.Name() != name {
-						t.Errorf("expected: %s/%s/%s, got: %s/%s/%s", ns, kind, name,
-							o.Namespace(), o.Resource().Kind(), o.Name())
-					}
-				}
+		for _, e := range entities {
+			if n := e.Name(); n != name {
+				t.Errorf("expected: %s, got: %s", name, n)
 			}
 		}
 	}
 }
 
 func TestRemove(t *testing.T) {
-	top, err := newTop(resPath, entPath)
+	top, err := newTop(resPath, objPath)
 	if err != nil {
 		t.Fatalf("failed to create mock Top: %v", err)
 	}
@@ -250,7 +188,7 @@ func TestRemove(t *testing.T) {
 }
 
 func TestLinks(t *testing.T) {
-	top, err := newTop(resPath, entPath)
+	top, err := newTop(resPath, objPath)
 	if err != nil {
 		t.Fatalf("failed to create mock Top: %v", err)
 	}

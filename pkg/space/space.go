@@ -9,16 +9,20 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Object defines space object.
-type Object interface {
+// Entity is graph entity.
+type Entity interface {
 	// UID returns unique ID.
 	UID() uuid.UID
+	// Name returns name
+	Name() string
 	// Attrs returns attributes.
 	Attrs() attrs.Attrs
 }
 
 // Resource is space resource.
 type Resource interface {
+	// UID returns unique ID.
+	UID() uuid.UID
 	// Name returns name.
 	Name() string
 	// Group retrurns group.
@@ -27,8 +31,22 @@ type Resource interface {
 	Version() string
 	// Kind returns kind.
 	Kind() string
-	// Namespaced
+	// Namespaced flag.
 	Namespaced() bool
+	// Attrs returns attributes.
+	Attrs() attrs.Attrs
+}
+
+// Object is an instance of resource.
+type Object interface {
+	// UID returns unique ID.
+	UID() uuid.UID
+	// Name returns human readable name.
+	Name() string
+	// Namespace returns namespace.
+	Namespace() string
+	// Resource returns Resource.
+	Resource() Resource
 	// Attrs returns attributes.
 	Attrs() attrs.Attrs
 }
@@ -41,20 +59,6 @@ type Link interface {
 	From() uuid.UID
 	// To returns uid of the end of link.
 	To() uuid.UID
-	// Attrs returns attributes.
-	Attrs() attrs.Attrs
-}
-
-// Entity is an instance of resource.
-type Entity interface {
-	// UID returns unique ID.
-	UID() uuid.UID
-	// Name returns human readable name.
-	Name() string
-	// Namespace returns namespace.
-	Namespace() string
-	// Resource returns Resource.
-	Resource() Resource
 	// Attrs returns attributes.
 	Attrs() attrs.Attrs
 }
@@ -81,16 +85,14 @@ type Plan interface {
 
 // Top is topology i.e. a map of Entities.
 type Top interface {
-	// Plan returns topology Plan.
-	Plan(context.Context) (Plan, error)
-	// Entities returns all topology Entities.
-	Entities(context.Context) ([]Entity, error)
-	// Get returns all Entities matching query.
-	Get(context.Context, query.Query) ([]Entity, error)
 	// Add adds Entity to topology.
 	Add(context.Context, Entity, ...Option) error
 	// Remove removes Entity with given uid from topology.
 	Remove(context.Context, uuid.UID, ...Option) error
+	// Entities returns all topology Entities.
+	Entities(context.Context) ([]Entity, error)
+	// Get returns Entity with the given UID
+	Get(context.Context, query.Query) ([]Entity, error)
 	// Link links entities with given UIDs.
 	Link(ctx context.Context, from, to uuid.UID, opts ...Option) error
 	// Links returns all links with origin in the given entity.

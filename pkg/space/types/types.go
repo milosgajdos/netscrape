@@ -2,6 +2,7 @@ package types
 
 // Resource is space resource.
 type Resource struct {
+	UID        string            `json:"uid"`
 	Name       string            `json:"name"`
 	Group      string            `json:"group"`
 	Version    string            `json:"version"`
@@ -18,8 +19,8 @@ type Link struct {
 	Attrs map[string]string `json:"attrs,omitempty"`
 }
 
-// Entity is space entity
-type Entity struct {
+// Object is space object
+type Object struct {
 	UID       string            `json:"uid"`
 	Name      string            `json:"name"`
 	Namespace string            `json:"namespace"`

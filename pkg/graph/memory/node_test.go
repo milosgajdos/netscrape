@@ -18,14 +18,9 @@ func TestNode(t *testing.T) {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	o, err := newTestEntity(nodeID, nodeName, nodeNs, r)
+	e, err := newTestEntity(nodeID, nodeName, nodeNs, r)
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
-	}
-
-	dotid, err := graph.DOTIDFromEntity(o)
-	if err != nil {
-		t.Fatalf("failed to build DOTID: %v", err)
 	}
 
 	a, err := attrs.New()
@@ -34,7 +29,7 @@ func TestNode(t *testing.T) {
 	}
 	a.Set("nodename", nodeName)
 
-	node, err := NewNode(nodeGID, o, graph.WithAttrs(a))
+	node, err := NewNode(nodeGID, e, graph.WithAttrs(a))
 	if err != nil {
 		t.Fatalf("failed to create new node from Space entity: %v", err)
 	}
@@ -43,12 +38,16 @@ func TestNode(t *testing.T) {
 		t.Errorf("expected ID: %d, got: %d", nodeGID, id)
 	}
 
-	if nodeEnt := node.Entity; !reflect.DeepEqual(nodeEnt, o) {
+	if nodeEnt := node.Entity; !reflect.DeepEqual(nodeEnt, e) {
 		t.Errorf("invalid space.Entity for node: %s", node.UID())
 	}
 
-	if dotID := node.DOTID(); dotID != dotid {
-		t.Errorf("expected DOTID: %s, got: %s", dotid, dotID)
+	if dotEnt, ok := e.(graph.DOTEntity); ok {
+		dotid := dotEnt.DOTID()
+		if dotID := node.DOTID(); dotID != dotid {
+			t.Errorf("expected DOTID: %s, got: %s", dotid, dotID)
+		}
+
 	}
 
 	// NOTE: by default we will get the following attributes:

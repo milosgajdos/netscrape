@@ -7,7 +7,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/space"
-	"github.com/milosgajdos/netscrape/pkg/space/entity"
+	"github.com/milosgajdos/netscrape/pkg/space/object"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/space/types"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
@@ -15,8 +15,8 @@ import (
 
 // NewMock creates mock Top from entities and resrouces
 // defined in given path and returns it.
-func NewMock(a space.Plan, path string) (*Top, error) {
-	t, err := New(a)
+func NewMock(path string) (*Top, error) {
+	t, err := New()
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func NewMock(a space.Plan, path string) (*Top, error) {
 		return nil, err
 	}
 
-	var entities []types.Entity
+	var entities []types.Object
 	if err := yaml.Unmarshal(data, &entities); err != nil {
 		return nil, err
 	}
@@ -55,12 +55,12 @@ func NewMock(a space.Plan, path string) (*Top, error) {
 			return nil, err
 		}
 
-		ent, err := entity.New(
+		ent, err := object.New(
 			o.Name,
 			o.Namespace,
 			r,
-			entity.WithUID(uid),
-			entity.WithAttrs(a),
+			object.WithUID(uid),
+			object.WithAttrs(a),
 		)
 
 		if err != nil {

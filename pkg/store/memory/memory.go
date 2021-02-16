@@ -2,11 +2,10 @@ package memory
 
 import (
 	"context"
-	"fmt"
+	"text/template"
 
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/graph/memory"
-	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/store"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -74,13 +73,13 @@ func (m *Store) Link(ctx context.Context, from, to uuid.UID, opts ...store.Optio
 }
 
 // Delete deletes e from memory store.
-func (m *Store) Delete(ctx context.Context, e store.Entity, opts ...store.Option) error {
+func (m *Store) Delete(ctx context.Context, uid uuid.UID, opts ...store.Option) error {
 	dopts := store.Options{}
 	for _, apply := range opts {
 		apply(&dopts)
 	}
 
-	return m.g.RemoveNode(ctx, e.UID())
+	return m.g.RemoveNode(ctx, uid)
 }
 
 // Unlink two entities with given UIDs in store.
@@ -97,23 +96,7 @@ func (m *Store) Unlink(ctx context.Context, from, to uuid.UID, opts ...store.Opt
 	return nil
 }
 
-// Query queries the store and returns the results.
-func (m Store) Query(ctx context.Context, q query.Query) ([]store.Entity, error) {
-	g, ok := m.g.(memory.Querier)
-	if !ok {
-		return nil, fmt.Errorf("query: %w", graph.ErrUnsupported)
-	}
-
-	qents, err := g.Query(ctx, q)
-	if err != nil {
-		return nil, err
-	}
-
-	results := make([]store.Entity, len(qents))
-
-	for i, e := range qents {
-		results[i] = e.(store.Entity)
-	}
-
-	return results, nil
+// Query store and return results
+func (m *Store) Query(context.Context, template.Template, map[string]string) ([]store.Entity, error) {
+	return nil, store.ErrNotImplemented
 }

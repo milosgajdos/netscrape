@@ -1,11 +1,11 @@
-package entity
+package object
 
 import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Options configure Entity
+// Options configure Object
 type Options struct {
 	// UID options
 	UID uuid.UID

@@ -2,16 +2,11 @@ package store
 
 import (
 	"context"
+	"text/template"
 
 	"github.com/milosgajdos/netscrape/pkg/graph"
-	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
-
-// Object is store object
-type Object interface {
-	graph.Object
-}
 
 // Entity is store entity.
 type Entity interface {
@@ -19,15 +14,9 @@ type Entity interface {
 }
 
 // Querier queries store.
-// NOTE: this interface is a [temporary] hack!
-// Store must provide query capabilities by default.
-// Ideally, I would like to figure out how to parse
-// a generic GraphQL query into query.Query interface.
-// Or maybe store.Query should simply accept a string,
-// which would then be parsed into query.Query.
 type Querier interface {
 	// Query store and return the results.
-	Query(context.Context, query.Query) ([]Entity, error)
+	Query(context.Context, template.Template, map[string]string) ([]Entity, error)
 }
 
 // Store stores entities.
@@ -37,7 +26,7 @@ type Store interface {
 	// Add Entity to store.
 	Add(context.Context, Entity, ...Option) error
 	// Delete Entity from store.
-	Delete(context.Context, Entity, ...Option) error
+	Delete(context.Context, uuid.UID, ...Option) error
 	// Link two entities in store.
 	Link(ctx context.Context, from, to uuid.UID, opts ...Option) error
 	// Unlink two entities in store.

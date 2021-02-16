@@ -8,7 +8,6 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/space/origin"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/space/types"
-	"github.com/milosgajdos/netscrape/pkg/space/utils"
 )
 
 // NewMock creates mock Plan from given path and returns it.
@@ -23,7 +22,7 @@ func NewMock(path string) (*Plan, error) {
 		return nil, err
 	}
 
-	p, err := utils.GetFilePathFromUrl(s.URL(), false)
+	p, err := GetFilePathFromUrl(s.URL(), false)
 	if err != nil {
 		return nil, err
 	}

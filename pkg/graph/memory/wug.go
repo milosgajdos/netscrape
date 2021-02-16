@@ -224,6 +224,26 @@ func (g *WUG) Edges(ctx context.Context) ([]graph.Edge, error) {
 	return edges, nil
 }
 
+// From returns all directly reachable nodes from node with the given UID.
+func (g *WUG) From(ctx context.Context, uid uuid.UID) ([]graph.Node, error) {
+	node, ok := g.nodes[uid.Value()]
+	if !ok {
+		return nil, nil
+	}
+
+	gnodes := g.WeightedUndirectedGraph.From(node.(*Node).ID())
+
+	graphNodes := gngraph.NodesOf(gnodes)
+
+	nodes := make([]graph.Node, len(graphNodes))
+
+	for i, n := range graphNodes {
+		nodes[i] = n.(*Node)
+	}
+
+	return nodes, nil
+}
+
 // Unlink removes link between two nodes.
 func (g *WUG) Unlink(ctx context.Context, from, to uuid.UID) error {
 	f, ok := g.nodes[from.Value()]
@@ -284,7 +304,7 @@ func (g *WUG) SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...gra
 	}
 
 	for id, node := range sgNodes {
-		nodes := g.From(id)
+		nodes := g.WeightedUndirectedGraph.From(id)
 		for nodes.Next() {
 			pnode := nodes.Node()
 			peer := pnode.(*Node)
@@ -313,48 +333,6 @@ func (g *WUG) SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...gra
 	return sg, nil
 }
 
-// queryEdge returns all the edges that match given query
-// TODO: find edges with given UID
-func (g WUG) queryEdge(q query.Query) ([]graph.Edge, error) {
-	traversed := make(map[string]bool)
-
-	var results []graph.Edge
-
-	trav := func(e gngraph.Edge) bool {
-		edge := e.(*Edge)
-
-		if traversed[edge.UID().Value()] {
-			return false
-		}
-
-		traversed[edge.UID().Value()] = true
-
-		if m := q.Matcher(query.Weight); m != nil {
-			if !m.Match(edge.Weight()) {
-				return false
-			}
-		}
-
-		if m := q.Matcher(query.Attrs); m != nil {
-			if !m.Match(edge.Attrs()) {
-				return false
-			}
-		}
-
-		results = append(results, edge)
-
-		return true
-	}
-
-	dfs := traverse.DepthFirst{
-		Traverse: trav,
-	}
-
-	dfs.WalkAll(g.WeightedUndirectedGraph, nil, nil, func(gngraph.Node) {})
-
-	return results, nil
-}
-
 // queryNode returns all the nodes that match the given query.
 func (g WUG) queryNode(q query.Query) ([]graph.Node, error) {
 	if m := q.Matcher(query.UID); m != nil {
@@ -369,19 +347,6 @@ func (g WUG) queryNode(q query.Query) ([]graph.Node, error) {
 
 	visit := func(n gngraph.Node) {
 		node := n.(*Node)
-
-		if m := q.Matcher(query.Namespace); m != nil {
-			if !m.Match(node.Namespace()) {
-				return
-			}
-		}
-
-		if m := q.Matcher(query.Kind); m != nil {
-			if !m.Match(node.Resource().Kind()) {
-				return
-			}
-		}
-
 		if m := q.Matcher(query.Name); m != nil {
 			if !m.Match(node.Name()) {
 				return
@@ -407,7 +372,7 @@ func (g WUG) queryNode(q query.Query) ([]graph.Node, error) {
 }
 
 // Query queries the in-memory graph and returns the matched results.
-func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Object, error) {
+func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
 	var e query.EntityVal
 
 	if m := q.Matcher(query.Entity); m != nil {
@@ -418,7 +383,7 @@ func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Object, error) {
 		}
 	}
 
-	var entities []graph.Object
+	var entities []graph.Entity
 
 	switch e {
 	case query.Node:
@@ -430,17 +395,8 @@ func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Object, error) {
 		for _, node := range nodes {
 			entities = append(entities, node)
 		}
-	case query.Edge:
-		edges, err := g.queryEdge(q)
-		if err != nil {
-			return nil, fmt.Errorf("edge query: %w", err)
-		}
-
-		for _, edge := range edges {
-			entities = append(entities, edge)
-		}
 	default:
-		return nil, graph.ErrUnknownEntity
+		return nil, graph.ErrUnsupported
 	}
 
 	return entities, nil

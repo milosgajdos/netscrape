@@ -4,10 +4,12 @@ import (
 	"strings"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 // Resource implements a generic Space resource.
 type Resource struct {
+	uid        uuid.UID
 	name       string
 	group      string
 	version    string
@@ -23,6 +25,15 @@ func New(name, group, version, kind string, namespaced bool, opts ...Option) (*R
 		apply(&ropts)
 	}
 
+	uid := ropts.UID
+	if uid == nil {
+		var err error
+		uid, err = uuid.New()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	a := ropts.Attrs
 	if a == nil {
 		var err error
@@ -33,6 +44,7 @@ func New(name, group, version, kind string, namespaced bool, opts ...Option) (*R
 	}
 
 	return &Resource{
+		uid:        uid,
 		name:       name,
 		group:      group,
 		version:    version,
@@ -40,6 +52,11 @@ func New(name, group, version, kind string, namespaced bool, opts ...Option) (*R
 		namespaced: namespaced,
 		attrs:      a,
 	}, nil
+}
+
+// UID returns UID.
+func (r Resource) UID() uuid.UID {
+	return r.uid
 }
 
 // Name returns resource name.
@@ -87,4 +104,12 @@ func (r Resource) Paths() []string {
 // Attrs returns attributes.
 func (r Resource) Attrs() attrs.Attrs {
 	return r.attrs
+}
+
+// DOTID returns DOTID string
+func (r Resource) DOTID() string {
+	return strings.Join([]string{
+		r.Group(),
+		r.Version(),
+		r.Kind()}, "/")
 }

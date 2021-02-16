@@ -3,19 +3,26 @@ package graph
 import (
 	"context"
 
-	"github.com/milosgajdos/netscrape/pkg/space"
+	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 	"gonum.org/v1/gonum/graph/encoding"
 )
 
-// Object is graph object.
-type Object interface {
-	space.Object
-}
-
 // Entity is graph entity.
 type Entity interface {
-	space.Entity
+	// UID returns unique ID.
+	UID() uuid.UID
+	// Name returns name
+	Name() string
+	// Attrs returns attributes.
+	Attrs() attrs.Attrs
+}
+
+// DOTEntity
+type DOTEntity interface {
+	Entity
+	// DOTID returns Graphviz DOT ID.
+	DOTID() string
 }
 
 // DOTer implements GraphViz DOT properties.
@@ -40,13 +47,13 @@ type DOTEdge interface {
 
 // Node is a Graph node.
 type Node interface {
-	Object
 	Entity
 }
 
 // Edge is an edge between two Graph nodes.
 type Edge interface {
-	Object
+	// UID returns unique ID.
+	UID() uuid.UID
 	// FromNode returns the from node of the edge.
 	FromNode(context.Context) (Node, error)
 	// ToNode returns the to node of the edge.
@@ -83,6 +90,6 @@ type Graph interface {
 	Nodes(context.Context) ([]Node, error)
 	// Edge returns the edge between two nodes.
 	Edge(ctx context.Context, from, to uuid.UID) (Edge, error)
-	// Edges returns all graph edges.
-	Edges(context.Context) ([]Edge, error)
+	// From returns all directly reachable nodes from node with the given UID.
+	From(context.Context, uuid.UID) ([]Node, error)
 }

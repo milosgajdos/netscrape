@@ -25,10 +25,9 @@ func NewNode(id int64, e space.Entity, opts ...graph.Option) (*Node, error) {
 
 	dotid := nopts.DOTID
 	if dotid == "" {
-		var err error
-		dotid, err = graph.DOTIDFromEntity(e)
-		if err != nil {
-			return nil, err
+		dotid = e.UID().Value()
+		if dotEnt, ok := e.(graph.DOTEntity); ok {
+			dotid = dotEnt.DOTID()
 		}
 	}
 
