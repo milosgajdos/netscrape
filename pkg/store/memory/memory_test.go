@@ -12,7 +12,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	m, err := New(nil)
+	m, err := New()
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
@@ -23,7 +23,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestAddDelete(t *testing.T) {
-	m, err := New(nil)
+	m, err := New()
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
@@ -88,7 +88,7 @@ func TestAddDelete(t *testing.T) {
 }
 
 func TestLink(t *testing.T) {
-	m, err := New(nil)
+	m, err := New()
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
@@ -157,7 +157,7 @@ func TestLink(t *testing.T) {
 }
 
 func TestQuery(t *testing.T) {
-	m, err := New(nil)
+	m, err := New()
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}

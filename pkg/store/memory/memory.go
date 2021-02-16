@@ -18,8 +18,14 @@ type Store struct {
 }
 
 // New creates a new in-memory store backed by graph g and returns it.
-// If g is nil, the store creates *memory.WUG with default options.
-func New(g memory.Graph) (*Store, error) {
+// By default store uses memory.WUG unless overridden by WithGraph options.
+func New(opts ...Option) (*Store, error) {
+	gopts := Options{}
+	for _, apply := range opts {
+		apply(&gopts)
+	}
+
+	g := gopts.Graph
 	if g == nil {
 		var err error
 		g, err = memory.NewWUG()
@@ -93,7 +99,7 @@ func (m *Store) Unlink(ctx context.Context, from, to uuid.UID, opts ...store.Opt
 
 // Query queries the store and returns the results.
 func (m Store) Query(ctx context.Context, q query.Query) ([]store.Entity, error) {
-	g, ok := m.g.(graph.Querier)
+	g, ok := m.g.(memory.Querier)
 	if !ok {
 		return nil, fmt.Errorf("query: %w", graph.ErrUnsupported)
 	}
