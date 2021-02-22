@@ -8,7 +8,6 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/query"
-	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 	gngraph "gonum.org/v1/gonum/graph"
 	"gonum.org/v1/gonum/graph/encoding"
@@ -72,7 +71,7 @@ func (g WUG) UID() uuid.UID {
 // ID does not already exist in the graph relieving you
 // from the necessity to make sure your new Node.ID()
 // returns unique ID in the underlying graph.
-func (g *WUG) NewNode(ctx context.Context, ent space.Entity, opts ...graph.Option) (graph.Node, error) {
+func (g *WUG) NewNode(ctx context.Context, ent graph.Entity, opts ...graph.Option) (graph.Node, error) {
 	gnode := g.WeightedUndirectedGraph.NewNode()
 
 	node, err := NewNode(gnode.ID(), ent, opts...)
@@ -347,11 +346,6 @@ func (g WUG) queryNode(q query.Query) ([]graph.Node, error) {
 
 	visit := func(n gngraph.Node) {
 		node := n.(*Node)
-		if m := q.Matcher(query.Name); m != nil {
-			if !m.Match(node.Name()) {
-				return
-			}
-		}
 
 		if m := q.Matcher(query.Attrs); m != nil {
 			if !m.Match(node.Attrs()) {
@@ -393,7 +387,9 @@ func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
 		}
 
 		for _, node := range nodes {
-			entities = append(entities, node)
+			if ent, ok := node.(graph.Entity); ok {
+				entities = append(entities, ent)
+			}
 		}
 	default:
 		return nil, graph.ErrUnsupported

@@ -15,6 +15,7 @@ type Resource struct {
 	version    string
 	kind       string
 	namespaced bool
+	dotid      string
 	attrs      attrs.Attrs
 }
 
@@ -43,6 +44,11 @@ func New(name, group, version, kind string, namespaced bool, opts ...Option) (*R
 		}
 	}
 
+	dotid := strings.Join([]string{
+		group,
+		version,
+		kind}, "/")
+
 	return &Resource{
 		uid:        uid,
 		name:       name,
@@ -50,6 +56,7 @@ func New(name, group, version, kind string, namespaced bool, opts ...Option) (*R
 		version:    version,
 		kind:       kind,
 		namespaced: namespaced,
+		dotid:      dotid,
 		attrs:      a,
 	}, nil
 }
@@ -84,23 +91,6 @@ func (r Resource) Namespaced() bool {
 	return r.namespaced
 }
 
-// Paths returns all possible variations resource paths.
-func (r Resource) Paths() []string {
-	resNames := []string{strings.ToLower(r.name)}
-
-	// nolint:prealloc
-	var names []string
-	for _, name := range resNames {
-		names = append(names,
-			name,
-			strings.Join([]string{name, r.group}, "/"),
-			strings.Join([]string{name, r.group, r.version}, "/"),
-		)
-	}
-
-	return names
-}
-
 // Attrs returns attributes.
 func (r Resource) Attrs() attrs.Attrs {
 	return r.attrs
@@ -108,8 +98,10 @@ func (r Resource) Attrs() attrs.Attrs {
 
 // DOTID returns DOTID string
 func (r Resource) DOTID() string {
-	return strings.Join([]string{
-		r.Group(),
-		r.Version(),
-		r.Kind()}, "/")
+	return r.dotid
+}
+
+// SetDOTID sets DOTID
+func (r *Resource) SetDOTID(dotid string) {
+	r.dotid = dotid
 }

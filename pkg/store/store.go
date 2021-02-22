@@ -4,25 +4,22 @@ import (
 	"context"
 	"text/template"
 
-	"github.com/milosgajdos/netscrape/pkg/graph"
+	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 // Entity is store entity.
 type Entity interface {
-	graph.Entity
-}
-
-// Querier queries store.
-type Querier interface {
-	// Query store and return the results.
-	Query(context.Context, template.Template, map[string]string) ([]Entity, error)
+	// UID returns unique ID.
+	UID() uuid.UID
+	// Name returns name
+	Name() string
+	// Attrs returns attributes.
+	Attrs() attrs.Attrs
 }
 
 // Store stores entities.
 type Store interface {
-	// Graph returns graph handle.
-	Graph(context.Context) (graph.Graph, error)
 	// Add Entity to store.
 	Add(context.Context, Entity, ...Option) error
 	// Delete Entity from store.
@@ -31,4 +28,6 @@ type Store interface {
 	Link(ctx context.Context, from, to uuid.UID, opts ...Option) error
 	// Unlink two entities in store.
 	Unlink(ctx context.Context, from, to uuid.UID, opts ...Option) error
+	// Query store and return the results.
+	Query(ctx context.Context, queryTpl template.Template, vars map[string]string) ([]Entity, error)
 }

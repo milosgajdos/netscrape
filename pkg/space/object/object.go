@@ -13,12 +13,17 @@ type Object struct {
 	uid   uuid.UID
 	name  string
 	ns    string
+	dotid string
 	res   space.Resource
 	attrs attrs.Attrs
 }
 
 // New creates a new object and returns it.
 func New(name, ns string, res space.Resource, opts ...Option) (*Object, error) {
+	if res == nil {
+		return nil, ErrMissingResource
+	}
+
 	oopts := Options{}
 	for _, apply := range opts {
 		apply(&oopts)
@@ -42,11 +47,19 @@ func New(name, ns string, res space.Resource, opts ...Option) (*Object, error) {
 		}
 	}
 
+	dotid := strings.Join([]string{
+		res.Group(),
+		res.Version(),
+		res.Kind(),
+		ns,
+		name}, "/")
+
 	return &Object{
 		uid:   uid,
 		name:  name,
 		ns:    ns,
 		res:   res,
+		dotid: dotid,
 		attrs: a,
 	}, nil
 }
@@ -78,10 +91,10 @@ func (o *Object) Attrs() attrs.Attrs {
 
 // DOTID returns DOTID string
 func (o Object) DOTID() string {
-	return strings.Join([]string{
-		o.Resource().Group(),
-		o.Resource().Version(),
-		o.Resource().Kind(),
-		o.Namespace(),
-		o.Name()}, "/")
+	return o.dotid
+}
+
+// SetDOTID sets DOTID
+func (o *Object) SetDOTID(dotid string) {
+	o.dotid = dotid
 }

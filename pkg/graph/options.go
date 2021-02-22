@@ -8,6 +8,14 @@ import (
 const (
 	// DefaultWeight is default edge weight
 	DefaultWeight = 1.0
+	// NameAttr is name attribute key
+	NameAttr = "name"
+	// DOTIDAttr is DOT ID attribute key
+	DOTIDAttr = "dotid"
+	// WeightAttr is weight attribute key
+	WeightAttr = "weight"
+	// RelAttr is relation attribute
+	RelAttr = "relation"
 )
 
 // DOTOptions are DOT graph options.
@@ -26,6 +34,7 @@ type Options struct {
 	DOTID      string
 	Attrs      attrs.Attrs
 	Weight     float64
+	Name       string
 	DOTOptions DOTOptions
 }
 
@@ -43,6 +52,13 @@ func WithUID(u uuid.UID) Option {
 func WithDOTID(dotid string) Option {
 	return func(o *Options) {
 		o.DOTID = dotid
+	}
+}
+
+// WithName sets Name Options.
+func WithName(name string) Option {
+	return func(o *Options) {
+		o.Name = name
 	}
 }
 

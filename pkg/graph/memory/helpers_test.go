@@ -139,12 +139,12 @@ func makeTestGraph(path string) (*WUG, error) {
 	}
 
 	for _, ent := range t.entities {
-		n, err := g.NewNode(context.TODO(), ent)
+		n, err := g.NewNode(context.Background(), ent)
 		if err != nil {
 			return nil, err
 		}
 
-		if err := g.AddNode(context.TODO(), n); err != nil {
+		if err := g.AddNode(context.Background(), n); err != nil {
 			return nil, err
 		}
 
@@ -154,18 +154,18 @@ func makeTestGraph(path string) (*WUG, error) {
 				continue
 			}
 
-			n2, err := g.NewNode(context.TODO(), ent2)
+			n2, err := g.NewNode(context.Background(), ent2)
 			if err != nil {
 				return nil, err
 			}
 
-			if err := g.AddNode(context.TODO(), n2); err != nil {
+			if err := g.AddNode(context.Background(), n2); err != nil {
 				return nil, err
 			}
 
 			a := attrs.NewCopyFrom(link.Attrs())
 
-			if _, err = g.Link(context.TODO(), n.UID(), n2.UID(), graph.WithAttrs(a)); err != nil {
+			if _, err = g.Link(context.Background(), n.UID(), n2.UID(), graph.WithAttrs(a)); err != nil {
 				return nil, err
 			}
 		}

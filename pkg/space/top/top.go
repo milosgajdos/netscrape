@@ -21,8 +21,7 @@ type Top struct {
 	// links indexes all links for the given entity
 	// NOTE: index key in this map is the UID of the *link*
 	links map[string]space.Link
-	// elinks indexes links from this entity to
-	// other entities for faster lookups.
+	// elinks indexes links from each entity to other entities for faster lookups.
 	// NOTE: index key in first level map is the UID of the from *entity*
 	// and index key in the second level map is the UID of the to *entity*
 	elinks map[string]map[string]space.Link

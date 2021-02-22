@@ -97,6 +97,6 @@ func (m *Store) Unlink(ctx context.Context, from, to uuid.UID, opts ...store.Opt
 }
 
 // Query store and return results
-func (m *Store) Query(context.Context, template.Template, map[string]string) ([]store.Entity, error) {
+func (m *Store) Query(ctx context.Context, queryTpl template.Template, vars map[string]string) ([]store.Entity, error) {
 	return nil, store.ErrNotImplemented
 }

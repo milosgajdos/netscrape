@@ -162,9 +162,9 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 		t.Fatalf("failed to create entity %q: %v", node2UID, err)
 	}
 
-	nodeX := &Node{
-		Entity: ox,
-		id:     123334444,
+	nodeX, err := NewNode(123334444, ox)
+	if err != nil {
+		t.Fatalf("failed to create node: %v", err)
 	}
 
 	// Link nodes with a node which does not exist in the graph
@@ -333,26 +333,26 @@ func TestWUGQuery(t *testing.T) {
 		t.Errorf("expected nodes: %d, got: %d", len(nodes), len(qnodes))
 	}
 
-	names := make([]string, len(nodes))
+	uids := make([]uuid.UID, len(nodes))
 
 	for i, n := range nodes {
-		names[i] = n.Name()
+		uids[i] = n.UID()
 	}
 
 	q = base.Build().Add(predicate.Entity(query.Node))
 
-	for _, name := range names {
-		q = q.Add(predicate.Name(name))
+	for _, uid := range uids {
+		q = q.Add(predicate.UID(uid))
 
 		nodes, err := g.Query(context.TODO(), q)
 		if err != nil {
-			t.Errorf("error getting named %s nodes: %v", name, err)
+			t.Errorf("error getting node %s: %v", uid, err)
 			continue
 		}
 
 		for _, node := range nodes {
-			if n := node.Name(); n != name {
-				t.Errorf("expected name: %s, got: %s", name, n)
+			if u := node.UID().Value(); u != uid.Value() {
+				t.Errorf("expected uid: %s, got: %s", uid, u)
 				continue
 			}
 		}

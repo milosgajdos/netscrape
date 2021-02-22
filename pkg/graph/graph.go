@@ -8,7 +8,17 @@ import (
 	"gonum.org/v1/gonum/graph/encoding"
 )
 
-// Entity is graph entity.
+// DOTer implements Graphviz DOT properties.
+type DOTer interface {
+	// DOTID returns Graphviz DOT ID.
+	DOTID() string
+	// SetDOTID sets Graphviz DOT ID.
+	SetDOTID(string)
+	// Attributes returns Graphviz DOT attributes
+	Attributes() []encoding.Attribute
+}
+
+// Enitty is stored in graph
 type Entity interface {
 	// UID returns unique ID.
 	UID() uuid.UID
@@ -18,15 +28,9 @@ type Entity interface {
 	Attrs() attrs.Attrs
 }
 
-// DOTEntity
+// DOTEntity is DOT Entity
 type DOTEntity interface {
 	Entity
-	// DOTID returns Graphviz DOT ID.
-	DOTID() string
-}
-
-// DOTer implements GraphViz DOT properties.
-type DOTer interface {
 	// DOTID returns Graphviz DOT ID.
 	DOTID() string
 	// SetDOTID sets Graphviz DOT ID.
@@ -47,7 +51,10 @@ type DOTEdge interface {
 
 // Node is a Graph node.
 type Node interface {
-	Entity
+	// UID returns unique ID.
+	UID() uuid.UID
+	// Attrs returns attributes.
+	Attrs() attrs.Attrs
 }
 
 // Edge is an edge between two Graph nodes.
@@ -55,22 +62,24 @@ type Edge interface {
 	// UID returns unique ID.
 	UID() uuid.UID
 	// FromNode returns the from node of the edge.
-	FromNode(context.Context) (Node, error)
+	FromNode() (Node, error)
 	// ToNode returns the to node of the edge.
-	ToNode(context.Context) (Node, error)
+	ToNode() (Node, error)
 	// Weight returns edge weight.
 	Weight() float64
+	// Attrs returns attributes.
+	Attrs() attrs.Attrs
 }
 
-// DOTGraph returns GraphViz DOT graph.
+// DOTGraph is a GraphViz DOT graph.
 type DOTGraph interface {
 	Graph
+	// DOT returns Graphviz DOT graph.
+	DOT() (string, error)
 	// DOTID returns grapph DOT ID.
 	DOTID() string
 	// DOTAttributers returns graph DOT attributes.
 	DOTAttributers() (graph, node, edge encoding.Attributer)
-	// DOT returns Graphviz DOT graph.
-	DOT() (string, error)
 }
 
 // SubGrapher returns subgraph of a graph.

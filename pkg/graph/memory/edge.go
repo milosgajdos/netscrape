@@ -1,8 +1,6 @@
 package memory
 
 import (
-	"context"
-
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
@@ -102,12 +100,12 @@ func (e *Edge) ReversedEdge() gngraph.Edge {
 }
 
 // FromNode returns the from node of the first non-nil edge, or nil.
-func (e Edge) FromNode(ctx context.Context) (graph.Node, error) {
+func (e Edge) FromNode() (graph.Node, error) {
 	return e.from, nil
 }
 
 // ToNode returns the to node of the first non-nil edge, or nil.
-func (e Edge) ToNode(ctx context.Context) (graph.Node, error) {
+func (e Edge) ToNode() (graph.Node, error) {
 	return e.to, nil
 }
 
@@ -123,7 +121,7 @@ func (e Edge) DOTID() string {
 
 // SetDOTID sets the edge's DOT ID.
 func (e *Edge) SetDOTID(id string) {
-	e.attrs.Set("dotid", id)
+	e.attrs.Set(graph.DOTIDAttr, id)
 	e.dotid = id
 }
 

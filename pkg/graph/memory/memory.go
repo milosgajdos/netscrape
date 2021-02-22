@@ -5,7 +5,6 @@ import (
 
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/query"
-	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -19,7 +18,7 @@ type Querier interface {
 // NodeAdder adds nodes to graph.
 type NodeAdder interface {
 	// NewNode returns a new node.
-	NewNode(context.Context, space.Entity, ...graph.Option) (graph.Node, error)
+	NewNode(context.Context, graph.Entity, ...graph.Option) (graph.Node, error)
 	// AddNode adds a new node to graph.
 	AddNode(context.Context, graph.Node) error
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Entity is graph entity.
+// Entity is a space entity.
 type Entity interface {
 	// UID returns unique ID.
 	UID() uuid.UID
