@@ -121,7 +121,7 @@ func (e Edge) DOTID() string {
 
 // SetDOTID sets the edge's DOT ID.
 func (e *Edge) SetDOTID(id string) {
-	e.attrs.Set(graph.DOTIDAttr, id)
+	e.attrs.Set(attrs.DOTID, id)
 	e.dotid = id
 }
 

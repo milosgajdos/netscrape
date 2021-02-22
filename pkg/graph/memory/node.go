@@ -33,20 +33,20 @@ func NewNode(id int64, e graph.Entity, opts ...graph.Option) (*Node, error) {
 		}
 	}
 
-	attrs := attrs.NewCopyFrom(e.Attrs())
+	a := attrs.NewCopyFrom(e.Attrs())
 	if nopts.Attrs != nil {
 		for _, k := range nopts.Attrs.Keys() {
-			attrs.Set(k, nopts.Attrs.Get(k))
+			a.Set(k, nopts.Attrs.Get(k))
 		}
 	}
-	attrs.Set(graph.DOTIDAttr, dotid)
-	attrs.Set(graph.NameAttr, dotid)
+	a.Set(attrs.DOTID, dotid)
+	a.Set(attrs.Name, dotid)
 
 	return &Node{
 		Entity: e,
 		id:     id,
 		dotid:  dotid,
-		attrs:  attrs,
+		attrs:  a,
 	}, nil
 }
 
@@ -62,8 +62,8 @@ func (n Node) DOTID() string {
 
 // SetDOTID sets Graphviz DOT ID.
 func (n *Node) SetDOTID(id string) {
-	n.attrs.Set(graph.DOTIDAttr, id)
-	n.attrs.Set(graph.NameAttr, id)
+	n.attrs.Set(attrs.DOTID, id)
+	n.attrs.Set(attrs.Name, id)
 	n.dotid = id
 }
 
