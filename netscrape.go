@@ -105,8 +105,8 @@ func (n *netscraper) buildNetwork(ctx context.Context, top space.Top, fx ...Filt
 			}
 
 			a := attrs.NewCopyFrom(link.Attrs())
-			if w := a.Get("weight"); w == "" {
-				a.Set("weight", fmt.Sprintf("%f", graph.DefaultWeight))
+			if w := a.Get(attrs.Weight); w == "" {
+				a.Set(attrs.Weight, fmt.Sprintf("%f", graph.DefaultWeight))
 			}
 
 			for _, peer := range peers {
