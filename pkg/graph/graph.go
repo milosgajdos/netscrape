@@ -89,6 +89,38 @@ type SubGrapher interface {
 	SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...Option) (Graph, error)
 }
 
+// NodeAdder adds nodes to graph.
+type NodeAdder interface {
+	// NewNode returns a new node.
+	NewNode(context.Context, Entity, ...Option) (Node, error)
+	// AddNode adds a new node to graph.
+	AddNode(context.Context, Node) error
+}
+
+// NodeRemover removes node from graph
+type NodeRemover interface {
+	// RemoveNode removes node from graph.
+	RemoveNode(context.Context, uuid.UID) error
+}
+
+// Linker links two nodes in graph.
+type Linker interface {
+	// Link links two nodes and returns the new edge.
+	Link(ctx context.Context, from, to uuid.UID, opts ...Option) (Edge, error)
+}
+
+// Unlinker removes link between two Nodes.
+type Unlinker interface {
+	// Unlink removes the link between the nodes with given UIDs from graph.
+	Unlink(ctx context.Context, from, to uuid.UID) error
+}
+
+// Edger returns graph edges
+type Edger interface {
+	// Edges returns graph edges
+	Edges(ctx context.Context) ([]Edge, error)
+}
+
 // Graph is a graph of entities.
 type Graph interface {
 	// UID returns graph uid.

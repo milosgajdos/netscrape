@@ -6,18 +6,18 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	m, err := New()
+	m, err := NewStore()
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
 
-	if _, err = m.Graph(context.TODO()); err != nil {
+	if _, err = m.Graph(); err != nil {
 		t.Fatalf("failed to get graph handle: %v", err)
 	}
 }
 
 func TestAddDelete(t *testing.T) {
-	m, err := New()
+	m, err := NewStore()
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
@@ -51,7 +51,7 @@ func TestAddDelete(t *testing.T) {
 		t.Errorf("failed storing node %s: %v", e2.UID(), err)
 	}
 
-	g, err := m.Graph(context.TODO())
+	g, err := m.Graph()
 	if err != nil {
 		t.Fatalf("failed to get graph handle: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestAddDelete(t *testing.T) {
 }
 
 func TestLink(t *testing.T) {
-	m, err := New()
+	m, err := NewStore()
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
@@ -120,7 +120,7 @@ func TestLink(t *testing.T) {
 		t.Errorf("failed linking %v to %v: %v", e1.UID(), e2.UID(), err)
 	}
 
-	g, err := m.Graph(context.TODO())
+	g, err := m.Graph()
 	if err != nil {
 		t.Fatalf("failed to get graph handle: %v", err)
 	}
