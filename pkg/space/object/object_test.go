@@ -1,4 +1,4 @@
-package entity
+package object
 
 import (
 	"reflect"
@@ -15,9 +15,9 @@ const (
 	resGroup   = "nodeResGroup"
 	resVersion = "nodeResVersion"
 	resKind    = "nodeResKind"
-	entUID     = "testID"
-	entName    = "testName"
-	entNs      = "testNs"
+	objUID     = "testID"
+	objName    = "testName"
+	objNs      = "testNs"
 )
 
 func newTestResource(name, group, version, kind string, namespaced bool, opts ...resource.Option) (space.Resource, error) {
@@ -30,17 +30,17 @@ func TestNew(t *testing.T) {
 		t.Fatalf("failed creating test resource: %v", err)
 	}
 
-	e, err := New(entName, entNs, r)
+	e, err := New(objName, objNs, r)
 	if err != nil {
-		t.Fatalf("failed creating new entity: %v", err)
+		t.Fatalf("failed creating new object: %v", err)
 	}
 
-	if e.Name() != entName {
-		t.Errorf("expected name: %s, got: %s", entName, e.Name())
+	if e.Name() != objName {
+		t.Errorf("expected name: %s, got: %s", objName, e.Name())
 	}
 
-	if e.Namespace() != entNs {
-		t.Errorf("expected namespace: %s, got: %s", entNs, e.Namespace())
+	if e.Namespace() != objNs {
+		t.Errorf("expected namespace: %s, got: %s", objNs, e.Namespace())
 	}
 
 	if !reflect.DeepEqual(e.Resource(), r) {
@@ -54,18 +54,18 @@ func TestNewWithOptions(t *testing.T) {
 		t.Fatalf("failed creating test resource: %v", err)
 	}
 
-	uid, err := uuid.NewFromString(entUID)
+	uid, err := uuid.NewFromString(objUID)
 	if err != nil {
 		t.Errorf("failed to create new uid: %v", err)
 	}
 
-	e, err := New(entName, entNs, r, WithUID(uid))
+	e, err := New(objName, objNs, r, WithUID(uid))
 	if err != nil {
-		t.Fatalf("failed creating new entity: %v", err)
+		t.Fatalf("failed creating new object: %v", err)
 	}
 
-	if e.UID().Value() != entUID {
-		t.Errorf("expected entity uid: %s, got: %s", entUID, e.UID().Value())
+	if e.UID().Value() != objUID {
+		t.Errorf("expected object uid: %s, got: %s", objUID, e.UID().Value())
 	}
 
 	a, err := attrs.New()
@@ -75,9 +75,9 @@ func TestNewWithOptions(t *testing.T) {
 	k, v := "foo", "bar"
 	a.Set(k, v)
 
-	e, err = New(entName, entNs, r, WithAttrs(a))
+	e, err = New(objName, objNs, r, WithAttrs(a))
 	if err != nil {
-		t.Errorf("failed to create new entity: %v", err)
+		t.Errorf("failed to create new object: %v", err)
 	}
 
 	if val := e.Attrs().Get(k); val != v {

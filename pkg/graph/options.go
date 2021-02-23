@@ -26,6 +26,7 @@ type Options struct {
 	DOTID      string
 	Attrs      attrs.Attrs
 	Weight     float64
+	Name       string
 	DOTOptions DOTOptions
 }
 
@@ -43,6 +44,13 @@ func WithUID(u uuid.UID) Option {
 func WithDOTID(dotid string) Option {
 	return func(o *Options) {
 		o.DOTID = dotid
+	}
+}
+
+// WithName sets Name Options.
+func WithName(name string) Option {
+	return func(o *Options) {
+		o.Name = name
 	}
 }
 

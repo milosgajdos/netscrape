@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/query/base"
@@ -163,9 +162,9 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 		t.Fatalf("failed to create entity %q: %v", node2UID, err)
 	}
 
-	nodeX := &Node{
-		Entity: ox,
-		id:     123334444,
+	nodeX, err := NewNode(123334444, ox)
+	if err != nil {
+		t.Fatalf("failed to create node: %v", err)
 	}
 
 	// Link nodes with a node which does not exist in the graph
@@ -190,6 +189,22 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 	edge, err := g.Link(context.TODO(), n1.UID(), n2.UID(), graph.WithWeight(graph.DefaultWeight))
 	if err != nil {
 		t.Errorf("failed to link %s to %s: %v", n1.UID(), n2.UID(), err)
+	}
+
+	nodesFrom, err := g.From(context.TODO(), n1.UID())
+	if err != nil {
+		t.Errorf("failed to get nodes from %s: %v", n1.UID(), err)
+	}
+
+	expCount = 1
+	if count := len(nodesFrom); count != expCount {
+		t.Errorf("expected: %d nodes, got: %d", expCount, count)
+	}
+
+	if len(nodesFrom) == 1 {
+		if nodesFrom[0].UID().Value() != n2.UID().Value() {
+			t.Errorf("expected node link to %s from %s", n2.UID().Value(), n1.UID().Value())
+		}
 	}
 
 	if w := edge.Weight(); big.NewFloat(w).Cmp(big.NewFloat(graph.DefaultWeight)) != 0 {
@@ -296,67 +311,7 @@ func TestWUGSubGraph(t *testing.T) {
 	}
 }
 
-func TestWUGQueryEdge(t *testing.T) {
-	g, err := makeTestGraph(wugEntPath)
-	if err != nil {
-		t.Fatalf("failed to create test graph: %v", err)
-	}
-
-	q := base.Build().Add(predicate.Entity(query.Edge))
-
-	qedges, err := g.Query(context.TODO(), q)
-	if err != nil {
-		t.Errorf("failed to query edges: %v", err)
-	}
-
-	edges, err := g.Edges(context.TODO())
-	if err != nil {
-		t.Fatalf("failed to fetch edges: %v", err)
-	}
-
-	if len(qedges) != len(edges) {
-		t.Errorf("expected edges: %d, got: %d", len(edges), len(qedges))
-	}
-
-	relations := make(map[string]bool)
-
-	for _, e := range edges {
-		if r := e.Attrs().Get("relation"); r != "" {
-			relations[r] = true
-		}
-	}
-
-	a, err := attrs.New()
-	if err != nil {
-		t.Fatalf("failed to create attrs: %v", err)
-	}
-
-	for r, ok := range relations {
-		if ok {
-			a.Set("relation", r)
-
-			q = base.Build().
-				Add(predicate.Entity(query.Edge)).
-				Add(predicate.Attrs(a))
-
-			edges, err := g.Query(context.TODO(), q)
-			if err != nil {
-				t.Errorf("failed querying edges with attributes %v: %v", a, err)
-			}
-
-			for _, edge := range edges {
-				for _, k := range a.Keys() {
-					v := a.Get(k)
-					if val := edge.Attrs().Get(k); val != v {
-						t.Errorf("expected attributes: %v:%v, got: %v:%v", k, v, k, val)
-					}
-				}
-			}
-		}
-	}
-}
-
-func TestWUGQueryNode(t *testing.T) {
+func TestWUGQuery(t *testing.T) {
 	g, err := makeTestGraph(wugEntPath)
 	if err != nil {
 		t.Fatalf("failed to create test graph: %v", err)
@@ -378,53 +333,33 @@ func TestWUGQueryNode(t *testing.T) {
 		t.Errorf("expected nodes: %d, got: %d", len(nodes), len(qnodes))
 	}
 
-	namespaces := make([]string, len(nodes))
-	kinds := make([]string, len(nodes))
-	names := make([]string, len(nodes))
+	uids := make([]uuid.UID, len(nodes))
 
 	for i, n := range nodes {
-		namespaces[i] = n.Namespace()
-		kinds[i] = n.Resource().Kind()
-		names[i] = n.Name()
+		uids[i] = n.UID()
 	}
 
 	q = base.Build().Add(predicate.Entity(query.Node))
 
-	for _, ns := range namespaces {
-		q = q.Add(predicate.Namespace(ns))
+	for _, uid := range uids {
+		q = q.Add(predicate.UID(uid))
 
 		nodes, err := g.Query(context.TODO(), q)
 		if err != nil {
-			t.Errorf("error getting namespace %s nodes: %v", ns, err)
+			t.Errorf("error getting node %s: %v", uid, err)
 			continue
 		}
 
-		for _, n := range nodes {
-			if nodeNS := n.(graph.Node).Namespace(); nodeNS != ns {
-				t.Errorf("expected: namespace %s, got: %s", ns, nodeNS)
-			}
-		}
-
-		for _, kind := range kinds {
-			q = q.Add(predicate.Kind(kind))
-
-			nodes, err := g.Query(context.TODO(), q)
-			if err != nil {
-				t.Errorf("error getting nodes: %s/%s: %v", ns, kind, err)
+		for _, node := range nodes {
+			if u := node.UID().Value(); u != uid.Value() {
+				t.Errorf("expected uid: %s, got: %s", uid, u)
 				continue
-			}
-
-			for _, n := range nodes {
-				o := n.(graph.Node)
-				if o.Namespace() != ns || o.Resource().Kind() != kind {
-					t.Errorf("expected: %s/%s, got: %s/%s", ns, kind, o.Namespace(), o.Resource().Kind())
-				}
 			}
 		}
 	}
 }
 
-func TestWUGQuery(t *testing.T) {
+func TestWUGQueryUnknown(t *testing.T) {
 	g, err := makeTestGraph(wugEntPath)
 	if err != nil {
 		t.Fatalf("failed to create new memory graph: %v", err)
@@ -434,8 +369,8 @@ func TestWUGQuery(t *testing.T) {
 	// Any other number higher than 1 is considered a non-existent Entity
 	q := base.Build().Add(predicate.Entity(query.EntityVal(10000)), base.IsAnyFunc)
 
-	if _, err := g.Query(context.TODO(), q); !errors.Is(err, graph.ErrUnknownEntity) {
-		t.Errorf("expected: %v, got: %v", graph.ErrUnknownEntity, err)
+	if _, err := g.Query(context.TODO(), q); !errors.Is(err, graph.ErrUnsupported) {
+		t.Errorf("expected: %v, got: %v", graph.ErrUnsupported, err)
 	}
 }
 

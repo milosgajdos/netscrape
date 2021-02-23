@@ -4,15 +4,18 @@ import (
 	"strings"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 // Resource implements a generic Space resource.
 type Resource struct {
+	uid        uuid.UID
 	name       string
 	group      string
 	version    string
 	kind       string
 	namespaced bool
+	dotid      string
 	attrs      attrs.Attrs
 }
 
@@ -21,6 +24,15 @@ func New(name, group, version, kind string, namespaced bool, opts ...Option) (*R
 	ropts := Options{}
 	for _, apply := range opts {
 		apply(&ropts)
+	}
+
+	uid := ropts.UID
+	if uid == nil {
+		var err error
+		uid, err = uuid.New()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	a := ropts.Attrs
@@ -32,14 +44,26 @@ func New(name, group, version, kind string, namespaced bool, opts ...Option) (*R
 		}
 	}
 
+	dotid := strings.Join([]string{
+		group,
+		version,
+		kind}, "/")
+
 	return &Resource{
+		uid:        uid,
 		name:       name,
 		group:      group,
 		version:    version,
 		kind:       kind,
 		namespaced: namespaced,
+		dotid:      dotid,
 		attrs:      a,
 	}, nil
+}
+
+// UID returns UID.
+func (r Resource) UID() uuid.UID {
+	return r.uid
 }
 
 // Name returns resource name.
@@ -67,24 +91,17 @@ func (r Resource) Namespaced() bool {
 	return r.namespaced
 }
 
-// Paths returns all possible variations resource paths.
-func (r Resource) Paths() []string {
-	resNames := []string{strings.ToLower(r.name)}
-
-	// nolint:prealloc
-	var names []string
-	for _, name := range resNames {
-		names = append(names,
-			name,
-			strings.Join([]string{name, r.group}, "/"),
-			strings.Join([]string{name, r.group, r.version}, "/"),
-		)
-	}
-
-	return names
-}
-
 // Attrs returns attributes.
 func (r Resource) Attrs() attrs.Attrs {
 	return r.attrs
+}
+
+// DOTID returns DOTID string
+func (r Resource) DOTID() string {
+	return r.dotid
+}
+
+// SetDOTID sets DOTID
+func (r *Resource) SetDOTID(dotid string) {
+	r.dotid = dotid
 }

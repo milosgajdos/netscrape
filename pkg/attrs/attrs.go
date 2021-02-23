@@ -4,6 +4,17 @@ import (
 	"gonum.org/v1/gonum/graph/encoding"
 )
 
+const (
+	// Name is name attribute key
+	Name = "name"
+	// DOTID is DOT ID attribute key
+	DOTID = "dotid"
+	// Weight is weight attribute key
+	Weight = "weight"
+	// Rel is relation attribute
+	Relation = "relation"
+)
+
 // Attrs provide a simple key-value store
 // for storing arbitrary entity attributes.
 type Attrs interface {

@@ -3,21 +3,19 @@ package memory
 import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
-	"github.com/milosgajdos/netscrape/pkg/space"
 	"gonum.org/v1/gonum/graph/encoding"
 )
 
-// Node is a graph node.
+// Node is a memory Graph node.
 type Node struct {
-	space.Entity
+	graph.Entity
 	id    int64
 	dotid string
 	attrs attrs.Attrs
 }
 
-// NewNode creates new Node and returns it.
-// If WithAttrs is passed in, its values override e attributes.
-func NewNode(id int64, e space.Entity, opts ...graph.Option) (*Node, error) {
+// New returns a new Node.
+func NewNode(id int64, e graph.Entity, opts ...graph.Option) (*Node, error) {
 	nopts := graph.Options{}
 	for _, apply := range opts {
 		apply(&nopts)
@@ -25,27 +23,30 @@ func NewNode(id int64, e space.Entity, opts ...graph.Option) (*Node, error) {
 
 	dotid := nopts.DOTID
 	if dotid == "" {
-		var err error
-		dotid, err = graph.DOTIDFromEntity(e)
-		if err != nil {
-			return nil, err
+		if dotEnt, ok := e.(graph.DOTEntity); ok {
+			dotid = dotEnt.DOTID()
+		} else {
+			dotid = e.UID().Value()
+			if dotEnt, ok := e.(graph.DOTer); ok {
+				dotid = dotEnt.DOTID()
+			}
 		}
 	}
 
-	attrs := attrs.NewCopyFrom(e.Attrs())
+	a := attrs.NewCopyFrom(e.Attrs())
 	if nopts.Attrs != nil {
 		for _, k := range nopts.Attrs.Keys() {
-			attrs.Set(k, nopts.Attrs.Get(k))
+			a.Set(k, nopts.Attrs.Get(k))
 		}
 	}
-	attrs.Set("dotid", dotid)
-	attrs.Set("name", dotid)
+	a.Set(attrs.DOTID, dotid)
+	a.Set(attrs.Name, dotid)
 
 	return &Node{
 		Entity: e,
 		id:     id,
 		dotid:  dotid,
-		attrs:  attrs,
+		attrs:  a,
 	}, nil
 }
 
@@ -54,16 +55,15 @@ func (n Node) ID() int64 {
 	return n.id
 }
 
-// DOTID returns GraphViz DOT ID.
+// DOTID returns Graphviz DOT ID.
 func (n Node) DOTID() string {
 	return n.dotid
 }
 
-// SetDOTID sets GraphViz DOT ID.
-// It sets both dotid and name attributes to id.
+// SetDOTID sets Graphviz DOT ID.
 func (n *Node) SetDOTID(id string) {
-	n.attrs.Set("dotid", id)
-	n.attrs.Set("name", id)
+	n.attrs.Set(attrs.DOTID, id)
+	n.attrs.Set(attrs.Name, id)
 	n.dotid = id
 }
 

@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"context"
 	"math/big"
 	"testing"
 
@@ -66,7 +65,7 @@ func TestEdge(t *testing.T) {
 		t.Fatalf("expected uid, got: %v", uid)
 	}
 
-	fromNode, err := e.FromNode(context.TODO())
+	fromNode, err := e.FromNode()
 	if err != nil {
 		t.Fatalf("failed to get %v FromNode: %v", e.UID(), err)
 	}
@@ -75,7 +74,7 @@ func TestEdge(t *testing.T) {
 		t.Errorf("expected ID: %s, got: %s", n1.UID(), uid)
 	}
 
-	toNode, err := e.ToNode(context.TODO())
+	toNode, err := e.ToNode()
 	if err != nil {
 		t.Fatalf("failed to get %v ToNode: %v", e.UID(), err)
 	}
