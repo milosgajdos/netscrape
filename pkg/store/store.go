@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"text/template"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
@@ -28,6 +27,4 @@ type Store interface {
 	Link(ctx context.Context, from, to uuid.UID, opts ...Option) error
 	// Unlink two entities in store.
 	Unlink(ctx context.Context, from, to uuid.UID, opts ...Option) error
-	// Query store and return the results.
-	Query(ctx context.Context, queryTpl template.Template, vars map[string]string) ([]Entity, error)
 }
