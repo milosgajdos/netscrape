@@ -32,8 +32,6 @@ func getDefaultMatchFunc(p query.Predicate) query.MatchFunc {
 		return StringEqFunc(p.Value().(string))
 	case query.Weight:
 		return FloatEqFunc(p.Value().(float64))
-	case query.Entity:
-		return EntityEqFunc(p.Value().(query.EntityVal))
 	case query.Attrs:
 		return HasAttrsFunc(p.Value().(attrs.Attrs))
 	}

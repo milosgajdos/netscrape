@@ -332,17 +332,17 @@ func (g *WUG) SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...gra
 	return sg, nil
 }
 
-// queryNode returns all the nodes that match the given query.
-func (g WUG) queryNode(q query.Query) ([]graph.Node, error) {
+// Query queries the in-memory graph and returns the matched results.
+func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
 	if m := q.Matcher(query.UID); m != nil {
 		if uid, ok := m.Predicate().Value().(uuid.UID); ok && len(uid.Value()) > 0 {
 			if n, ok := g.nodes[uid.Value()]; ok {
-				return []graph.Node{n}, nil
+				return []graph.Entity{n.(graph.Entity)}, nil
 			}
 		}
 	}
 
-	var results []graph.Node
+	var results []graph.Entity
 
 	visit := func(n gngraph.Node) {
 		node := n.(*Node)
@@ -363,39 +363,6 @@ func (g WUG) queryNode(q query.Query) ([]graph.Node, error) {
 	dfs.WalkAll(g.WeightedUndirectedGraph, nil, nil, func(gngraph.Node) {})
 
 	return results, nil
-}
-
-// Query queries the in-memory graph and returns the matched results.
-func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
-	var e query.EntityVal
-
-	if m := q.Matcher(query.Entity); m != nil {
-		var ok bool
-		e, ok = m.Predicate().Value().(query.EntityVal)
-		if !ok {
-			return nil, graph.ErrMissingEntity
-		}
-	}
-
-	var entities []graph.Entity
-
-	switch e {
-	case query.Node:
-		nodes, err := g.queryNode(q)
-		if err != nil {
-			return nil, fmt.Errorf("node query: %w", err)
-		}
-
-		for _, node := range nodes {
-			if ent, ok := node.(graph.Entity); ok {
-				entities = append(entities, ent)
-			}
-		}
-	default:
-		return nil, graph.ErrUnsupported
-	}
-
-	return entities, nil
 }
 
 // DOTID returns the store DOT ID.

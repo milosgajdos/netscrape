@@ -38,15 +38,6 @@ func UUIDEqFunc(u1 uuid.UID) query.MatchFunc {
 	}
 }
 
-// EntityEqFunc returns MatchFunc option which checks
-// the equality of an arbitrary entity to e1
-func EntityEqFunc(e1 query.EntityVal) query.MatchFunc {
-	return func(e2 interface{}) bool {
-		e2value := e2.(query.EntityVal)
-		return e1 == e2value
-	}
-}
-
 // HasAttrsFunc returns MatchFunc which checks
 // if a contains k/v of an arbitrary attrs.Attrs
 func HasAttrsFunc(a attrs.Attrs) query.MatchFunc {

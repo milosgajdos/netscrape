@@ -57,7 +57,6 @@ func (q *Query) MatchAny() query.Query {
 		query.Kind,
 		query.Namespace,
 		query.Weight,
-		query.Entity,
 		query.Attrs,
 	} {
 		q.matchers[k] = newMatcher(predicate.New(k, query.Any), IsAnyFunc)
