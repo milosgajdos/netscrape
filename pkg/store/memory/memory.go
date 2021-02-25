@@ -5,7 +5,7 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/store"
 )
 
-// Grapher lets you retrieve graph handle
+// Grapher provides access to store graph.
 type Grapher interface {
 	// Graph returns graph handle
 	Graph() (graph.Graph, error)

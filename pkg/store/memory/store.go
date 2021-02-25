@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-	"text/template"
 
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/graph/memory"
@@ -94,9 +93,4 @@ func (m *Memory) Unlink(ctx context.Context, from, to uuid.UID, opts ...store.Op
 	}
 
 	return nil
-}
-
-// Query store and return results
-func (m *Memory) Query(ctx context.Context, queryTpl template.Template, vars map[string]string) ([]store.Entity, error) {
-	return nil, store.ErrNotImplemented
 }
