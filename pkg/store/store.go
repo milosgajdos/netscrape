@@ -21,6 +21,8 @@ type Entity interface {
 type Store interface {
 	// Add Entity to store.
 	Add(context.Context, Entity, ...Option) error
+	// Get Entity from store.
+	Get(context.Context, uuid.UID, ...Option) (Entity, error)
 	// Delete Entity from store.
 	Delete(context.Context, uuid.UID, ...Option) error
 	// Link two entities in store.

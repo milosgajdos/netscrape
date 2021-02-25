@@ -5,6 +5,8 @@ import (
 
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/graph/memory"
+	"github.com/milosgajdos/netscrape/pkg/query/base"
+	"github.com/milosgajdos/netscrape/pkg/query/predicate"
 	"github.com/milosgajdos/netscrape/pkg/store"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -55,6 +57,35 @@ func (m *Memory) Add(ctx context.Context, e store.Entity, opts ...store.Option) 
 	}
 
 	return m.g.AddNode(ctx, n)
+}
+
+// Get Entity from store.
+func (m *Memory) Get(ctx context.Context, uid uuid.UID, opts ...store.Option) (store.Entity, error) {
+	gopts := store.Options{}
+	for _, apply := range opts {
+		apply(&gopts)
+	}
+
+	g, ok := m.g.(memory.Querier)
+	if !ok {
+		return nil, store.ErrNotImplemented
+	}
+
+	q := base.Build().Add(predicate.UID(uid))
+
+	entities, err := g.Query(context.Background(), q)
+	if err != nil {
+		return nil, err
+	}
+
+	switch {
+	case len(entities) > 1:
+		panic("duplicate nodes found")
+	case len(entities) == 0:
+		return nil, store.ErrNodeNotFound
+	}
+
+	return entities[0], nil
 }
 
 // Link links entities with given UIDs in store.

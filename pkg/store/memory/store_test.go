@@ -2,7 +2,12 @@ package memory
 
 import (
 	"context"
+	"errors"
+	"reflect"
 	"testing"
+
+	"github.com/milosgajdos/netscrape/pkg/store"
+	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 func TestNew(t *testing.T) {
@@ -16,7 +21,7 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestAddDelete(t *testing.T) {
+func TestAddGetDelete(t *testing.T) {
 	m, err := NewStore()
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
@@ -37,6 +42,15 @@ func TestAddDelete(t *testing.T) {
 
 	if err := m.Add(context.TODO(), e1); err != nil {
 		t.Errorf("failed storing node %s: %v", e1.UID(), err)
+	}
+
+	res, err := m.Get(context.Background(), e1.UID())
+	if err != nil {
+		t.Errorf("failed getting node %s: %v", e1.UID(), err)
+	}
+
+	if !reflect.DeepEqual(res.UID(), e1.UID()) {
+		t.Errorf("expected entity with uid: %s, got: %s", e1.UID(), res.UID())
 	}
 
 	node2UID := "foo2UID"
@@ -78,6 +92,15 @@ func TestAddDelete(t *testing.T) {
 	expCount = 1
 	if nodeCount := len(nodes); nodeCount != expCount {
 		t.Errorf("expected nodes: %d, got: %d", expCount, nodeCount)
+	}
+
+	uid, err := uuid.New()
+	if err != nil {
+		t.Fatalf("failed to generate uid: %v", err)
+	}
+
+	if _, err := m.Get(context.Background(), uid); !errors.Is(err, store.ErrNodeNotFound) {
+		t.Errorf("expected error: %v, got: %v", store.ErrNodeNotFound, err)
 	}
 }
 
