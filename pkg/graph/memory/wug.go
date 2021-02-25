@@ -339,6 +339,7 @@ func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
 			if n, ok := g.nodes[uid.Value()]; ok {
 				return []graph.Entity{n.(graph.Entity)}, nil
 			}
+			return []graph.Entity{}, nil
 		}
 	}
 
