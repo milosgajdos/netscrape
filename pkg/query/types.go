@@ -11,10 +11,10 @@ const (
 	Kind
 	Namespace
 	Weight
-	Entity
 	Attrs
 )
 
+// String implements fmt.Stringer
 func (p Type) String() string {
 	switch p {
 	case UID:
@@ -31,46 +31,27 @@ func (p Type) String() string {
 		return "namesapce"
 	case Weight:
 		return "weight"
-	case Entity:
-		return "entity"
 	case Attrs:
 		return "attrs"
 	}
 
-	return "unknown type"
-}
-
-// EntityVal is query entity value
-type EntityVal int
-
-const (
-	Node EntityVal = iota
-	Edge
-)
-
-func (v EntityVal) String() string {
-	switch v {
-	case Node:
-		return "node"
-	case Edge:
-		return "edge"
-	}
-
-	return "unknown entity"
+	return "unknown"
 }
 
 // WildCard defines query wildcards
 type WildCard int
 
 const (
+	// Any means any value is acceptably
 	Any WildCard = iota
 )
 
+// String implements fmt.Stringer
 func (v WildCard) String() string {
 	switch v {
 	case Any:
 		return "any"
 	}
 
-	return "unknown wildcard"
+	return "unknown"
 }

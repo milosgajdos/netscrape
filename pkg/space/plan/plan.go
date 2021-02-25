@@ -119,7 +119,7 @@ func matchName(r space.Resource, q query.Query) bool {
 		}
 	}
 
-	// NOTE: if missing the name we assume Any name
+	// NOTE: if missing name predicate we assume Any name
 	return true
 }
 

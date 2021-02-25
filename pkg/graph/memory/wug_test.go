@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/graph"
-	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/query/base"
 	"github.com/milosgajdos/netscrape/pkg/query/predicate"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
@@ -314,23 +313,12 @@ func TestWUGSubGraph(t *testing.T) {
 func TestWUGQuery(t *testing.T) {
 	g, err := makeTestGraph(wugEntPath)
 	if err != nil {
-		t.Fatalf("failed to create test graph: %v", err)
-	}
-
-	q := base.Build().Add(predicate.Entity(query.Node))
-
-	qnodes, err := g.Query(context.TODO(), q)
-	if err != nil {
-		t.Errorf("failed to query all nodes: %v", err)
+		t.Fatalf("failed to create a test graph: %v", err)
 	}
 
 	nodes, err := g.Nodes(context.TODO())
 	if err != nil {
-		t.Fatalf("failed to fetch nodes: %v", err)
-	}
-
-	if len(qnodes) != len(nodes) {
-		t.Errorf("expected nodes: %d, got: %d", len(nodes), len(qnodes))
+		t.Fatalf("failed to fetch graph nodes: %v", err)
 	}
 
 	uids := make([]uuid.UID, len(nodes))
@@ -339,14 +327,12 @@ func TestWUGQuery(t *testing.T) {
 		uids[i] = n.UID()
 	}
 
-	q = base.Build().Add(predicate.Entity(query.Node))
-
 	for _, uid := range uids {
-		q = q.Add(predicate.UID(uid))
+		q := base.Build().Add(predicate.UID(uid))
 
 		nodes, err := g.Query(context.TODO(), q)
 		if err != nil {
-			t.Errorf("error getting node %s: %v", uid, err)
+			t.Errorf("error querying entity %s: %v", uid, err)
 			continue
 		}
 
@@ -356,21 +342,6 @@ func TestWUGQuery(t *testing.T) {
 				continue
 			}
 		}
-	}
-}
-
-func TestWUGQueryUnknown(t *testing.T) {
-	g, err := makeTestGraph(wugEntPath)
-	if err != nil {
-		t.Fatalf("failed to create new memory graph: %v", err)
-	}
-
-	// NOTE: EntityVal is an enum/iota starting with 0 with only two values: Node and Edge
-	// Any other number higher than 1 is considered a non-existent Entity
-	q := base.Build().Add(predicate.Entity(query.EntityVal(10000)), base.IsAnyFunc)
-
-	if _, err := g.Query(context.TODO(), q); !errors.Is(err, graph.ErrUnsupported) {
-		t.Errorf("expected: %v, got: %v", graph.ErrUnsupported, err)
 	}
 }
 
