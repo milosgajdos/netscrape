@@ -5,6 +5,8 @@ import (
 
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/query"
+
+	gngraph "gonum.org/v1/gonum/graph"
 )
 
 // Querier queries graph entities.
@@ -23,4 +25,11 @@ type Graph interface {
 	graph.Edger
 	graph.Linker
 	graph.Unlinker
+}
+
+// WeightedGraphBuilder allows to build in-memory weighted graphs.
+type WeightedGraphBuilder interface {
+	gngraph.WeightedBuilder
+	gngraph.NodeRemover
+	gngraph.EdgeRemover
 }

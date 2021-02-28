@@ -16,9 +16,9 @@ import (
 	"gonum.org/v1/gonum/graph/traverse"
 )
 
-// WUG is a weighted undirected graph.
-type WUG struct {
-	*simple.WeightedUndirectedGraph
+// WDG is a weighted directed graph.
+type WDG struct {
+	*simple.WeightedDirectedGraph
 	// uid is the UID of the graph
 	uid uuid.UID
 	// dotid is graph DOTID
@@ -29,9 +29,9 @@ type WUG struct {
 	dot graph.DOTOptions
 }
 
-// NewWUG creates a new weighted undirected graph and returns it.
+// NewWDG creates a new weighted directed graph and returns it.
 // If DOTID is not provided via options, it's set to graph UID.
-func NewWUG(opts ...graph.Option) (*WUG, error) {
+func NewWDG(opts ...graph.Option) (*WDG, error) {
 	gopts := graph.Options{}
 	for _, apply := range opts {
 		apply(&gopts)
@@ -51,28 +51,28 @@ func NewWUG(opts ...graph.Option) (*WUG, error) {
 		dotid = uid.Value()
 	}
 
-	return &WUG{
-		WeightedUndirectedGraph: simple.NewWeightedUndirectedGraph(gopts.Weight, gopts.Weight),
-		uid:                     uid,
-		dotid:                   dotid,
-		nodes:                   make(map[string]graph.Node),
-		dot:                     gopts.DOTOptions,
+	return &WDG{
+		WeightedDirectedGraph: simple.NewWeightedDirectedGraph(gopts.Weight, gopts.Weight),
+		uid:                   uid,
+		dotid:                 dotid,
+		nodes:                 make(map[string]graph.Node),
+		dot:                   gopts.DOTOptions,
 	}, nil
 }
 
 // UID returns graph UID
-func (g WUG) UID() uuid.UID {
+func (g WDG) UID() uuid.UID {
 	return g.uid
 }
 
 // NewNode creates a new graph node and returns it.
-// NOTE: this is a convenience method thath creates
+// NOTE: this is a convenience method that creates
 // the new *memory.Node such that it makes sure its
 // ID does not already exist in the graph relieving you
 // from the necessity to make sure your new Node.ID()
 // returns an unique ID in the underlying graph.
-func (g *WUG) NewNode(ctx context.Context, ent graph.Entity, opts ...graph.Option) (graph.Node, error) {
-	gnode := g.WeightedUndirectedGraph.NewNode()
+func (g *WDG) NewNode(ctx context.Context, ent graph.Entity, opts ...graph.Option) (graph.Node, error) {
+	gnode := g.WeightedDirectedGraph.NewNode()
 
 	node, err := NewNode(gnode.ID(), ent, opts...)
 	if err != nil {
@@ -89,13 +89,13 @@ func (g *WUG) NewNode(ctx context.Context, ent graph.Entity, opts ...graph.Optio
 // AddNode adds node to the graph.
 // If the node already exists in the graph it's left untouched.
 // It returns error if n is not memory.Node.
-func (g *WUG) AddNode(ctx context.Context, n graph.Node) error {
+func (g *WDG) AddNode(ctx context.Context, n graph.Node) error {
 	gnode, ok := n.(*Node)
 	if !ok {
 		return graph.ErrInvalidNode
 	}
 
-	if node := g.WeightedUndirectedGraph.Node(gnode.ID()); node != nil {
+	if node := g.WeightedDirectedGraph.Node(gnode.ID()); node != nil {
 		if _, ok := g.nodes[n.UID().Value()]; ok {
 			return nil
 		}
@@ -105,7 +105,7 @@ func (g *WUG) AddNode(ctx context.Context, n graph.Node) error {
 		return nil
 	}
 
-	g.WeightedUndirectedGraph.AddNode(gnode)
+	g.WeightedDirectedGraph.AddNode(gnode)
 
 	g.nodes[n.UID().Value()] = n
 
@@ -114,7 +114,7 @@ func (g *WUG) AddNode(ctx context.Context, n graph.Node) error {
 
 // Node returns the node with the given ID if it exists
 // in the graph, and error if it could not be retrieved.
-func (g *WUG) Node(ctx context.Context, uid uuid.UID) (graph.Node, error) {
+func (g *WDG) Node(ctx context.Context, uid uuid.UID) (graph.Node, error) {
 	if node, ok := g.nodes[uid.Value()]; ok {
 		return node, nil
 	}
@@ -123,8 +123,8 @@ func (g *WUG) Node(ctx context.Context, uid uuid.UID) (graph.Node, error) {
 }
 
 // Nodes returns all the nodes in the graph.
-func (g *WUG) Nodes(ctx context.Context) ([]graph.Node, error) {
-	graphNodes := gngraph.NodesOf(g.WeightedUndirectedGraph.Nodes())
+func (g *WDG) Nodes(ctx context.Context) ([]graph.Node, error) {
+	graphNodes := gngraph.NodesOf(g.WeightedDirectedGraph.Nodes())
 
 	nodes := make([]graph.Node, len(graphNodes))
 
@@ -136,7 +136,7 @@ func (g *WUG) Nodes(ctx context.Context) ([]graph.Node, error) {
 }
 
 // RemoveNode removes the node with the given uid from graph.
-func (g *WUG) RemoveNode(ctx context.Context, uid uuid.UID) error {
+func (g *WDG) RemoveNode(ctx context.Context, uid uuid.UID) error {
 	node, ok := g.nodes[uid.Value()]
 	if !ok {
 		return nil
@@ -147,7 +147,7 @@ func (g *WUG) RemoveNode(ctx context.Context, uid uuid.UID) error {
 		return graph.ErrInvalidNode
 	}
 
-	g.WeightedUndirectedGraph.RemoveNode(gnode.ID())
+	g.WeightedDirectedGraph.RemoveNode(gnode.ID())
 
 	delete(g.nodes, uid.Value())
 
@@ -156,7 +156,7 @@ func (g *WUG) RemoveNode(ctx context.Context, uid uuid.UID) error {
 
 // Link creates a new edge between from and to and returns it or it returns the existing edge.
 // It returns error if either of the nodes does not exist in the graph.
-func (g *WUG) Link(ctx context.Context, from, to uuid.UID, opts ...graph.Option) (graph.Edge, error) {
+func (g *WDG) Link(ctx context.Context, from, to uuid.UID, opts ...graph.Option) (graph.Edge, error) {
 	e, err := g.Edge(ctx, from, to)
 	if err != nil && !errors.Is(err, graph.ErrEdgeNotExist) {
 		return nil, err
@@ -187,7 +187,7 @@ func (g *WUG) Link(ctx context.Context, from, to uuid.UID, opts ...graph.Option)
 }
 
 // Edge returns edge between the two nodes
-func (g *WUG) Edge(ctx context.Context, uid, vid uuid.UID) (graph.Edge, error) {
+func (g *WDG) Edge(ctx context.Context, uid, vid uuid.UID) (graph.Edge, error) {
 	from, ok := g.nodes[uid.Value()]
 	if !ok {
 		return nil, fmt.Errorf("%s: %w", uid, graph.ErrNodeNotFound)
@@ -209,8 +209,8 @@ func (g *WUG) Edge(ctx context.Context, uid, vid uuid.UID) (graph.Edge, error) {
 }
 
 // Edges returns all the edges (lines) from u to v.
-func (g *WUG) Edges(ctx context.Context) ([]graph.Edge, error) {
-	wedges := g.WeightedUndirectedGraph.Edges()
+func (g *WDG) Edges(ctx context.Context) ([]graph.Edge, error) {
+	wedges := g.WeightedDirectedGraph.Edges()
 
 	graphEdges := gngraph.EdgesOf(wedges)
 
@@ -224,13 +224,13 @@ func (g *WUG) Edges(ctx context.Context) ([]graph.Edge, error) {
 }
 
 // From returns all directly reachable nodes from the node with the given uid.
-func (g *WUG) From(ctx context.Context, uid uuid.UID) ([]graph.Node, error) {
+func (g *WDG) From(ctx context.Context, uid uuid.UID) ([]graph.Node, error) {
 	node, ok := g.nodes[uid.Value()]
 	if !ok {
 		return nil, nil
 	}
 
-	gnodes := g.WeightedUndirectedGraph.From(node.(*Node).ID())
+	gnodes := g.WeightedDirectedGraph.From(node.(*Node).ID())
 
 	graphNodes := gngraph.NodesOf(gnodes)
 
@@ -244,7 +244,7 @@ func (g *WUG) From(ctx context.Context, uid uuid.UID) ([]graph.Node, error) {
 }
 
 // Unlink removes the link between from and to nodes.
-func (g *WUG) Unlink(ctx context.Context, from, to uuid.UID) error {
+func (g *WDG) Unlink(ctx context.Context, from, to uuid.UID) error {
 	f, ok := g.nodes[from.Value()]
 	if !ok {
 		return nil
@@ -255,23 +255,22 @@ func (g *WUG) Unlink(ctx context.Context, from, to uuid.UID) error {
 		return nil
 	}
 
-	// NOTE: it's safe to typecast without checking as
-	// the nodes in g.nodes have *Node type since the only
-	// way to add the nodes in is via AddNode which does type assertion
-	g.WeightedUndirectedGraph.RemoveEdge(f.(*Node).ID(), t.(*Node).ID())
+	// NOTE: it's safe to switch type without checking if possible
+	// the nodes in g.nodes are guaranteed to be *Nodes since the only
+	// way to add nodes in is via AddNode which does type assertion
+	g.WeightedDirectedGraph.RemoveEdge(f.(*Node).ID(), t.(*Node).ID())
 
 	return nil
 }
 
 // SubGraph returns the subgraph of the graph rooted in the node with the given uid up to the given depth.
-// If the node with the given uid is not in the graph it returns error.
-func (g *WUG) SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...graph.Option) (graph.Graph, error) {
+func (g *WDG) SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...graph.Option) (graph.Graph, error) {
 	root, ok := g.nodes[uid.Value()]
 	if !ok {
 		return nil, graph.ErrNodeNotFound
 	}
 
-	sg, err := NewWUG(opts...)
+	sg, err := NewWDG(opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -291,13 +290,11 @@ func (g *WUG) SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...gra
 		sgNodes[vnode.ID()] = vnode
 	}
 
-	// NOTE: visit is called with each node the first time it is visited
-	// https://pkg.go.dev/gonum.org/v1/gonum@v0.8.2/graph/traverse#BreadthFirst.Walk
 	bfs := traverse.BreadthFirst{
 		Visit: visit,
 	}
 
-	_ = bfs.Walk(g.WeightedUndirectedGraph, root.(*Node), func(n gngraph.Node, d int) bool {
+	_ = bfs.Walk(g.WeightedDirectedGraph, root.(*Node), func(n gngraph.Node, d int) bool {
 		return d == depth
 	})
 
@@ -306,7 +303,7 @@ func (g *WUG) SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...gra
 	}
 
 	for id, node := range sgNodes {
-		nodes := g.WeightedUndirectedGraph.From(id)
+		nodes := g.WeightedDirectedGraph.From(id)
 		for nodes.Next() {
 			pnode := nodes.Node()
 			peer := pnode.(*Node)
@@ -336,7 +333,9 @@ func (g *WUG) SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...gra
 }
 
 // Query queries the in-memory graph and returns the matched results.
-func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
+// Query does a linear search over all of the graph nodes.
+// TODO: make this more efficient
+func (g WDG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
 	if m := q.Matcher(query.UID); m != nil {
 		if uid, ok := m.Predicate().Value().(uuid.UID); ok && len(uid.Value()) > 0 {
 			if n, ok := g.nodes[uid.Value()]; ok {
@@ -348,34 +347,48 @@ func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
 
 	var results []graph.Entity
 
-	visit := func(n gngraph.Node) {
+	/*// Linear search over topologically sorted nodes
+	sorted, err := topo.Sort(g.WeightedDirectedGraph)
+	if err != nil {
+		return nil, fmt.Errorf("unable to sort graph: %v", err)
+	}
+
+	for _, n := range sorted {
 		node := n.(*Node)
 
 		if m := q.Matcher(query.Attrs); m != nil {
 			if !m.Match(node.Attrs()) {
-				return
+				continue
 			}
 		}
 
 		results = append(results, node)
 	}
+	*/
 
-	dfs := traverse.DepthFirst{
-		Visit: visit,
+	graphNodes := gngraph.NodesOf(g.WeightedDirectedGraph.Nodes())
+
+	for _, n := range graphNodes {
+		node := n.(*Node)
+
+		if m := q.Matcher(query.Attrs); m != nil {
+			if !m.Match(node.Attrs()) {
+				continue
+			}
+		}
+		results = append(results, node)
 	}
-
-	dfs.WalkAll(g.WeightedUndirectedGraph, nil, nil, func(gngraph.Node) {})
 
 	return results, nil
 }
 
 // DOTID returns the graph DOT ID.
-func (g WUG) DOTID() string {
+func (g WDG) DOTID() string {
 	return g.dotid
 }
 
 // DOTAttributers implements encoding.Attributer.
-func (g *WUG) DOTAttributers() (graph, node, edge encoding.Attributer) {
+func (g *WDG) DOTAttributers() (graph, node, edge encoding.Attributer) {
 	graph = g.dot.GraphAttrs
 	node = g.dot.NodeAttrs
 	edge = g.dot.EdgeAttrs
@@ -384,8 +397,8 @@ func (g *WUG) DOTAttributers() (graph, node, edge encoding.Attributer) {
 }
 
 // DOT returns the GrapViz dot representation of the graph.
-func (g *WUG) DOT() (string, error) {
-	b, err := dot.Marshal(g.WeightedUndirectedGraph, "", "", "  ")
+func (g *WDG) DOT() (string, error) {
+	b, err := dot.Marshal(g.WeightedDirectedGraph, "", "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("DOT marshal error: %w", err)
 	}
