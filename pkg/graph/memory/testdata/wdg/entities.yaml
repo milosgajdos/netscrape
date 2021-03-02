@@ -48,17 +48,7 @@
     namespaced: true
     name: foo
   uid: fooGroup/v1/fooKind/fooNs/foo3
-- links:
-  - from: fooGroup/v2/fooKind/fooNs/foo4
-    to: fooGroup/v1/fooKind/fooNs/foo3
-    uid: fooGroup/v2/fooKind/fooNs/foo4-fooGroup/v1/fooKind/fooNs/foo3
-    attrs:
-      relation: foo-foo
-  - from: fooGroup/v2/fooKind/fooNs/foo4
-    to: fooGroup/v1/fooKind/fooNs/foo1
-    uid: fooGroup/v2/fooKind/fooNs/foo4-fooGroup/v1/fooKind/fooNs/foo1
-    attrs:
-      relation: foo-foo
+- links: []
   name: foo4
   namespace: fooNs
   resource:
@@ -70,10 +60,10 @@
   uid: fooGroup/v2/fooKind/fooNs/foo4
 - links:
   - from: fooGroup/v2/fooKind/fooNs/foo5
-    to: fooGroup/v1/fooKind/fooNs/foo1
-    uid: fooGroup/v2/fooKind/fooNs/foo5-fooGroup/v1/fooKind/fooNs/foo1
+    to: barGroup/v2/barGroup/global/bar5
+    uid: fooGroup/v2/fooKind/fooNs/foo5-barGroup/v2/barGroup/global/bar5
     attrs:
-      relation: foo-foo
+      relation: foo-bar
   name: foo5
   namespace: fooNs
   resource:
@@ -83,17 +73,7 @@
     namespaced: true
     name: foo
   uid: fooGroup/v2/fooKind/fooNs/foo5
-- links:
-  - from: barGroup/v2/barGroup/global/bar5
-    to: rndGroup/v6/rndKind/rndNs/rnd6
-    uid: barGroup/v2/barGroup/global/bar5-rndGroup/v6/rndKind/rndNs/rnd6
-    attrs:
-      relation: bar-rnd
-  - from: barGroup/v2/barGroup/global/bar5
-    to: fooGroup/v1/fooKind/fooNs/foo1
-    uid: barGroup/v2/barGroup/global/bar5-fooGroup/v1/fooKind/fooNs/foo1
-    attrs:
-      relation: foo-bar
+- links: []
   name: bar5
   namespace: global
   resource:
@@ -149,11 +129,6 @@
     name: rnd
   uid: rndGroup/v2/rndKind/rndNs/rnd3
 - links:
-  - from: rndGroup/v2/rndKind/rndNs/rnd6
-    to: rndGroup/v2/rndKind/rndNs/rnd3
-    uid: rndGroup/v6/rndKind/rndNs/rnd6-rndGroup/v2/rndKind/rndNs/rnd3
-    attrs:
-      relation: rnd-rnd
   - from: rndGroup/v6/rndKind/rndNs/rnd6
     to: barGroup/v2/barGroup/global/bar5
     uid: rndGroup/v6/rndKind/rndNs/rnd6-barGroup/v2/barGroup/global/bar5
