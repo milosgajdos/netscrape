@@ -151,7 +151,7 @@ func (t *Top) link(from, to uuid.UID, opts ...space.Option) error {
 	return nil
 }
 
-// Link links entities with given UIDs.
+// Link links from and to entities setting the given options on the link.
 // If either from or to is not found in topology it returns error.
 func (t *Top) Link(ctx context.Context, from, to uuid.UID, opts ...space.Option) error {
 	t.mu.Lock()
