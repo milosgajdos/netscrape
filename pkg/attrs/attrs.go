@@ -13,6 +13,8 @@ const (
 	Weight = "weight"
 	// Rel is relation attribute
 	Relation = "relation"
+	// DOTLabel is GraphViz DOT label attribute
+	DOTLabel = "label"
 )
 
 // Attrs provide a simple key-value store

@@ -8,34 +8,35 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 	gngraph "gonum.org/v1/gonum/graph"
 	"gonum.org/v1/gonum/graph/simple"
-	"gonum.org/v1/gonum/graph/traverse"
 )
 
-// WUG is a weighted undirected graph.
-type WUG struct {
+// WDG is a weighted directed graph.
+type WDG struct {
 	*WG
 }
 
-// NewWUG creates a new weighted undirected graph and returns it.
+// NewWDG creates a new weighted directed graph and returns it.
 // If DOTID is not provided via options, it's set to graph UID.
-func NewWUG(opts ...graph.Option) (*WUG, error) {
+func NewWDG(opts ...graph.Option) (*WDG, error) {
 	gopts := graph.Options{}
 	for _, apply := range opts {
 		apply(&gopts)
 	}
 
-	wg, err := NewWG(simple.NewWeightedUndirectedGraph(gopts.Weight, gopts.Weight), opts...)
+	wg, err := NewWG(simple.NewWeightedDirectedGraph(gopts.Weight, gopts.Weight), opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &WUG{
+	return &WDG{
 		WG: wg,
 	}, nil
 }
 
 // Query queries the in-memory graph and returns the matched results.
-func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
+// Query does a linear search over all of the graph nodes.
+// TODO: make this more efficient i.e. faster
+func (g WDG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
 	if m := q.Matcher(query.UID); m != nil {
 		if uid, ok := m.Predicate().Value().(uuid.UID); ok && len(uid.Value()) > 0 {
 			if n, ok := g.nodes[uid.Value()]; ok {
@@ -45,25 +46,20 @@ func (g WUG) Query(ctx context.Context, q query.Query) ([]graph.Entity, error) {
 		}
 	}
 
-	var results []graph.Entity
+	graphNodes := gngraph.NodesOf(g.WG.WeightedGraphBuilder.Nodes())
 
-	visit := func(n gngraph.Node) {
+	results := make([]graph.Entity, len(graphNodes))
+
+	for i, n := range graphNodes {
 		node := n.(*Node)
 
 		if m := q.Matcher(query.Attrs); m != nil {
 			if !m.Match(node.Attrs()) {
-				return
+				continue
 			}
 		}
-
-		results = append(results, node)
+		results[i] = node
 	}
-
-	dfs := traverse.DepthFirst{
-		Visit: visit,
-	}
-
-	dfs.WalkAll(g.WG.WeightedGraphBuilder.(gngraph.Undirected), nil, nil, func(gngraph.Node) {})
 
 	return results, nil
 }

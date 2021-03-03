@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	wugEntPath = "testdata/wug/entities.yaml"
+	wdgEntPath = "testdata/wdg/entities.yaml"
 )
 
-func TestWUGAddGetRemoveNode(t *testing.T) {
-	g, err := NewWUG()
+func TestWDGAddGetRemoveNode(t *testing.T) {
+	g, err := NewWDG()
 	if err != nil {
 		t.Fatalf("failed to create graph: %v", err)
 	}
@@ -108,8 +108,8 @@ func TestWUGAddGetRemoveNode(t *testing.T) {
 	}
 }
 
-func TestWUGLinkGetRemoveEdge(t *testing.T) {
-	g, err := NewWUG()
+func TestWDGLinkGetRemoveEdge(t *testing.T) {
+	g, err := NewWDG()
 	if err != nil {
 		t.Fatalf("failed to create graph: %v", err)
 	}
@@ -255,8 +255,8 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 	}
 }
 
-func TestWUGSubGraph(t *testing.T) {
-	g, err := makeTestGraph(wugEntPath)
+func TestWDGSubGraph(t *testing.T) {
+	g, err := makeTestGraph(wdgEntPath)
 	if err != nil {
 		t.Fatalf("failed to create new memory graph: %v", err)
 	}
@@ -307,8 +307,8 @@ func TestWUGSubGraph(t *testing.T) {
 	}
 }
 
-func TestWUGQuery(t *testing.T) {
-	g, err := makeTestGraph(wugEntPath)
+func TestWDGQuery(t *testing.T) {
+	g, err := makeTestGraph(wdgEntPath)
 	if err != nil {
 		t.Fatalf("failed to create a test graph: %v", err)
 	}
@@ -342,10 +342,10 @@ func TestWUGQuery(t *testing.T) {
 	}
 }
 
-func TestWUGDOT(t *testing.T) {
+func TestWDGDOT(t *testing.T) {
 	id := "testID"
 
-	g, err := NewWUG(graph.WithDOTID(id))
+	g, err := NewWDG(graph.WithDOTID(id))
 	if err != nil {
 		t.Fatalf("failed to create new memory store: %v", err)
 	}
