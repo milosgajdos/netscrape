@@ -43,7 +43,6 @@ func (q *Query) String() string {
 	for k, m := range q.matchers {
 		result += fmt.Sprintf("%s: %s\n", k, m.Predicate().Value())
 	}
-
 	return result
 }
 
@@ -51,6 +50,7 @@ func (q *Query) String() string {
 func (q *Query) MatchAny() query.Query {
 	for _, k := range []query.Type{
 		query.UID,
+		query.Entity,
 		query.Name,
 		query.Group,
 		query.Version,

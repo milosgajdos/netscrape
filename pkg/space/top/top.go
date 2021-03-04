@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/link"
@@ -15,8 +16,8 @@ import (
 type Top struct {
 	// entities stores all entities by their UID
 	entities map[string]space.Entity
-	// index is topology "search index" for name.
-	// NOTE: first index key is entity name, the second is its UID
+	// index is topology "search index" for entity types.
+	// NOTE: first index key is entity type, the second is its UID
 	index map[string]map[string]space.Entity
 	// links indexes all links for the given entity
 	// NOTE: index key in this map is the UID of the *link*
@@ -61,13 +62,13 @@ func (t Top) Entities(ctx context.Context) ([]space.Entity, error) {
 func (t *Top) add(e space.Entity) error {
 	t.entities[e.UID().Value()] = e
 
-	name := e.Name()
+	ent := e.Type().String()
 
-	if t.index[name][e.UID().Value()] == nil {
-		t.index[name] = make(map[string]space.Entity)
+	if t.index[ent][e.UID().Value()] == nil {
+		t.index[ent] = make(map[string]space.Entity)
 	}
 
-	t.index[name][e.UID().Value()] = e
+	t.index[ent][e.UID().Value()] = e
 
 	return nil
 }
@@ -199,14 +200,14 @@ func (t Top) Links(ctx context.Context, uid uuid.UID) ([]space.Link, error) {
 	return links, nil
 }
 
-// getNamedEntities returns all entities with given name.
-func (t Top) getNamedEntities(name string) ([]space.Entity, error) {
+// getEntities returns all entities with given entity type.
+func (t Top) getEntities(ent entity.Type) ([]space.Entity, error) {
 	// nolint:prealloc
 	var entities []space.Entity
 
-	if ents, ok := t.index[name]; ok {
-		for _, ent := range ents {
-			entities = append(entities, ent)
+	if ents, ok := t.index[ent.String()]; ok {
+		for _, e := range ents {
+			entities = append(entities, e)
 		}
 	}
 
@@ -229,10 +230,13 @@ func (t Top) Get(ctx context.Context, q query.Query) ([]space.Entity, error) {
 		}
 	}
 
-	if m := q.Matcher(query.Name); m != nil {
-		name, ok := m.Predicate().Value().(string)
-		if ok && len(name) > 0 {
-			return t.getNamedEntities(name)
+	if m := q.Matcher(query.Entity); m != nil {
+		ent, ok := m.Predicate().Value().(entity.Type)
+		if ok {
+			if _, err := entity.TypeFromString(ent.String()); err != nil {
+				return nil, err
+			}
+			return t.getEntities(ent)
 		}
 		return []space.Entity{}, nil
 	}

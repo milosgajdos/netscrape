@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 
 	"github.com/ghodss/yaml"
+	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/space/origin"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
-	"github.com/milosgajdos/netscrape/pkg/space/types"
 )
 
 // NewMock creates mock Plan from given path and returns it.
@@ -32,7 +32,7 @@ func NewMock(path string) (*Plan, error) {
 		return nil, err
 	}
 
-	var resources []types.Resource
+	var resources []entity.Resource
 	if err := yaml.Unmarshal(data, &resources); err != nil {
 		return nil, err
 	}

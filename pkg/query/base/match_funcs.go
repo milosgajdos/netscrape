@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -18,6 +19,14 @@ func IsAnyFunc(v interface{}) bool {
 func StringEqFunc(s1 string) query.MatchFunc {
 	return func(s2 interface{}) bool {
 		return s1 == s2.(string)
+	}
+}
+
+// EntityEqFunc returns MatchFunc option which checks
+// the equality of an arbitrary entity.Type with e1.
+func EntityEqFunc(e1 entity.Type) query.MatchFunc {
+	return func(e2 interface{}) bool {
+		return e1 == e2.(entity.Type)
 	}
 }
 

@@ -6,12 +6,12 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/link"
 	"github.com/milosgajdos/netscrape/pkg/space/object"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
-	"github.com/milosgajdos/netscrape/pkg/space/types"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -52,7 +52,7 @@ func makeTestSpace(path string) (*testSpace, error) {
 		return nil, err
 	}
 
-	var testEntities []types.Object
+	var testEntities []entity.Object
 	if err := yaml.Unmarshal(data, &testEntities); err != nil {
 		return nil, err
 	}

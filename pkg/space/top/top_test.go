@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/query/base"
 	"github.com/milosgajdos/netscrape/pkg/query/predicate"
 	"github.com/milosgajdos/netscrape/pkg/space"
@@ -115,24 +116,24 @@ func TestGet(t *testing.T) {
 		t.Fatalf("failed to get all topology entities: %v", err)
 	}
 
-	names := make([]string, len(entities))
+	types := make([]entity.Type, len(entities))
 
 	for i, e := range entities {
-		names[i] = e.Name()
+		types[i] = e.Type()
 	}
 
-	for _, name := range names {
-		q := base.Build().Add(predicate.Name(name))
+	for _, ent := range types {
+		q := base.Build().Add(predicate.Entity(ent))
 
 		entities, err := top.Get(context.TODO(), q)
 		if err != nil {
-			t.Errorf("error getting ntities with name %s : %v", name, err)
+			t.Errorf("error getting entities with type %s : %v", ent, err)
 			continue
 		}
 
 		for _, e := range entities {
-			if n := e.Name(); n != name {
-				t.Errorf("expected: %s, got: %s", name, n)
+			if n := e.Type(); n != ent {
+				t.Errorf("expected: %s, got: %s", ent, n)
 			}
 		}
 	}

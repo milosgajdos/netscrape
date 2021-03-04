@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -67,6 +68,11 @@ func New(name, ns string, res space.Resource, opts ...Option) (*Object, error) {
 // UID returns UID.
 func (o Object) UID() uuid.UID {
 	return o.uid
+}
+
+// Type returns entity type
+func (o Object) Type() entity.Type {
+	return entity.ObjectType
 }
 
 // Name returns human readable object name.

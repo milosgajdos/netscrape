@@ -6,10 +6,10 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/object"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
-	"github.com/milosgajdos/netscrape/pkg/space/types"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -26,7 +26,7 @@ func NewMock(path string) (*Top, error) {
 		return nil, err
 	}
 
-	var entities []types.Object
+	var entities []entity.Object
 	if err := yaml.Unmarshal(data, &entities); err != nil {
 		return nil, err
 	}

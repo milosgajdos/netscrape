@@ -4,15 +4,16 @@ import (
 	"context"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Entity is store entity.
+// Entity is stored in Store.
 type Entity interface {
 	// UID returns unique ID.
 	UID() uuid.UID
-	// Name returns name
-	Name() string
+	// Type of entity.
+	Type() entity.Type
 	// Attrs returns attributes.
 	Attrs() attrs.Attrs
 }
