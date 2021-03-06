@@ -15,7 +15,7 @@
     attrs:
       relation: foo-bar
   uid: fooGroup/v1/fooKind/fooNs/foo1
-  type: object
+  type: entity
   name: foo1
   namespace: fooNs
   resource:
@@ -27,7 +27,7 @@
     name: foo
 - links: []
   uid: fooGroup/v1/fooKind/fooNs/foo2
-  type: object
+  type: entity
   name: foo2
   namespace: fooNs
   resource:
@@ -44,7 +44,7 @@
     attrs:
       relation: foo-foo
   uid: fooGroup/v1/fooKind/fooNs/foo3
-  type: object
+  type: entity
   name: foo3
   namespace: fooNs
   resource:
@@ -56,7 +56,7 @@
     name: foo
 - links: []
   uid: fooGroup/v2/fooKind/fooNs/foo4
-  type: object
+  type: entity
   name: foo4
   namespace: fooNs
   resource:
@@ -73,7 +73,7 @@
     attrs:
       relation: foo-bar
   uid: fooGroup/v2/fooKind/fooNs/foo5
-  type: object
+  type: entity
   name: foo5
   namespace: fooNs
   resource:
@@ -85,7 +85,7 @@
     name: foo
 - links: []
   uid: barGroup/v2/barGroup/global/bar5
-  type: object
+  type: entity
   name: bar5
   namespace: global
   resource:
@@ -97,7 +97,7 @@
     name: bar
 - links: []
   uid: rndGroup/v2/rndKind/rndNs/rnd1
-  type: object
+  type: entity
   name: rnd1
   namespace: rndNs
   resource:
@@ -119,7 +119,7 @@
     attrs:
       relation: rnd-rnd
   uid: rndGroup/v2/rndKind/rndNs/rnd2
-  type: object
+  type: entity
   name: rnd2
   namespace: rndNs
   resource:
@@ -136,7 +136,7 @@
     attrs:
       relation: rnd-rnd
   uid: rndGroup/v2/rndKind/rndNs/rnd3
-  type: object
+  type: entity
   name: rnd3
   namespace: rndNs
   resource:
@@ -153,7 +153,7 @@
     attrs:
       relation: bar-rnd
   uid: rndGroup/v6/rndKind/rndNs/rnd6
-  type: object
+  type: entity
   name: rnd6
   namespace: rndNs
   resource:

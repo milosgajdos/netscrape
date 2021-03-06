@@ -21,7 +21,7 @@ func TestSource(t *testing.T) {
 		t.Fatalf("failed to create mock Plan: %v", err)
 	}
 
-	s, err := space.Origin(context.TODO())
+	s, err := space.Origin(context.Background())
 	if err != nil {
 		t.Fatalf("failed to get space origin: %v", err)
 	}
@@ -39,7 +39,7 @@ func TestResources(t *testing.T) {
 		t.Fatalf("failed to create mock Plan: %v", err)
 	}
 
-	resources, err := space.Resources(context.TODO())
+	resources, err := space.Resources(context.Background())
 	if err != nil {
 		t.Fatalf("failed to get plan resources: %v", err)
 	}
@@ -58,7 +58,7 @@ func TestPlanGet(t *testing.T) {
 		return
 	}
 
-	resources, err := plan.Resources(context.TODO())
+	resources, err := plan.Resources(context.Background())
 	if err != nil {
 		t.Fatalf("failed to get plan resources: %v", err)
 	}
@@ -79,7 +79,7 @@ func TestPlanGet(t *testing.T) {
 	for _, group := range groups {
 		q := base.Build().Add(predicate.Group(group))
 
-		resources, err := plan.Get(context.TODO(), q)
+		resources, err := plan.Get(context.Background(), q)
 		if err != nil {
 			t.Errorf("error querying group %s: %v", group, err)
 		}
@@ -93,7 +93,7 @@ func TestPlanGet(t *testing.T) {
 		for _, version := range versions {
 			q = q.Add(predicate.Version(version))
 
-			resources, err := plan.Get(context.TODO(), q)
+			resources, err := plan.Get(context.Background(), q)
 			if err != nil {
 				t.Errorf("error querying g/v %s/%s: %v", group, version, err)
 			}
@@ -107,7 +107,7 @@ func TestPlanGet(t *testing.T) {
 			for _, kind := range kinds {
 				q = q.Add(predicate.Kind(kind))
 
-				resources, err := plan.Get(context.TODO(), q)
+				resources, err := plan.Get(context.Background(), q)
 				if err != nil {
 					t.Errorf("error querying g/v/k: %s/%s/%s: %v", group, version, kind, err)
 				}
@@ -122,7 +122,7 @@ func TestPlanGet(t *testing.T) {
 				for _, name := range names {
 					q = q.Add(predicate.Name(name))
 
-					resources, err := plan.Get(context.TODO(), q)
+					resources, err := plan.Get(context.Background(), q)
 					if err != nil {
 						t.Errorf("error querying g/v/k/n: %s/%s/%s/%s: %v", group, version, kind, name, err)
 					}

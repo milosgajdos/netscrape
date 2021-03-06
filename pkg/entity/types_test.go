@@ -10,7 +10,7 @@ func TestTypeString(t *testing.T) {
 		t Type
 		s string
 	}{
-		{ObjectType, ObjectString},
+		{EntityType, EntityString},
 		{ResourceType, ResourceString},
 		{UnknownType, UnknownString},
 		{Type(-100), UnknownString},
@@ -29,7 +29,7 @@ func TestMarshalJSON(t *testing.T) {
 		b   []byte
 		err error
 	}{
-		{ObjectType, []byte(`"` + ObjectString + `"`), nil},
+		{EntityType, []byte(`"` + EntityString + `"`), nil},
 		{ResourceType, []byte(`"` + ResourceString + `"`), nil},
 		{UnknownType, []byte(`"` + UnknownString + `"`), nil},
 		{Type(-100), []byte(`"` + UnknownString + `"`), nil},
@@ -53,7 +53,7 @@ func TestUnmarshalJSON(t *testing.T) {
 		b   []byte
 		err error
 	}{
-		{ObjectType, []byte(`"` + ObjectString + `"`), nil},
+		{EntityType, []byte(`"` + EntityString + `"`), nil},
 		{ResourceType, []byte(`"` + ResourceString + `"`), nil},
 		{UnknownType, []byte(`"` + UnknownString + `"`), ErrUnknownType},
 		{Type(-100), []byte(`"` + UnknownString + `"`), ErrUnknownType},

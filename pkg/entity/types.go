@@ -5,17 +5,53 @@ import (
 	"encoding/json"
 )
 
+// Resource is an entity resource.
+type Resource struct {
+	UID        string            `json:"uid"`
+	Type       Type              `type:"type"`
+	Name       string            `json:"name"`
+	Group      string            `json:"group"`
+	Version    string            `json:"version"`
+	Kind       string            `json:"kind"`
+	Namespaced bool              `json:"namespaced"`
+	Attrs      map[string]string `json:"attrs,omitempty"`
+}
+
+// Link between two entities.
+type Link struct {
+	UID   string            `json:"uid"`
+	From  string            `json:"from"`
+	To    string            `json:"to"`
+	Attrs map[string]string `json:"attrs,omitempty"`
+}
+
+// Entity is an arbitrary entity.
+type Entity struct {
+	UID       string            `json:"uid"`
+	Type      Type              `type:"type"`
+	Name      string            `json:"name"`
+	Namespace string            `json:"namespace"`
+	Resource  *Resource         `json:"resource,omitempty"`
+	Attrs     map[string]string `json:"attrs,omitempty"`
+}
+
+// LinkedEntity is Entity that has Links to other entities.
+type LinkedEntity struct {
+	Entity
+	Links []Link `json:"links,omitempty"`
+}
+
 // Type is entity type
 type Type int
 
 const (
-	ObjectType Type = iota
+	EntityType Type = iota
 	ResourceType
 	UnknownType
 )
 
 const (
-	ObjectString   = "Object"
+	EntityString   = "Entity"
 	ResourceString = "Resource"
 	UnknownString  = "Unknown"
 )
@@ -23,8 +59,8 @@ const (
 // String implements fmt.Stringer
 func (t Type) String() string {
 	switch t {
-	case ObjectType:
-		return ObjectString
+	case EntityType:
+		return EntityString
 	case ResourceType:
 		return ResourceString
 	default:

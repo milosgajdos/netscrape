@@ -49,7 +49,7 @@ func NewMock(path string) (*Plan, error) {
 			return nil, err
 		}
 
-		if err := a.Add(context.TODO(), m); err != nil {
+		if err := a.Add(context.Background(), m); err != nil {
 			return nil, err
 		}
 	}

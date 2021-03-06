@@ -19,7 +19,7 @@ var (
 	ErrInvalidEntity = errors.New("ErrInvalidEntity")
 	// ErrMissingEntity is returned when a graph query is missing entity
 	ErrMissingEntity = errors.New("ErrMissingEntity")
-	// ErrMissingResource is returned by when scrape.Object.Resource() is nil
+	// ErrMissingResource is returned by when Entity is missing resource.
 	ErrMissingResource = errors.New("ErrMissingResource")
 	// ErrNotImplemented is returned when requesting functionality that has not been implemented
 	ErrNotImplemented = errors.New("ErrNotImplemented")

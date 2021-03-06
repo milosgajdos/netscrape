@@ -3,6 +3,6 @@ package entity
 import "errors"
 
 var (
-	// ErrUnknownType is returns when a string fails to decode to Type
+	// ErrUnknownType is returned when decoding unknown tity type.
 	ErrUnknownType = errors.New("ErrUnknownType")
 )

@@ -13,11 +13,10 @@ import (
 )
 
 const (
-	objPath = "../testdata/undirected/objects.yaml"
-	resPath = "../testdata/undirected/resources.yaml"
+	entPath = "../testdata/undirected/entities.yaml"
 )
 
-func newTop(resPath, entPath string) (*Top, error) {
+func newTop(entPath string) (*Top, error) {
 	top, err := NewMock(entPath)
 	if err != nil {
 		return nil, err
@@ -38,12 +37,12 @@ func TestNew(t *testing.T) {
 }
 
 func TestEntities(t *testing.T) {
-	top, err := newTop(resPath, objPath)
+	top, err := newTop(entPath)
 	if err != nil {
 		t.Fatalf("failed to create mock Top: %v", err)
 	}
 
-	entities, err := top.Entities(context.TODO())
+	entities, err := top.Entities(context.Background())
 	if err != nil {
 		t.Fatalf("failed to get entities: %v", err)
 	}
@@ -54,12 +53,12 @@ func TestEntities(t *testing.T) {
 }
 
 func TestGetUID(t *testing.T) {
-	top, err := newTop(resPath, objPath)
+	top, err := newTop(entPath)
 	if err != nil {
 		t.Fatalf("failed to create mock Top: %v", err)
 	}
 
-	entities, err := top.Entities(context.TODO())
+	entities, err := top.Entities(context.Background())
 	if err != nil {
 		t.Fatalf("failed to get entities: %v", err)
 	}
@@ -73,7 +72,7 @@ func TestGetUID(t *testing.T) {
 	for _, uid := range uids {
 		q := base.Build().Add(predicate.UID(uid))
 
-		entities, err := top.Get(context.TODO(), q)
+		entities, err := top.Get(context.Background(), q)
 
 		if err != nil {
 			t.Errorf("error getting entity: %s: %v", uid, err)
@@ -92,14 +91,14 @@ func TestGetUID(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	top, err := newTop(resPath, objPath)
+	top, err := newTop(entPath)
 	if err != nil {
 		t.Fatalf("failed to create mock Top: %v", err)
 	}
 
 	q := base.Build()
 
-	entities, err := top.Get(context.TODO(), q)
+	entities, err := top.Get(context.Background(), q)
 	if err != nil {
 		t.Errorf("error querying entities: %v", err)
 	}
@@ -111,7 +110,7 @@ func TestGet(t *testing.T) {
 
 	}
 
-	entities, err = top.Entities(context.TODO())
+	entities, err = top.Entities(context.Background())
 	if err != nil {
 		t.Fatalf("failed to get all topology entities: %v", err)
 	}
@@ -125,7 +124,7 @@ func TestGet(t *testing.T) {
 	for _, ent := range types {
 		q := base.Build().Add(predicate.Entity(ent))
 
-		entities, err := top.Get(context.TODO(), q)
+		entities, err := top.Get(context.Background(), q)
 		if err != nil {
 			t.Errorf("error getting entities with type %s : %v", ent, err)
 			continue
@@ -140,7 +139,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	top, err := newTop(resPath, objPath)
+	top, err := newTop(entPath)
 	if err != nil {
 		t.Fatalf("failed to create mock Top: %v", err)
 	}
@@ -189,7 +188,7 @@ func TestRemove(t *testing.T) {
 }
 
 func TestLinks(t *testing.T) {
-	top, err := newTop(resPath, objPath)
+	top, err := newTop(entPath)
 	if err != nil {
 		t.Fatalf("failed to create mock Top: %v", err)
 	}

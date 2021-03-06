@@ -8,10 +8,10 @@ func TestTypeFromString(t *testing.T) {
 		t   Type
 		err error
 	}{
-		{"Object", ObjectType, nil},
 		{"Resource", ResourceType, nil},
-		{"object", ObjectType, nil},
 		{"resource", ResourceType, nil},
+		{"entity", EntityType, nil},
+		{"Entity", EntityType, nil},
 		{"foo", UnknownType, ErrUnknownType},
 	}
 
