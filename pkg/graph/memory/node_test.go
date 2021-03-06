@@ -35,7 +35,7 @@ func TestNode(t *testing.T) {
 		t.Errorf("expected ID: %d, got: %d", nodeGID, id)
 	}
 
-	if nodeEnt := n.Entity.(space.Object); !reflect.DeepEqual(nodeEnt, e) {
+	if nodeEnt := n.Entity.(space.Entity); !reflect.DeepEqual(nodeEnt, e) {
 		t.Errorf("invalid graph.Entity for node: %s", n.UID())
 	}
 

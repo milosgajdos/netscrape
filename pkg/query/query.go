@@ -1,7 +1,7 @@
 package query
 
 // Query is an experimental query interface.
-// This is truly a wild experiment, alas it is
+// This is *truly a wild experiment*, alas it is
 // used for querying space.Plan and space.Top.
 type Query interface {
 	// Add a new predicate with MatchFunc to Query

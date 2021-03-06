@@ -1,4 +1,4 @@
-package object
+package entity
 
 import (
 	"reflect"
@@ -18,6 +18,7 @@ const (
 	objUID     = "testID"
 	objName    = "testName"
 	objNs      = "testNs"
+	dotid      = "dotID"
 )
 
 func newTestResource(name, group, version, kind string, namespaced bool, opts ...resource.Option) (space.Resource, error) {
@@ -32,7 +33,7 @@ func TestNew(t *testing.T) {
 
 	e, err := New(objName, objNs, r)
 	if err != nil {
-		t.Fatalf("failed creating new object: %v", err)
+		t.Fatalf("failed creating new entity: %v", err)
 	}
 
 	if e.Name() != objName {
@@ -59,13 +60,24 @@ func TestNewWithOptions(t *testing.T) {
 		t.Errorf("failed to create new uid: %v", err)
 	}
 
-	e, err := New(objName, objNs, r, WithUID(uid))
+	e, err := New(objName, objNs, r, WithUID(uid), WithDOTID(dotid))
 	if err != nil {
-		t.Fatalf("failed creating new object: %v", err)
+		t.Fatalf("failed creating new entity: %v", err)
 	}
 
 	if e.UID().Value() != objUID {
-		t.Errorf("expected object uid: %s, got: %s", objUID, e.UID().Value())
+		t.Errorf("expected entity uid: %s, got: %s", objUID, e.UID().Value())
+	}
+
+	if d := e.DOTID(); d != dotid {
+		t.Errorf("expected dotid: %s, got: %s", dotid, d)
+	}
+
+	dotid2 := "dotid2"
+	e.SetDOTID(dotid2)
+
+	if d := e.DOTID(); d != dotid2 {
+		t.Errorf("expected dotid: %s, got: %s", dotid2, d)
 	}
 
 	a, err := attrs.New()
@@ -77,7 +89,7 @@ func TestNewWithOptions(t *testing.T) {
 
 	e, err = New(objName, objNs, r, WithAttrs(a))
 	if err != nil {
-		t.Errorf("failed to create new object: %v", err)
+		t.Errorf("failed to create new entity: %v", err)
 	}
 
 	if val := e.Attrs().Get(k); val != v {

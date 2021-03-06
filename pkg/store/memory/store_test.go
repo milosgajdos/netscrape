@@ -99,8 +99,8 @@ func TestAddGetDelete(t *testing.T) {
 		t.Fatalf("failed to generate uid: %v", err)
 	}
 
-	if _, err := m.Get(context.Background(), uid); !errors.Is(err, store.ErrNodeNotFound) {
-		t.Errorf("expected error: %v, got: %v", store.ErrNodeNotFound, err)
+	if _, err := m.Get(context.Background(), uid); !errors.Is(err, store.ErrEntityNotFound) {
+		t.Errorf("expected error: %v, got: %v", store.ErrEntityNotFound, err)
 	}
 }
 

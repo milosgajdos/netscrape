@@ -5,6 +5,7 @@ type Type int
 
 const (
 	UID Type = iota
+	Entity
 	Name
 	Group
 	Version
@@ -19,6 +20,8 @@ func (p Type) String() string {
 	switch p {
 	case UID:
 		return "uid"
+	case Entity:
+		return "entity"
 	case Name:
 		return "name"
 	case Group:
@@ -38,15 +41,15 @@ func (p Type) String() string {
 	return "unknown"
 }
 
-// WildCard defines query wildcards
+// WildCard defines query wildcards.
 type WildCard int
 
 const (
-	// Any means any value is acceptably
+	// Any means any value is acceptable
 	Any WildCard = iota
 )
 
-// String implements fmt.Stringer
+// String implements fmt.Stringer.
 func (v WildCard) String() string {
 	switch v {
 	case Any:

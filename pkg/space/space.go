@@ -5,24 +5,17 @@ import (
 	"net/url"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
-
-// Entity is a space entity.
-type Entity interface {
-	// UID returns unique ID.
-	UID() uuid.UID
-	// Name returns name
-	Name() string
-	// Attrs returns attributes.
-	Attrs() attrs.Attrs
-}
 
 // Resource is space resource.
 type Resource interface {
 	// UID returns unique ID.
 	UID() uuid.UID
+	// Type of entity
+	Type() entity.Type
 	// Name returns name.
 	Name() string
 	// Group retrurns group.
@@ -37,10 +30,12 @@ type Resource interface {
 	Attrs() attrs.Attrs
 }
 
-// Object is an instance of resource.
-type Object interface {
+// Entity is space entity.
+type Entity interface {
 	// UID returns unique ID.
 	UID() uuid.UID
+	// Type of entity
+	Type() entity.Type
 	// Name returns human readable name.
 	Name() string
 	// Namespace returns namespace.

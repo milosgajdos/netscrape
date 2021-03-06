@@ -82,7 +82,7 @@ func (m *Memory) Get(ctx context.Context, uid uuid.UID, opts ...store.Option) (s
 	case len(entities) > 1:
 		panic("duplicate nodes found")
 	case len(entities) == 0:
-		return nil, store.ErrNodeNotFound
+		return nil, store.ErrEntityNotFound
 	}
 
 	return entities[0], nil

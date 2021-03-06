@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 	"gonum.org/v1/gonum/graph/encoding"
 )
@@ -18,12 +19,12 @@ type DOTer interface {
 	Attributes() []encoding.Attribute
 }
 
-// Enitty is stored in graph
+// Enitty is stored as a node in graph.
 type Entity interface {
 	// UID returns unique ID.
 	UID() uuid.UID
-	// Name returns name
-	Name() string
+	// Type of entity.
+	Type() entity.Type
 	// Attrs returns attributes.
 	Attrs() attrs.Attrs
 }

@@ -6,10 +6,10 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	types "github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/space"
-	"github.com/milosgajdos/netscrape/pkg/space/object"
+	"github.com/milosgajdos/netscrape/pkg/space/entity"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
-	"github.com/milosgajdos/netscrape/pkg/space/types"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -26,7 +26,7 @@ func NewMock(path string) (*Top, error) {
 		return nil, err
 	}
 
-	var entities []types.Object
+	var entities []types.LinkedEntity
 	if err := yaml.Unmarshal(data, &entities); err != nil {
 		return nil, err
 	}
@@ -55,12 +55,12 @@ func NewMock(path string) (*Top, error) {
 			return nil, err
 		}
 
-		ent, err := object.New(
+		ent, err := entity.New(
 			o.Name,
 			o.Namespace,
 			r,
-			object.WithUID(uid),
-			object.WithAttrs(a),
+			entity.WithUID(uid),
+			entity.WithAttrs(a),
 		)
 
 		if err != nil {

@@ -2,6 +2,7 @@ package base
 
 import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -28,6 +29,8 @@ func getDefaultMatchFunc(p query.Predicate) query.MatchFunc {
 	switch p.Type() {
 	case query.UID:
 		return UUIDEqFunc(p.Value().(uuid.UID))
+	case query.Entity:
+		return EntityEqFunc(p.Value().(entity.Type))
 	case query.Name, query.Group, query.Version, query.Kind, query.Namespace:
 		return StringEqFunc(p.Value().(string))
 	case query.Weight:

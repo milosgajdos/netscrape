@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -64,6 +65,11 @@ func New(name, group, version, kind string, namespaced bool, opts ...Option) (*R
 // UID returns UID.
 func (r Resource) UID() uuid.UID {
 	return r.uid
+}
+
+// Type returns entity type
+func (r Resource) Type() entity.Type {
+	return entity.ResourceType
 }
 
 // Name returns resource name.
