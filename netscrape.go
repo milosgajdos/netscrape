@@ -22,8 +22,8 @@ type netscraper struct {
 }
 
 // New creates a new netscraper and returns it.
-// If no store option is provided a memory store
-// backed by memory.WUG (Weighted Undirected Graph).
+// By default an in-memory store is created backed by
+// memory.WUG (in-memory Weighted Undirected Graph).
 func New(opts ...Option) (*netscraper, error) {
 	nopts := Options{}
 	for _, apply := range opts {

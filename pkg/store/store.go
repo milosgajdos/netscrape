@@ -41,8 +41,8 @@ type BulkStore interface {
 	BulkGet(context.Context, []uuid.UID, ...Option) ([]Entity, error)
 	// BulkDelete deletes entities from store.
 	BulkDelete(context.Context, []uuid.UID, ...Option) error
-	// BulkLink links from two given entities in store.
+	// BulkLink links the given entity to the list of given entities in store.
 	BulkLink(context.Context, uuid.UID, []uuid.UID, ...Option) error
-	// BulkUnlink unlinks entity from given entities in store.
+	// BulkUnlink unlinks the given entity from the list of given entities in store.
 	BulkUnlink(context.Context, uuid.UID, []uuid.UID, ...Option) error
 }

@@ -78,20 +78,34 @@ type Plan interface {
 	Get(context.Context, query.Query) ([]Resource, error)
 }
 
-// Top is topology i.e. a map of Entities.
+// Top is space topology i.e. a map of Entities.
 type Top interface {
+	// Entities returns all topology Entities.
+	// TODO: this might be redundant; query.Any or query.All should handle this
+	Entities(context.Context) ([]Entity, error)
 	// Add adds Entity to topology.
 	Add(context.Context, Entity, ...Option) error
 	// Remove removes Entity with given uid from topology.
 	Remove(context.Context, uuid.UID, ...Option) error
-	// Entities returns all topology Entities.
-	Entities(context.Context) ([]Entity, error)
-	// Get returns Entity with the given UID
+	// Get returns Entity matching query.
 	Get(context.Context, query.Query) ([]Entity, error)
 	// Link links entities with given UIDs.
 	Link(ctx context.Context, from, to uuid.UID, opts ...Option) error
 	// Links returns all links with origin in the given entity.
 	Links(context.Context, uuid.UID) ([]Link, error)
+}
+
+// BulkTop provides bulk operations on topology
+type BulkTop interface {
+	Top
+	// BulkAdd adds Entites to topology.
+	BulkAdd(context.Context, []Entity, ...Option) error
+	// BulkRemove removes Entities with given uid from topology.
+	BulkRemove(context.Context, []uuid.UID, ...Option) error
+	// BulkLink links from entity to entities with given UIDs.
+	BulkLink(ctx context.Context, from uuid.UID, to []uuid.UID, opts ...Option) error
+	// BulkLinks returns all links with origin in the given entity.
+	BulkLinks(context.Context, []uuid.UID) ([]Link, error)
 }
 
 // Planner builds plan.

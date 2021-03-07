@@ -125,3 +125,28 @@ func (m *Memory) Unlink(ctx context.Context, from, to uuid.UID, opts ...store.Op
 
 	return nil
 }
+
+// BulkAdd adds entities to store.
+func (m *Memory) BulkAdd(ctx context.Context, ents []store.Entity, opts ...Option) error {
+	return store.ErrNotImplemented
+}
+
+// BulkGet gets entities from store.
+func (m *Memory) BulkGet(ctx context.Context, uids []uuid.UID, opts ...Option) ([]store.Entity, error) {
+	return nil, store.ErrNotImplemented
+}
+
+// BulkDelete deletes entities from store.
+func (m *Memory) BulkDelete(ctx context.Context, uids []uuid.UID, opts ...Option) error {
+	return store.ErrNotImplemented
+}
+
+// BulkLink links from two given entities in store.
+func (m *Memory) BulkLink(ctx context.Context, from uuid.UID, uids []uuid.UID, opts ...Option) error {
+	return store.ErrNotImplemented
+}
+
+// BulkUnlink unlinks entity from given entities in store.
+func (m *Memory) BulkUnlink(ctx context.Context, from uuid.UID, uids []uuid.UID, opts ...Option) error {
+	return store.ErrNotImplemented
+}
