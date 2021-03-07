@@ -4,40 +4,43 @@ import (
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 const (
-	name    = "ResName"
-	group   = "ResGroup"
-	version = "ResVersion"
-	kind    = "ResKind"
-	ns      = false
+	testUID     = "resUID"
+	testName    = "ResName"
+	testGroup   = "ResGroup"
+	testVersion = "ResVersion"
+	testKind    = "ResKind"
+	testNs      = false
+	testDOTID   = "dotID"
 )
 
 func TestNew(t *testing.T) {
-	r, err := New(name, group, version, kind, ns)
+	r, err := New(testName, testGroup, testVersion, testKind, testNs)
 	if err != nil {
 		t.Fatalf("failed creating new resource: %v", err)
 	}
 
-	if n := r.Name(); n != name {
-		t.Errorf("expected name: %s, got: %s", name, n)
+	if n := r.Name(); n != testName {
+		t.Errorf("expected name: %s, got: %s", testName, n)
 	}
 
-	if g := r.Group(); g != group {
-		t.Errorf("expected group: %s, got: %s", group, g)
+	if g := r.Group(); g != testGroup {
+		t.Errorf("expected group: %s, got: %s", testGroup, g)
 	}
 
-	if v := r.Version(); v != version {
-		t.Errorf("expected version: %s, got: %s", version, v)
+	if v := r.Version(); v != testVersion {
+		t.Errorf("expected version: %s, got: %s", testVersion, v)
 	}
 
-	if k := r.Kind(); k != kind {
-		t.Errorf("expected kind: %s, got: %s", kind, k)
+	if k := r.Kind(); k != testKind {
+		t.Errorf("expected kind: %s, got: %s", testKind, k)
 	}
 
-	if n := r.Namespaced(); n != ns {
-		t.Errorf("expected namespaced: %v, got: %v", ns, n)
+	if n := r.Namespaced(); n != testNs {
+		t.Errorf("expected namespaced: %v, got: %v", testNs, n)
 	}
 }
 
@@ -49,12 +52,25 @@ func TestNewWithOptions(t *testing.T) {
 	k, v := "foo", "bar"
 	a.Set(k, v)
 
-	r, err := New(name, group, version, kind, ns, WithAttrs(a))
+	uid, err := uuid.NewFromString(testUID)
+	if err != nil {
+		t.Errorf("failed to create new uid: %v", err)
+	}
+
+	r, err := New(testName, testGroup, testVersion, testKind, testNs, WithUID(uid), WithDOTID(testDOTID), WithAttrs(a))
 	if err != nil {
 		t.Fatalf("failed creating new resource: %v", err)
 	}
 
 	if val := r.Attrs().Get(k); val != v {
 		t.Errorf("expected attrs val: %s, for key: %s, got: %s", v, k, val)
+	}
+
+	if u := r.UID().Value(); u != testUID {
+		t.Errorf("expected resource uid: %s, got: %s", testUID, u)
+	}
+
+	if d := r.DOTID(); d != testDOTID {
+		t.Errorf("expected dotid: %s, got: %s", testDOTID, d)
 	}
 }

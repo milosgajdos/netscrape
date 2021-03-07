@@ -21,10 +21,6 @@ type Entity struct {
 
 // New creates a new entity and returns it.
 func New(name, ns string, res space.Resource, opts ...Option) (*Entity, error) {
-	if res == nil {
-		return nil, ErrMissingResource
-	}
-
 	eopts := Options{}
 	for _, apply := range opts {
 		apply(&eopts)
@@ -50,12 +46,15 @@ func New(name, ns string, res space.Resource, opts ...Option) (*Entity, error) {
 
 	dotid := eopts.DOTID
 	if dotid == "" {
-		dotid = strings.Join([]string{
-			res.Group(),
-			res.Version(),
-			res.Kind(),
-			ns,
-			name}, "/")
+		dotid = uid.Value()
+		if res != nil {
+			dotid = strings.Join([]string{
+				res.Group(),
+				res.Version(),
+				res.Kind(),
+				ns,
+				name}, "/")
+		}
 	}
 
 	return &Entity{

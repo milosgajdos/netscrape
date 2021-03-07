@@ -45,10 +45,13 @@ func New(name, group, version, kind string, namespaced bool, opts ...Option) (*R
 		}
 	}
 
-	dotid := strings.Join([]string{
-		group,
-		version,
-		kind}, "/")
+	dotid := ropts.DOTID
+	if dotid == "" {
+		dotid = strings.Join([]string{
+			group,
+			version,
+			kind}, "/")
+	}
 
 	return &Resource{
 		uid:        uid,
