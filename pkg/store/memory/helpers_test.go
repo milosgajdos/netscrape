@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	nodeResName    = "nodeResName"
-	nodeResGroup   = "nodeResGroup"
-	nodeResVersion = "nodeResVersion"
-	nodeResKind    = "nodeResKind"
-	nodeNs         = "testNs"
+	resName    = "resName"
+	resGroup   = "resGroup"
+	resVersion = "resVersion"
+	resKind    = "resKind"
+	entNs      = "testNs"
 )
 
 func newTestResource(name, group, version, kind string, namespaced bool, opts ...resource.Option) (space.Resource, error) {

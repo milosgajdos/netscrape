@@ -11,8 +11,14 @@ type Grapher interface {
 	Graph() (graph.Graph, error)
 }
 
-// Store is memory store
+// Store is in-memory store.
 type Store interface {
 	Grapher
 	store.Store
+}
+
+// BulkStore is in-memory bulk store
+type BulkStore interface {
+	Grapher
+	store.BulkStore
 }

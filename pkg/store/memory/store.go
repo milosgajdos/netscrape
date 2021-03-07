@@ -127,26 +127,47 @@ func (m *Memory) Unlink(ctx context.Context, from, to uuid.UID, opts ...store.Op
 }
 
 // BulkAdd adds entities to store.
-func (m *Memory) BulkAdd(ctx context.Context, ents []store.Entity, opts ...Option) error {
-	return store.ErrNotImplemented
+func (m *Memory) BulkAdd(ctx context.Context, ents []store.Entity, opts ...store.Option) error {
+	for _, ent := range ents {
+		if err := m.Add(ctx, ent, opts...); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // BulkGet gets entities from store.
-func (m *Memory) BulkGet(ctx context.Context, uids []uuid.UID, opts ...Option) ([]store.Entity, error) {
+func (m *Memory) BulkGet(ctx context.Context, uids []uuid.UID, opts ...store.Option) ([]store.Entity, error) {
+	// TODO query graph for a list of UIDs
 	return nil, store.ErrNotImplemented
 }
 
 // BulkDelete deletes entities from store.
-func (m *Memory) BulkDelete(ctx context.Context, uids []uuid.UID, opts ...Option) error {
-	return store.ErrNotImplemented
+func (m *Memory) BulkDelete(ctx context.Context, uids []uuid.UID, opts ...store.Option) error {
+	for _, uid := range uids {
+		if err := m.Delete(ctx, uid, opts...); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // BulkLink links from two given entities in store.
-func (m *Memory) BulkLink(ctx context.Context, from uuid.UID, uids []uuid.UID, opts ...Option) error {
-	return store.ErrNotImplemented
+func (m *Memory) BulkLink(ctx context.Context, from uuid.UID, uids []uuid.UID, opts ...store.Option) error {
+	for _, uid := range uids {
+		if err := m.Link(ctx, from, uid, opts...); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // BulkUnlink unlinks entity from given entities in store.
-func (m *Memory) BulkUnlink(ctx context.Context, from uuid.UID, uids []uuid.UID, opts ...Option) error {
-	return store.ErrNotImplemented
+func (m *Memory) BulkUnlink(ctx context.Context, from uuid.UID, uids []uuid.UID, opts ...store.Option) error {
+	for _, uid := range uids {
+		if err := m.Unlink(ctx, from, uid, opts...); err != nil {
+			return err
+		}
+	}
+	return nil
 }
