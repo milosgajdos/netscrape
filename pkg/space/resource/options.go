@@ -11,6 +11,8 @@ type Options struct {
 	UID uuid.UID
 	// Attrs options
 	Attrs attrs.Attrs
+	// DOTID options
+	DOTID string
 }
 
 // Option configures Options.
@@ -27,5 +29,12 @@ func WithAttrs(a attrs.Attrs) Option {
 func WithUID(u uuid.UID) Option {
 	return func(o *Options) {
 		o.UID = u
+	}
+}
+
+// WithDOTID sets Attrs options
+func WithDOTID(d string) Option {
+	return func(o *Options) {
+		o.DOTID = d
 	}
 }
