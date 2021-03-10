@@ -28,17 +28,16 @@ func newMatcher(p query.Predicate, funcs ...query.MatchFunc) *Matcher {
 func getDefaultMatchFunc(p query.Predicate) query.MatchFunc {
 	switch p.Type() {
 	case query.UID:
-		return UUIDEqFunc(p.Value().(uuid.UID))
+		return UUIDEqFunc(p.Value().([]uuid.UID)...)
 	case query.Entity:
-		return EntityEqFunc(p.Value().(entity.Type))
+		return EntityEqFunc(p.Value().([]entity.Type)...)
 	case query.Name, query.Group, query.Version, query.Kind, query.Namespace:
-		return StringEqFunc(p.Value().(string))
+		return StringEqFunc(p.Value().([]string)...)
 	case query.Weight:
-		return FloatEqFunc(p.Value().(float64))
+		return FloatEqFunc(p.Value().([]float64)...)
 	case query.Attrs:
 		return HasAttrsFunc(p.Value().(attrs.Attrs))
 	}
-
 	return IsAnyFunc
 }
 
@@ -56,7 +55,6 @@ func (m Matcher) Match(val interface{}) bool {
 	for _, fn := range m.funcs {
 		match = (match && fn(val)) || any
 	}
-
 	return match
 }
 

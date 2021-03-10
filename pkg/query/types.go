@@ -45,8 +45,10 @@ func (p Type) String() string {
 type WildCard int
 
 const (
-	// Any means any value is acceptable
+	// Any means any matching value is acceptable.
 	Any WildCard = iota
+	// All means return all matched values.
+	All
 )
 
 // String implements fmt.Stringer.
@@ -54,6 +56,8 @@ func (v WildCard) String() string {
 	switch v {
 	case Any:
 		return "any"
+	case All:
+		return "all"
 	}
 
 	return "unknown"

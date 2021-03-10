@@ -8,8 +8,6 @@ import (
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/graph"
-	"github.com/milosgajdos/netscrape/pkg/query/base"
-	"github.com/milosgajdos/netscrape/pkg/query/predicate"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -303,41 +301,6 @@ func TestWUGSubGraph(t *testing.T) {
 
 		if len(storeNodes) != tc.exp {
 			t.Errorf("expected subgraph nodes: %d, got: %d", tc.exp, len(storeNodes))
-		}
-	}
-}
-
-func TestWUGQuery(t *testing.T) {
-	g, err := makeTestGraph(wugEntPath)
-	if err != nil {
-		t.Fatalf("failed to create a test graph: %v", err)
-	}
-
-	nodes, err := g.Nodes(context.Background())
-	if err != nil {
-		t.Fatalf("failed to fetch graph nodes: %v", err)
-	}
-
-	uids := make([]uuid.UID, len(nodes))
-
-	for i, n := range nodes {
-		uids[i] = n.UID()
-	}
-
-	for _, uid := range uids {
-		q := base.Build().Add(predicate.UID(uid))
-
-		nodes, err := g.Query(context.Background(), q)
-		if err != nil {
-			t.Errorf("error querying entity %s: %v", uid, err)
-			continue
-		}
-
-		for _, node := range nodes {
-			if u := node.UID().Value(); u != uid.Value() {
-				t.Errorf("expected uid: %s, got: %s", uid, u)
-				continue
-			}
 		}
 	}
 }

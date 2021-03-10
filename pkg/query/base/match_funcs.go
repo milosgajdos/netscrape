@@ -16,34 +16,53 @@ func IsAnyFunc(v interface{}) bool {
 
 // StringEqFunc returns MatchFunc option which checks
 // the equality of an arbitrary string to s1
-func StringEqFunc(s1 string) query.MatchFunc {
+func StringEqFunc(s1 ...string) query.MatchFunc {
 	return func(s2 interface{}) bool {
-		return s1 == s2.(string)
+		for _, s := range s1 {
+			if !(s == s2.(string)) {
+				return false
+			}
+		}
+		return true
 	}
 }
 
 // EntityEqFunc returns MatchFunc option which checks
 // the equality of an arbitrary entity.Type with e1.
-func EntityEqFunc(e1 entity.Type) query.MatchFunc {
+func EntityEqFunc(e1 ...entity.Type) query.MatchFunc {
 	return func(e2 interface{}) bool {
-		return e1 == e2.(entity.Type)
+		for _, e := range e1 {
+			if !(e == e2.(entity.Type)) {
+				return false
+			}
+		}
+		return true
 	}
 }
 
 // FloatEqFunc returns MatchFunc which checks
 // the equality of an arbitrary float to f1
-func FloatEqFunc(f1 float64) query.MatchFunc {
+func FloatEqFunc(f1 ...float64) query.MatchFunc {
 	return func(f2 interface{}) bool {
-		return big.NewFloat(f1).Cmp(big.NewFloat(f2.(float64))) != 0
+		for _, f := range f1 {
+			if big.NewFloat(f).Cmp(big.NewFloat(f2.(float64))) != 0 {
+				return false
+			}
+		}
+		return true
 	}
 }
 
 // UIDEqFunc returns MatchFunc which checks
 // the equality of an arbitrary uid to u1
-func UUIDEqFunc(u1 uuid.UID) query.MatchFunc {
+func UUIDEqFunc(u1 ...uuid.UID) query.MatchFunc {
 	return func(u2 interface{}) bool {
-		u := u2.(uuid.UID)
-		return u1.Value() == u.Value()
+		for _, u := range u1 {
+			if !(u.Value() == u2.(uuid.UID).Value()) {
+				return false
+			}
+		}
+		return true
 	}
 }
 

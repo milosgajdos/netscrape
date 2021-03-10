@@ -8,8 +8,6 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	memgraph "github.com/milosgajdos/netscrape/pkg/graph/memory"
-	"github.com/milosgajdos/netscrape/pkg/query/base"
-	"github.com/milosgajdos/netscrape/pkg/query/predicate"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/store"
 	memstore "github.com/milosgajdos/netscrape/pkg/store/memory"
@@ -72,7 +70,7 @@ func (n netscraper) skip(e space.Entity, fx ...Filter) bool {
 
 // buildNetwork builds a network from given topology top skipping entities that match filters fx.
 func (n *netscraper) buildNetwork(ctx context.Context, top space.Top, fx ...Filter) error {
-	entities, err := top.Entities(ctx)
+	entities, err := top.GetAll(ctx)
 	if err != nil {
 		return err
 	}
@@ -93,12 +91,8 @@ func (n *netscraper) buildNetwork(ctx context.Context, top space.Top, fx ...Filt
 		}
 
 		for _, link := range links {
-			uid := link.To()
-
-			q := base.Build().Add(predicate.UID(uid))
-
 			// NOTE: this must return a single node
-			peers, err := top.Get(ctx, q)
+			peer, err := top.Get(ctx, link.To())
 			if err != nil {
 				return err
 			}
@@ -108,14 +102,12 @@ func (n *netscraper) buildNetwork(ctx context.Context, top space.Top, fx ...Filt
 				a.Set(attrs.Weight, fmt.Sprintf("%f", graph.DefaultWeight))
 			}
 
-			for _, peer := range peers {
-				if err := n.s.Add(ctx, peer); err != nil {
-					return fmt.Errorf("store peer: %w", err)
-				}
+			if err := n.s.Add(ctx, peer); err != nil {
+				return fmt.Errorf("store peer: %w", err)
+			}
 
-				if err := n.s.Link(ctx, ent.UID(), peer.UID(), store.WithAttrs(a)); err != nil {
-					return fmt.Errorf("link peers: %w", err)
-				}
+			if err := n.s.Link(ctx, ent.UID(), peer.UID(), store.WithAttrs(a)); err != nil {
+				return fmt.Errorf("link peers: %w", err)
 			}
 		}
 	}

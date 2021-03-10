@@ -27,7 +27,7 @@ func (q *Query) Add(p query.Predicate, funcs ...query.MatchFunc) query.Query {
 	return q
 }
 
-// Matcher returns the Matcher for the given predicate kind
+// Matcher returns the Matcher for the given predicate type.
 func (q *Query) Matcher(t query.Type) query.Matcher {
 	return q.matchers[t]
 }
@@ -37,7 +37,7 @@ func (q *Query) Reset() query.Query {
 	return Build()
 }
 
-// String implements fmt.Stringer
+// String implements fmt.Stringer.
 func (q *Query) String() string {
 	var result string
 	for k, m := range q.matchers {
@@ -46,7 +46,7 @@ func (q *Query) String() string {
 	return result
 }
 
-// MatchAny returns query which matches any predicate
+// MatchAny returns query which matches any predicate value.
 func (q *Query) MatchAny() query.Query {
 	for _, k := range []query.Type{
 		query.UID,

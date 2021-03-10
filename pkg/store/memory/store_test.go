@@ -53,7 +53,12 @@ func TestAdd(t *testing.T) {
 	}
 
 	t.Run("OK", func(t *testing.T) {
-		s := MustNewStore(t)
+		uid, err := uuid.NewFromString("someUID")
+		if err != nil {
+			t.Fatalf("failed generating store uid: %v", err)
+		}
+
+		s := MustNewStore(t, WithUID(uid))
 
 		e := MustTestEntity("foo1UID", "foo1Name", t)
 
@@ -74,7 +79,7 @@ func TestGet(t *testing.T) {
 		e := MustTestEntity("foo1UID", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e); err != nil {
-			t.Errorf("failed storing entity %s: %v", e.UID(), err)
+			t.Fatalf("failed storing entity %s: %v", e.UID(), err)
 		}
 
 		res, err := s.Get(context.Background(), e.UID())
@@ -111,11 +116,11 @@ func TestDelete(t *testing.T) {
 		e := MustTestEntity("foo1UID", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e); err != nil {
-			t.Errorf("failed storing entity %s: %v", e.UID(), err)
+			t.Fatalf("failed storing entity %s: %v", e.UID(), err)
 		}
 
 		if err := s.Delete(context.Background(), e.UID()); err != nil {
-			t.Errorf("failed deleting entity %s: %v", e.UID(), err)
+			t.Fatalf("failed deleting entity %s: %v", e.UID(), err)
 		}
 
 		if _, err := s.Get(context.Background(), e.UID()); !errors.Is(err, store.ErrEntityNotFound) {
@@ -135,13 +140,13 @@ func TestLink(t *testing.T) {
 		e1 := MustTestEntity("foo1UID", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e1); err != nil {
-			t.Errorf("failed storing entity %s: %v", e1.UID(), err)
+			t.Fatalf("failed storing entity %s: %v", e1.UID(), err)
 		}
 
 		e2 := MustTestEntity("foo2UID", "foo2Name", t)
 
 		if err := s.Add(context.Background(), e2); err != nil {
-			t.Errorf("failed storing entity %s: %v", e2.UID(), err)
+			t.Fatalf("failed storing entity %s: %v", e2.UID(), err)
 		}
 
 		if err := s.Link(context.Background(), e1.UID(), e2.UID()); err != nil {
@@ -161,17 +166,17 @@ func TestUnlink(t *testing.T) {
 		e1 := MustTestEntity("foo1UID", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e1); err != nil {
-			t.Errorf("failed storing entity %s: %v", e1.UID(), err)
+			t.Fatalf("failed storing entity %s: %v", e1.UID(), err)
 		}
 
 		e2 := MustTestEntity("foo2UID", "foo2Name", t)
 
 		if err := s.Add(context.Background(), e2); err != nil {
-			t.Errorf("failed storing entity %s: %v", e2.UID(), err)
+			t.Fatalf("failed storing entity %s: %v", e2.UID(), err)
 		}
 
 		if err := s.Link(context.Background(), e1.UID(), e2.UID()); err != nil {
-			t.Errorf("failed linking %v to %v: %v", e1.UID(), e2.UID(), err)
+			t.Fatalf("failed linking %v to %v: %v", e1.UID(), e2.UID(), err)
 		}
 
 		if err := s.Unlink(context.Background(), e1.UID(), e2.UID()); err != nil {
@@ -196,6 +201,36 @@ func TestBulkAdd(t *testing.T) {
 	})
 }
 
+func TestBulkGet(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
+	t.Run("OK", func(t *testing.T) {
+		s := MustNewStore(t)
+
+		ents := MustMakeEntities(5, t)
+
+		if err := s.BulkAdd(context.Background(), ents); err != nil {
+			t.Fatalf("failed storing entities: %v", err)
+		}
+
+		uids := make([]uuid.UID, len(ents))
+		for i, e := range ents {
+			uids[i] = e.UID()
+		}
+
+		sents, err := s.BulkGet(context.Background(), uids)
+		if err != nil {
+			t.Fatalf("failed getting entities: %v", err)
+		}
+
+		if len(sents) != len(ents) {
+			t.Errorf("expected %d entities, got: %d", len(sents), len(ents))
+		}
+	})
+}
+
 func TestBulkDelete(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -207,7 +242,7 @@ func TestBulkDelete(t *testing.T) {
 		ents := MustMakeEntities(5, t)
 
 		if err := s.BulkAdd(context.Background(), ents); err != nil {
-			t.Errorf("failed storing entities: %v", err)
+			t.Fatalf("failed storing entities: %v", err)
 		}
 
 		uids := make([]uuid.UID, len(ents))
@@ -217,7 +252,7 @@ func TestBulkDelete(t *testing.T) {
 		}
 
 		if err := s.BulkDelete(context.Background(), uids); err != nil {
-			t.Errorf("failed deleting entities: %v", err)
+			t.Fatalf("failed deleting entities: %v", err)
 		}
 
 		for _, uid := range uids {
@@ -239,13 +274,13 @@ func TestBulkLink(t *testing.T) {
 		ents := MustMakeEntities(5, t)
 
 		if err := s.BulkAdd(context.Background(), ents); err != nil {
-			t.Errorf("failed storing entities: %v", err)
+			t.Fatalf("failed storing entities: %v", err)
 		}
 
 		e := MustTestEntity("foo1UID", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e); err != nil {
-			t.Errorf("failed storing entity %s: %v", e.UID(), err)
+			t.Fatalf("failed storing entity %s: %v", e.UID(), err)
 		}
 
 		uids := make([]uuid.UID, len(ents))
@@ -271,13 +306,13 @@ func TestBulkUnlink(t *testing.T) {
 		ents := MustMakeEntities(5, t)
 
 		if err := s.BulkAdd(context.Background(), ents); err != nil {
-			t.Errorf("failed storing entities: %v", err)
+			t.Fatalf("failed storing entities: %v", err)
 		}
 
 		e := MustTestEntity("foo1UID", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e); err != nil {
-			t.Errorf("failed storing entity %s: %v", e.UID(), err)
+			t.Fatalf("failed storing entity %s: %v", e.UID(), err)
 		}
 
 		uids := make([]uuid.UID, len(ents))
@@ -287,7 +322,7 @@ func TestBulkUnlink(t *testing.T) {
 		}
 
 		if err := s.BulkLink(context.Background(), e.UID(), uids); err != nil {
-			t.Errorf("failed bulk-linking %v: %v", e.UID(), err)
+			t.Fatalf("failed bulk-linking %v: %v", e.UID(), err)
 		}
 
 		if err := s.BulkUnlink(context.Background(), e.UID(), uids); err != nil {

@@ -12,12 +12,7 @@ const (
 	resGroup   = "nodeResGroup"
 	resVersion = "nodeResVersion"
 	resKind    = "nodeResKind"
-	entUID     = "testID"
-	entName    = "testName"
 	entNs      = "testNs"
-	ent2UID    = "test2ID"
-	ent2Name   = "test2Name"
-	ent2Ns     = "test2Ns"
 )
 
 func newTestResource(name, group, version, kind string, namespaced bool, opts ...resource.Option) (space.Resource, error) {
