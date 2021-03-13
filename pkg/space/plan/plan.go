@@ -46,10 +46,7 @@ func (p *Plan) Add(ctx context.Context, r space.Resource, opts ...space.Option) 
 	return p.add(ctx, r, opts...)
 }
 
-func (p *Plan) getAll(ctx context.Context) ([]space.Resource, error) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
+func (p Plan) getAll(ctx context.Context, opts ...space.Option) ([]space.Resource, error) {
 	res := make([]space.Resource, len(p.index))
 
 	i := 0
@@ -62,11 +59,11 @@ func (p *Plan) getAll(ctx context.Context) ([]space.Resource, error) {
 }
 
 // GetAll returns all resource
-func (p *Plan) GetAll(ctx context.Context) ([]space.Resource, error) {
+func (p *Plan) GetAll(ctx context.Context, opts ...space.Option) ([]space.Resource, error) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.getAll(ctx)
+	return p.getAll(ctx, opts...)
 }
 
 func (p *Plan) get(ctx context.Context, uid uuid.UID, opts ...space.Option) (space.Resource, error) {

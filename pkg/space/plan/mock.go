@@ -40,9 +40,9 @@ func NewMock(path string) (*Plan, error) {
 	for _, r := range resources {
 		m, err := resource.New(
 			r.Name,
-			r.Kind,
 			r.Group,
 			r.Version,
+			r.Kind,
 			r.Namespaced,
 		)
 		if err != nil {

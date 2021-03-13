@@ -70,7 +70,7 @@ type Plan interface {
 	// Add adds resource to plan.
 	Add(context.Context, Resource, ...Option) error
 	// GetAll returns all resources in plan.
-	GetAll(context.Context) ([]Resource, error)
+	GetAll(context.Context, ...Option) ([]Resource, error)
 	// Get returns entity with the given uid.
 	Get(context.Context, uuid.UID, ...Option) (Resource, error)
 	// Delete removes Resource with the given uid from plan.
@@ -82,7 +82,7 @@ type Top interface {
 	// Add adds Entity to topology.
 	Add(context.Context, Entity, ...Option) error
 	// GetAll returns all entities store in topology.
-	GetAll(context.Context) ([]Entity, error)
+	GetAll(context.Context, ...Option) ([]Entity, error)
 	// Get returns entity with the given uid.
 	Get(context.Context, uuid.UID, ...Option) (Entity, error)
 	// Delete removes Entity with given uid from topology.

@@ -2,7 +2,6 @@ package top
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/milosgajdos/netscrape/pkg/space"
@@ -49,7 +48,7 @@ func (t *Top) Add(ctx context.Context, e space.Entity, opts ...space.Option) err
 	return t.add(ctx, e, opts...)
 }
 
-func (t *Top) getAll(ctx context.Context) ([]space.Entity, error) {
+func (t *Top) getAll(ctx context.Context, opts ...space.Option) ([]space.Entity, error) {
 	ents := make([]space.Entity, len(t.index))
 
 	i := 0
@@ -57,16 +56,15 @@ func (t *Top) getAll(ctx context.Context) ([]space.Entity, error) {
 		ents[i] = ent
 		i++
 	}
-
 	return ents, nil
 }
 
-// GetAll returns all entities.
-func (t *Top) GetAll(ctx context.Context) ([]space.Entity, error) {
+// GetAll returns all entities and returns them.
+func (t *Top) GetAll(ctx context.Context, opts ...space.Option) ([]space.Entity, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
-	return t.getAll(ctx)
+	return t.getAll(ctx, opts...)
 }
 
 func (t Top) get(ctx context.Context, uid uuid.UID, opts ...space.Option) (space.Entity, error) {
@@ -196,7 +194,7 @@ func (t *Top) Unlink(ctx context.Context, from, to uuid.UID, opts ...space.Optio
 
 func (t Top) getLinks(ctx context.Context, uid uuid.UID, opts ...space.Option) ([]space.Link, error) {
 	if _, ok := t.elinks[uid.Value()]; !ok {
-		return nil, fmt.Errorf("top links entity %s: %w", uid, space.ErrNoLinksFound)
+		return []space.Link{}, nil
 	}
 
 	links := make([]space.Link, len(t.elinks[uid.Value()]))

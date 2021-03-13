@@ -2,7 +2,6 @@ package netscrape
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
@@ -11,12 +10,12 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/store"
 	memstore "github.com/milosgajdos/netscrape/pkg/store/memory"
+	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 // netscraper scrapes data into networks
 type netscraper struct {
-	s  store.Store
-	fx []Filter
+	s store.Store
 }
 
 // New creates a new netscraper and returns it.
@@ -44,66 +43,122 @@ func New(opts ...Option) (*netscraper, error) {
 	}
 
 	return &netscraper{
-		s:  s,
-		fx: nopts.Filters,
+		s: s,
 	}, nil
 }
 
-// skip returns true if e matches any of the filters.
-func (n netscraper) skip(e space.Entity, fx ...Filter) bool {
-	for _, f := range fx {
-		if f(e) {
-			return true
+func (n *netscraper) bulkLinkPeers(ctx context.Context, s store.BulkStore, top space.BulkTop) error {
+	ents, err := top.GetAll(ctx)
+	if err != nil {
+		return fmt.Errorf("get entities: %w", err)
+	}
+
+	storeEnts := make([]store.Entity, len(ents))
+	uids := make([]uuid.UID, len(ents))
+
+	for i, e := range ents {
+		storeEnts[i] = e
+		uids[i] = e.UID()
+	}
+
+	if err := s.BulkAdd(ctx, storeEnts); err != nil {
+		return fmt.Errorf("bulk store entities : %w", err)
+	}
+
+	links, err := top.BulkLinks(ctx, uids)
+	if err != nil {
+		return fmt.Errorf("get bulk links: %w", err)
+	}
+
+	for suid, lx := range links {
+		uid, err := uuid.NewFromString(suid)
+		if err != nil {
+			return err
+		}
+
+		to := make([]uuid.UID, len(lx))
+		for i, l := range lx {
+			to[i] = l.To()
+		}
+
+		if err := s.BulkLink(ctx, uid, to); err != nil {
+			return fmt.Errorf("store bulk link: %w", err)
 		}
 	}
 
-	// NOTE: we avoid appending n.fx to fx and iterating in
-	// single loop for the sake of better performance
-	for _, f := range n.fx {
-		if f(e) {
-			return true
+	return nil
+}
+
+// bulkBuildNetwork is the same as buildNetwork, but stores the nodes in bulks rather than one by one.
+func (n *netscraper) bulkBuildNetwork(ctx context.Context, s store.BulkStore, top space.Top) error {
+	if bt, ok := top.(space.BulkTop); ok {
+		return n.bulkLinkPeers(ctx, s, bt)
+	}
+
+	ents, err := top.GetAll(ctx)
+	if err != nil {
+		return fmt.Errorf("get entities: %w", err)
+	}
+
+	storeEnts := make([]store.Entity, len(ents))
+
+	for i, e := range ents {
+		storeEnts[i] = e
+	}
+
+	if err := s.BulkAdd(ctx, storeEnts); err != nil {
+		return fmt.Errorf("bulk store entities : %w", err)
+	}
+
+	for _, e := range ents {
+		lx, err := top.Links(ctx, e.UID())
+		if err != nil {
+			return err
+		}
+
+		to := make([]uuid.UID, len(lx))
+		for i, l := range lx {
+			to[i] = l.To()
+		}
+
+		if err := s.BulkLink(ctx, e.UID(), to); err != nil {
+			return fmt.Errorf("store bulk link: %w", err)
 		}
 	}
 
-	return false
+	return nil
 }
 
 // buildNetwork builds a network from given topology top skipping entities that match filters fx.
-func (n *netscraper) buildNetwork(ctx context.Context, top space.Top, fx ...Filter) error {
+func (n *netscraper) buildNetwork(ctx context.Context, top space.Top) error {
 	entities, err := top.GetAll(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("get entities: %w", err)
 	}
 
 	for _, ent := range entities {
-		if n.skip(ent, fx...) {
-			continue
-		}
-
 		if err := n.s.Add(ctx, ent); err != nil {
 			return fmt.Errorf("store entity: %w", err)
 		}
 
 		links, err := top.Links(ctx, ent.UID())
-		// don't return error if there are no outgoing links from ent
-		if err != nil && !errors.Is(err, space.ErrEntityNotFound) {
+		if err != nil {
 			return err
 		}
 
 		for _, link := range links {
-			// NOTE: this must return a single node
 			peer, err := top.Get(ctx, link.To())
 			if err != nil {
 				return err
 			}
 
+			if err := n.s.Add(ctx, peer); err != nil {
+				return fmt.Errorf("store peer: %w", err)
+			}
+
 			a := attrs.NewCopyFrom(link.Attrs())
 			if w := a.Get(attrs.Weight); w == "" {
 				a.Set(attrs.Weight, fmt.Sprintf("%f", graph.DefaultWeight))
-			}
-
-			if err := n.s.Add(ctx, peer); err != nil {
-				return fmt.Errorf("store peer: %w", err)
 			}
 
 			if err := n.s.Link(ctx, ent.UID(), peer.UID(), store.WithAttrs(a)); err != nil {
@@ -118,7 +173,7 @@ func (n *netscraper) buildNetwork(ctx context.Context, top space.Top, fx ...Filt
 // Run runs netscraping using scraper s on origin o with filters fx.
 // It first creates a space.Plan for the given origin and then maps it into space.Top.
 // The topology is used for building a graph which is stored in configured store.
-func (n *netscraper) Run(ctx context.Context, s space.Scraper, o space.Origin, fx ...Filter) error {
+func (n *netscraper) Run(ctx context.Context, s space.Scraper, o space.Origin) error {
 	plan, err := s.Plan(ctx, o)
 	if err != nil {
 		return fmt.Errorf("discover: %w", err)
@@ -129,7 +184,12 @@ func (n *netscraper) Run(ctx context.Context, s space.Scraper, o space.Origin, f
 		return fmt.Errorf("map: %w", err)
 	}
 
-	return n.buildNetwork(ctx, top, fx...)
+	bs, ok := n.s.(store.BulkStore)
+	if ok {
+		return n.bulkBuildNetwork(ctx, bs, top)
+	}
+
+	return n.buildNetwork(ctx, top)
 }
 
 // Store returns store handle.

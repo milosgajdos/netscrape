@@ -24,7 +24,7 @@ func MustNewTop(src string, t *testing.T) *Top {
 	return p
 }
 
-func MustTestEntity(uid, name string, t *testing.T) space.Entity {
+func MustEntity(uid, name string, t *testing.T) space.Entity {
 	r, err := newTestResource(resName, resGroup, resVersion, resKind, false)
 	if err != nil {
 		t.Fatalf("failed to create resource: %v", err)
@@ -38,14 +38,14 @@ func MustTestEntity(uid, name string, t *testing.T) space.Entity {
 	return e
 }
 
-func MustMakeEntities(count int, t *testing.T) []space.Entity {
+func MustEntities(count int, t *testing.T) []space.Entity {
 	ents := make([]space.Entity, count)
 
 	for i := 0; i < count; i++ {
 		uid := fmt.Sprintf("uid%d", i)
 		name := fmt.Sprintf("name%d", i)
 
-		ents[i] = MustTestEntity(uid, name, t)
+		ents[i] = MustEntity(uid, name, t)
 	}
 
 	return ents
@@ -58,7 +58,7 @@ func TestAdd(t *testing.T) {
 
 	t.Run("OK", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
-		e := MustTestEntity("foo1UID", "foo1Name", t)
+		e := MustEntity("foo1UID", "foo1Name", t)
 
 		if err := p.Add(context.Background(), e); err != nil {
 			t.Errorf("failed adding entity %s: %v", e.UID(), err)
@@ -76,12 +76,12 @@ func TestGetAll(t *testing.T) {
 
 		rx, err := p.GetAll(context.Background())
 		if err != nil {
-			t.Fatalf("failed getting all entity: %v", err)
+			t.Fatalf("failed getting all entities: %v", err)
 		}
 
 		exp := 10
 		if c := len(rx); c != exp {
-			t.Errorf("expected entitys: %d, got: %d", exp, c)
+			t.Errorf("expected entities: %d, got: %d", exp, c)
 		}
 	})
 }
@@ -93,7 +93,7 @@ func TestGet(t *testing.T) {
 
 	t.Run("OK", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
-		e := MustTestEntity("foo1UID", "foo1Name", t)
+		e := MustEntity("foo1UID", "foo1Name", t)
 
 		if err := p.Add(context.Background(), e); err != nil {
 			t.Fatalf("failed adding entity %s: %v", e.UID(), err)
@@ -129,7 +129,7 @@ func TestDelete(t *testing.T) {
 
 	t.Run("OK", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
-		e := MustTestEntity("foo1UID", "foo1Name", t)
+		e := MustEntity("foo1UID", "foo1Name", t)
 
 		if err := p.Add(context.Background(), e); err != nil {
 			t.Fatalf("failed adding entity %s: %v", e.UID(), err)
@@ -153,13 +153,13 @@ func TestLink(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
 
-		e1 := MustTestEntity("foo1UID", "foo1Name", t)
+		e1 := MustEntity("foo1UID", "foo1Name", t)
 
 		if err := p.Add(context.Background(), e1); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e1.UID(), err)
 		}
 
-		e2 := MustTestEntity("foo2UID", "foo2Name", t)
+		e2 := MustEntity("foo2UID", "foo2Name", t)
 
 		if err := p.Add(context.Background(), e2); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e2.UID(), err)
@@ -190,13 +190,13 @@ func TestLinks(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
 
-		e1 := MustTestEntity("foo1UID", "foo1Name", t)
+		e1 := MustEntity("foo1UID", "foo1Name", t)
 
 		if err := p.Add(context.Background(), e1); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e1.UID(), err)
 		}
 
-		e2 := MustTestEntity("foo2UID", "foo2Name", t)
+		e2 := MustEntity("foo2UID", "foo2Name", t)
 
 		if err := p.Add(context.Background(), e2); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e2.UID(), err)
@@ -216,15 +216,21 @@ func TestLinks(t *testing.T) {
 		}
 	})
 
-	t.Run("ErrNoLinksFound", func(t *testing.T) {
+	t.Run("NoLinks", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
 
 		uid, err := uuid.New()
 		if err != nil {
 			t.Fatalf("failed to generate uid: %v", err)
 		}
-		if _, err := p.Links(context.Background(), uid); !errors.Is(err, space.ErrNoLinksFound) {
-			t.Errorf("expected error: %v, got: %v", space.ErrNoLinksFound, err)
+
+		links, err := p.Links(context.Background(), uid)
+		if err != nil {
+			t.Fatalf("failed to get links: %v", err)
+		}
+
+		if count := len(links); count != 0 {
+			t.Errorf("expected no links, got: %d", count)
 		}
 	})
 }
@@ -237,13 +243,13 @@ func TestUnlink(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
 
-		e1 := MustTestEntity("foo1UID", "foo1Name", t)
+		e1 := MustEntity("foo1UID", "foo1Name", t)
 
 		if err := p.Add(context.Background(), e1); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e1.UID(), err)
 		}
 
-		e2 := MustTestEntity("foo2UID", "foo2Name", t)
+		e2 := MustEntity("foo2UID", "foo2Name", t)
 
 		if err := p.Add(context.Background(), e2); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e2.UID(), err)
@@ -261,8 +267,8 @@ func TestUnlink(t *testing.T) {
 	t.Run("UnlinkNonExisten", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
 
-		e1 := MustTestEntity("foo1UID", "foo1Name", t)
-		e2 := MustTestEntity("foo2UID", "foo2Name", t)
+		e1 := MustEntity("foo1UID", "foo1Name", t)
+		e2 := MustEntity("foo2UID", "foo2Name", t)
 
 		if err := p.Unlink(context.Background(), e1.UID(), e2.UID()); err != nil {
 			t.Errorf("failed unlinking %v to %v: %v", e1.UID(), e2.UID(), err)
@@ -278,7 +284,7 @@ func TestBulkAdd(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
 
-		ents := MustMakeEntities(5, t)
+		ents := MustEntities(5, t)
 
 		if err := p.BulkAdd(context.Background(), ents); err != nil {
 			t.Errorf("failed storing entities: %v", err)
@@ -294,7 +300,7 @@ func TestBulkGet(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
 
-		ents := MustMakeEntities(5, t)
+		ents := MustEntities(5, t)
 
 		if err := p.BulkAdd(context.Background(), ents); err != nil {
 			t.Fatalf("failed storing entities: %v", err)
@@ -324,7 +330,7 @@ func TestBulkDelete(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
 
-		ents := MustMakeEntities(5, t)
+		ents := MustEntities(5, t)
 
 		if err := p.BulkAdd(context.Background(), ents); err != nil {
 			t.Fatalf("failed storing entities: %v", err)
@@ -356,13 +362,13 @@ func TestBulkLink(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
 
-		ents := MustMakeEntities(5, t)
+		ents := MustEntities(5, t)
 
 		if err := p.BulkAdd(context.Background(), ents); err != nil {
 			t.Fatalf("failed storing entities: %v", err)
 		}
 
-		e := MustTestEntity("foo1UID", "foo1Name", t)
+		e := MustEntity("foo1UID", "foo1Name", t)
 
 		if err := p.Add(context.Background(), e); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e.UID(), err)
@@ -388,13 +394,13 @@ func TestBulkUnlink(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		p := MustNewTop(entPath, t)
 
-		ents := MustMakeEntities(5, t)
+		ents := MustEntities(5, t)
 
 		if err := p.BulkAdd(context.Background(), ents); err != nil {
 			t.Fatalf("failed storing entities: %v", err)
 		}
 
-		e := MustTestEntity("foo1UID", "foo1Name", t)
+		e := MustEntity("foo1UID", "foo1Name", t)
 
 		if err := p.Add(context.Background(), e); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e.UID(), err)

@@ -20,8 +20,6 @@ type Entity interface {
 
 // Store stores entities.
 type Store interface {
-	// UID returns store uid.
-	UID() uuid.UID
 	// Add Entity to store.
 	Add(context.Context, Entity, ...Option) error
 	// Get Entity from store.

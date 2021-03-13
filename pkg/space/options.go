@@ -2,6 +2,7 @@ package space
 
 import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/matcher"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -13,6 +14,8 @@ type Options struct {
 	Attrs attrs.Attrs
 	// Merge options
 	Merge bool
+	// Matcher options.
+	Filter matcher.Matcher
 }
 
 // Option configures Options.
@@ -36,5 +39,12 @@ func WithAttrs(a attrs.Attrs) Option {
 func WithMerge() Option {
 	return func(o *Options) {
 		o.Merge = true
+	}
+}
+
+// WithFilter sets Filter Options.
+func WithFilter(m matcher.Matcher) Option {
+	return func(o *Options) {
+		o.Filter = m
 	}
 }
