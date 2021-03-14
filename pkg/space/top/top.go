@@ -35,8 +35,7 @@ func New() (*Top, error) {
 }
 
 func (t *Top) add(ctx context.Context, e space.Entity, opts ...space.Option) error {
-	t.index[e.UID().Value()] = e
-
+	t.index[e.UID().String()] = e
 	return nil
 }
 
@@ -44,7 +43,6 @@ func (t *Top) add(ctx context.Context, e space.Entity, opts ...space.Option) err
 func (t *Top) Add(ctx context.Context, e space.Entity, opts ...space.Option) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-
 	return t.add(ctx, e, opts...)
 }
 
@@ -63,16 +61,14 @@ func (t *Top) getAll(ctx context.Context, opts ...space.Option) ([]space.Entity,
 func (t *Top) GetAll(ctx context.Context, opts ...space.Option) ([]space.Entity, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
-
 	return t.getAll(ctx, opts...)
 }
 
 func (t Top) get(ctx context.Context, uid uuid.UID, opts ...space.Option) (space.Entity, error) {
-	e, ok := t.index[uid.Value()]
+	e, ok := t.index[uid.String()]
 	if !ok {
 		return nil, space.ErrEntityNotFound
 	}
-
 	return e, nil
 }
 
@@ -80,23 +76,21 @@ func (t Top) get(ctx context.Context, uid uuid.UID, opts ...space.Option) (space
 func (t Top) Get(ctx context.Context, uid uuid.UID, opts ...space.Option) (space.Entity, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
-
 	return t.get(ctx, uid, opts...)
 }
 
 func (t *Top) delete(ctx context.Context, uid uuid.UID, opts ...space.Option) error {
-	delete(t.index, uid.Value())
-	delete(t.elinks, uid.Value())
+	delete(t.index, uid.String())
+	delete(t.elinks, uid.String())
 
 	for luid, l := range t.links {
-		from := l.From().Value()
-		to := l.To().Value()
+		from := l.From().String()
+		to := l.To().String()
 
-		if from == uid.Value() || to == uid.Value() {
+		if from == uid.String() || to == uid.String() {
 			delete(t.links, luid)
 		}
 	}
-
 	return nil
 }
 
@@ -104,7 +98,6 @@ func (t *Top) delete(ctx context.Context, uid uuid.UID, opts ...space.Option) er
 func (t *Top) Delete(ctx context.Context, uid uuid.UID, opts ...space.Option) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-
 	return t.delete(ctx, uid, opts...)
 }
 
@@ -126,23 +119,22 @@ func (t *Top) newLink(from, to uuid.UID, opts ...space.Option) error {
 		return err
 	}
 
-	t.links[link.UID().Value()] = link
+	t.links[link.UID().String()] = link
 
-	if t.elinks[from.Value()] == nil {
-		t.elinks[from.Value()] = make(map[string]space.Link)
+	if t.elinks[from.String()] == nil {
+		t.elinks[from.String()] = make(map[string]space.Link)
 	}
 
-	t.elinks[from.Value()][to.Value()] = link
-
+	t.elinks[from.String()][to.String()] = link
 	return nil
 }
 
 func (t *Top) link(ctx context.Context, from, to uuid.UID, opts ...space.Option) error {
-	if t.elinks[from.Value()] == nil {
+	if t.elinks[from.String()] == nil {
 		return t.newLink(from, to, opts...)
 	}
 
-	l, ok := t.elinks[from.Value()][to.Value()]
+	l, ok := t.elinks[from.String()][to.String()]
 	if !ok {
 		return t.newLink(from, to, opts...)
 	}
@@ -159,7 +151,6 @@ func (t *Top) link(ctx context.Context, from, to uuid.UID, opts ...space.Option)
 			}
 		}
 	}
-
 	return nil
 }
 
@@ -168,19 +159,17 @@ func (t *Top) link(ctx context.Context, from, to uuid.UID, opts ...space.Option)
 func (t *Top) Link(ctx context.Context, from, to uuid.UID, opts ...space.Option) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-
 	return t.link(ctx, from, to, opts...)
 }
 
 func (t *Top) unlink(ctx context.Context, from, to uuid.UID, opts ...space.Option) error {
-	l, ok := t.elinks[from.Value()][to.Value()]
+	l, ok := t.elinks[from.String()][to.String()]
 	if !ok {
 		return nil
 	}
 
-	delete(t.links, l.UID().Value())
-	delete(t.elinks[from.Value()], to.Value())
-
+	delete(t.links, l.UID().String())
+	delete(t.elinks[from.String()], to.String())
 	return nil
 }
 
@@ -188,23 +177,21 @@ func (t *Top) unlink(ctx context.Context, from, to uuid.UID, opts ...space.Optio
 func (t *Top) Unlink(ctx context.Context, from, to uuid.UID, opts ...space.Option) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-
 	return t.unlink(ctx, from, to, opts...)
 }
 
 func (t Top) getLinks(ctx context.Context, uid uuid.UID, opts ...space.Option) ([]space.Link, error) {
-	if _, ok := t.elinks[uid.Value()]; !ok {
+	if _, ok := t.elinks[uid.String()]; !ok {
 		return []space.Link{}, nil
 	}
 
-	links := make([]space.Link, len(t.elinks[uid.Value()]))
+	links := make([]space.Link, len(t.elinks[uid.String()]))
 
 	i := 0
-	for _, link := range t.elinks[uid.Value()] {
+	for _, link := range t.elinks[uid.String()] {
 		links[i] = link
 		i++
 	}
-
 	return links, nil
 }
 
@@ -296,7 +283,7 @@ func (t *Top) BulkLinks(ctx context.Context, uids []uuid.UID) (map[string][]spac
 		if err != nil {
 			return nil, err
 		}
-		links[uid.Value()] = lx
+		links[uid.String()] = lx
 	}
 	return links, nil
 }

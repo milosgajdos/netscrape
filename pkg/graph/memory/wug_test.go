@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/graph"
+	"github.com/milosgajdos/netscrape/pkg/internal"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -25,12 +26,12 @@ func TestWUGAddGetRemoveNode(t *testing.T) {
 		t.Errorf("expected uid, got: %v", uid)
 	}
 
-	r, err := newTestResource(nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
+	r, err := internal.NewTestResource(nodeResType, nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
 	if err != nil {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	o, err := newTestEntity(nodeID, nodeName, nodeNs, r)
+	o, err := internal.NewTestEntity(nodeID, nodeType, nodeName, nodeNs, r)
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
@@ -112,7 +113,7 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 		t.Fatalf("failed to create graph: %v", err)
 	}
 
-	r, err := newTestResource(nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
+	r, err := internal.NewTestResource(nodeResType, nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
 	if err != nil {
 		t.Fatalf("failed to create resource: %v", err)
 	}
@@ -120,7 +121,7 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 	node1UID := "foo1UID"
 	node1Name := "foo1Name"
 
-	o1, err := newTestEntity(node1UID, node1Name, nodeNs, r)
+	o1, err := internal.NewTestEntity(node1UID, nodeType, node1Name, nodeNs, r)
 	if err != nil {
 		t.Fatalf("failed to create entity %q: %v", node1UID, err)
 	}
@@ -137,7 +138,7 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 	node2UID := "foo2UID"
 	node2Name := "foo2Name"
 
-	o2, err := newTestEntity(node2UID, node2Name, nodeNs, r)
+	o2, err := internal.NewTestEntity(node2UID, nodeType, node2Name, nodeNs, r)
 	if err != nil {
 		t.Fatalf("failed to create entity %q: %v", node2UID, err)
 	}
@@ -151,7 +152,7 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 		t.Errorf("failed adding node to graph: %v", err)
 	}
 
-	ox, err := newTestEntity("nonExUID", "nonExName", nodeNs, r)
+	ox, err := internal.NewTestEntity("nonExUID", nodeType, "nonExName", nodeNs, r)
 	if err != nil {
 		t.Fatalf("failed to create entity %q: %v", node2UID, err)
 	}
@@ -196,8 +197,8 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 	}
 
 	if len(nodesFrom) == 1 {
-		if nodesFrom[0].UID().Value() != n2.UID().Value() {
-			t.Errorf("expected node link to %s from %s", n2.UID().Value(), n1.UID().Value())
+		if nodesFrom[0].UID().String() != n2.UID().String() {
+			t.Errorf("expected node link to %s from %s", n2.UID().String(), n1.UID().String())
 		}
 	}
 

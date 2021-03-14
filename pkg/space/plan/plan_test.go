@@ -24,10 +24,10 @@ func MustNewPlan(src string, t *testing.T) *Plan {
 	return p
 }
 
-func MustTestResource(n, g, v, k string, t *testing.T) space.Resource {
-	r, err := resource.New(n, g, v, k, false)
+func MustTestResource(t, n, g, v, k string, test *testing.T) space.Resource {
+	r, err := resource.New(t, n, g, v, k, false)
 	if err != nil {
-		t.Fatalf("failed to create resource: %v", err)
+		test.Fatalf("failed to create resource: %v", err)
 	}
 	return r
 }
@@ -54,7 +54,7 @@ func TestAdd(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		src := "file:///" + resPath
 		p := MustNewPlan(src, t)
-		r := MustTestResource("fooName", "fooGroup", "fooVersion", "fooKind", t)
+		r := MustTestResource("fooType", "fooName", "fooGroup", "fooVersion", "fooKind", t)
 
 		if err := p.Add(context.Background(), r); err != nil {
 			t.Errorf("failed adding resource %s: %v", r.UID(), err)
@@ -91,7 +91,7 @@ func TestGet(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		src := "file:///" + resPath
 		p := MustNewPlan(src, t)
-		r := MustTestResource("fooName", "fooGroup", "fooVersion", "fooKind", t)
+		r := MustTestResource("fooType", "fooName", "fooGroup", "fooVersion", "fooKind", t)
 
 		if err := p.Add(context.Background(), r); err != nil {
 			t.Fatalf("failed adding resource %s: %v", r.UID(), err)
@@ -129,7 +129,7 @@ func TestDelete(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		src := "file:///" + resPath
 		p := MustNewPlan(src, t)
-		r := MustTestResource("fooName", "fooGroup", "fooVersion", "fooKind", t)
+		r := MustTestResource("fooType", "fooName", "fooGroup", "fooVersion", "fooKind", t)
 
 		if err := p.Add(context.Background(), r); err != nil {
 			t.Fatalf("failed adding resource %s: %v", r.UID(), err)

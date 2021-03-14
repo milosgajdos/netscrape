@@ -33,7 +33,7 @@ func (p Plan) Origin(ctx context.Context) (space.Origin, error) {
 }
 
 func (p *Plan) add(ctx context.Context, r space.Resource, opts ...space.Option) error {
-	p.index[r.UID().Value()] = r
+	p.index[r.UID().String()] = r
 
 	return nil
 }
@@ -67,7 +67,7 @@ func (p *Plan) GetAll(ctx context.Context, opts ...space.Option) ([]space.Resour
 }
 
 func (p *Plan) get(ctx context.Context, uid uuid.UID, opts ...space.Option) (space.Resource, error) {
-	r, ok := p.index[uid.Value()]
+	r, ok := p.index[uid.String()]
 	if !ok {
 		return nil, space.ErrResourceNotFound
 	}
@@ -84,7 +84,7 @@ func (p *Plan) Get(ctx context.Context, uid uuid.UID, opts ...space.Option) (spa
 }
 
 func (p *Plan) delete(ctx context.Context, uid uuid.UID, opts ...space.Option) error {
-	delete(p.index, uid.Value())
+	delete(p.index, uid.String())
 
 	return nil
 }

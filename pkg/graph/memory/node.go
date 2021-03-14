@@ -26,7 +26,7 @@ func NewNode(id int64, e graph.Entity, opts ...graph.Option) (*Node, error) {
 		if dotEnt, ok := e.(graph.DOTEntity); ok {
 			dotid = dotEnt.DOTID()
 		} else {
-			dotid = e.UID().Value()
+			dotid = e.UID().String()
 			if dotEnt, ok := e.(graph.DOTer); ok {
 				dotid = dotEnt.DOTID()
 			}

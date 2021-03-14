@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/matcher/property"
 )
 
@@ -59,14 +58,14 @@ func TestFilterTypes(t *testing.T) {
 
 	t.Run("OK", func(t *testing.T) {
 		testCases := []struct {
-			types []entity.Type
-			val   entity.Type
+			types []string
+			val   string
 			exp   bool
 		}{
-			{[]entity.Type{}, entity.ResourceType, false},
-			{[]entity.Type{entity.ResourceType}, entity.ResourceType, true},
-			{[]entity.Type{entity.EntityType}, entity.ResourceType, false},
-			{[]entity.Type{entity.ResourceType, entity.EntityType}, entity.ResourceType, true},
+			{[]string{}, "foo", false},
+			{[]string{"foo"}, "foo", true},
+			{[]string{"bar"}, "foo", false},
+			{[]string{"foo", "bar"}, "foo", true},
 		}
 
 		for _, tc := range testCases {

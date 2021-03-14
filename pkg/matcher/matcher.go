@@ -2,7 +2,6 @@ package matcher
 
 import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/matcher/property"
 )
 
@@ -54,7 +53,7 @@ func (f matcher) Match(p property.Property, val interface{}) (bool, error) {
 }
 
 // Helper functions that return various match funcs for matching filter values.
-func Types(v ...entity.Type) MatchFunc { return TypeEqFunc(v...) }
+func Types(v ...string) MatchFunc      { return StringEqFunc(v...) }
 func Names(v ...string) MatchFunc      { return StringEqFunc(v...) }
 func Groups(v ...string) MatchFunc     { return StringEqFunc(v...) }
 func Versions(v ...string) MatchFunc   { return StringEqFunc(v...) }

@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -12,15 +11,16 @@ import (
 // Entity is a space entity.
 type Entity struct {
 	uid   uuid.UID
+	typ   string
 	name  string
 	ns    string
-	dotid string
 	res   space.Resource
+	dotid string
 	attrs attrs.Attrs
 }
 
 // New creates a new entity and returns it.
-func New(name, ns string, res space.Resource, opts ...Option) (*Entity, error) {
+func New(typ, name, ns string, res space.Resource, opts ...Option) (*Entity, error) {
 	eopts := Options{}
 	for _, apply := range opts {
 		apply(&eopts)
@@ -46,7 +46,7 @@ func New(name, ns string, res space.Resource, opts ...Option) (*Entity, error) {
 
 	dotid := eopts.DOTID
 	if dotid == "" {
-		dotid = uid.Value()
+		dotid = uid.String()
 		if res != nil {
 			dotid = strings.Join([]string{
 				res.Group(),
@@ -59,6 +59,7 @@ func New(name, ns string, res space.Resource, opts ...Option) (*Entity, error) {
 
 	return &Entity{
 		uid:   uid,
+		typ:   typ,
 		name:  name,
 		ns:    ns,
 		res:   res,
@@ -73,8 +74,8 @@ func (e Entity) UID() uuid.UID {
 }
 
 // Type returns entity type.
-func (e Entity) Type() entity.Type {
-	return entity.EntityType
+func (e Entity) Type() string {
+	return e.typ
 }
 
 // Name returns human readable entity name.

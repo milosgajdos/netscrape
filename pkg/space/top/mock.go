@@ -6,9 +6,9 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	types "github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/entity"
+	"github.com/milosgajdos/netscrape/pkg/space/marshal"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -26,20 +26,21 @@ func NewMock(path string) (*Top, error) {
 		return nil, err
 	}
 
-	var entities []types.LinkedEntity
+	var entities []marshal.LinkedEntity
 	if err := yaml.Unmarshal(data, &entities); err != nil {
 		return nil, err
 	}
 
 	ctx := context.Background()
 
-	for _, o := range entities {
+	for _, e := range entities {
 		r, err := resource.New(
-			o.Resource.Name,
-			o.Resource.Kind,
-			o.Resource.Group,
-			o.Resource.Version,
-			o.Resource.Namespaced,
+			e.Resource.Type,
+			e.Resource.Name,
+			e.Resource.Kind,
+			e.Resource.Group,
+			e.Resource.Version,
+			e.Resource.Namespaced,
 		)
 		if err != nil {
 			return nil, err
@@ -50,14 +51,15 @@ func NewMock(path string) (*Top, error) {
 			return nil, err
 		}
 
-		uid, err := uuid.NewFromString(o.UID)
+		uid, err := uuid.NewFromString(e.UID)
 		if err != nil {
 			return nil, err
 		}
 
 		ent, err := entity.New(
-			o.Name,
-			o.Namespace,
+			e.Entity.Type,
+			e.Name,
+			e.Namespace,
 			r,
 			entity.WithUID(uid),
 			entity.WithAttrs(a),
@@ -71,7 +73,7 @@ func NewMock(path string) (*Top, error) {
 			return nil, err
 		}
 
-		for _, l := range o.Links {
+		for _, l := range e.Links {
 			a, err := attrs.NewFromMap(l.Attrs)
 			if err != nil {
 				return nil, err

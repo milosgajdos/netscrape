@@ -9,16 +9,17 @@ import (
 
 const (
 	testUID     = "resUID"
-	testName    = "ResName"
-	testGroup   = "ResGroup"
-	testVersion = "ResVersion"
-	testKind    = "ResKind"
+	testType    = "resType"
+	testName    = "resName"
+	testGroup   = "resGroup"
+	testVersion = "resVersion"
+	testKind    = "resKind"
 	testNs      = false
 	testDOTID   = "dotID"
 )
 
 func TestNew(t *testing.T) {
-	r, err := New(testName, testGroup, testVersion, testKind, testNs)
+	r, err := New(testType, testName, testGroup, testVersion, testKind, testNs)
 	if err != nil {
 		t.Fatalf("failed creating new resource: %v", err)
 	}
@@ -57,7 +58,7 @@ func TestNewWithOptions(t *testing.T) {
 		t.Errorf("failed to create new uid: %v", err)
 	}
 
-	r, err := New(testName, testGroup, testVersion, testKind, testNs, WithUID(uid), WithDOTID(testDOTID), WithAttrs(a))
+	r, err := New(testType, testName, testGroup, testVersion, testKind, testNs, WithUID(uid), WithDOTID(testDOTID), WithAttrs(a))
 	if err != nil {
 		t.Fatalf("failed creating new resource: %v", err)
 	}
@@ -66,7 +67,7 @@ func TestNewWithOptions(t *testing.T) {
 		t.Errorf("expected attrs val: %s, for key: %s, got: %s", v, k, val)
 	}
 
-	if u := r.UID().Value(); u != testUID {
+	if u := r.UID().String(); u != testUID {
 		t.Errorf("expected resource uid: %s, got: %s", testUID, u)
 	}
 

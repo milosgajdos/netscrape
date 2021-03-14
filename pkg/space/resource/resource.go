@@ -4,13 +4,13 @@ import (
 	"strings"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 // Resource implements a generic Space resource.
 type Resource struct {
 	uid        uuid.UID
+	typ        string
 	name       string
 	group      string
 	version    string
@@ -21,7 +21,7 @@ type Resource struct {
 }
 
 // New creates a new generic resource and returns it.
-func New(name, group, version, kind string, namespaced bool, opts ...Option) (*Resource, error) {
+func New(typ, name, group, version, kind string, namespaced bool, opts ...Option) (*Resource, error) {
 	ropts := Options{}
 	for _, apply := range opts {
 		apply(&ropts)
@@ -55,6 +55,7 @@ func New(name, group, version, kind string, namespaced bool, opts ...Option) (*R
 
 	return &Resource{
 		uid:        uid,
+		typ:        typ,
 		name:       name,
 		group:      group,
 		version:    version,
@@ -70,9 +71,9 @@ func (r Resource) UID() uuid.UID {
 	return r.uid
 }
 
-// Type returns entity type
-func (r Resource) Type() entity.Type {
-	return entity.ResourceType
+// Type returns resource type
+func (r Resource) Type() string {
+	return r.typ
 }
 
 // Name returns resource name.

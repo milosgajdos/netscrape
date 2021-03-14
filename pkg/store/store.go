@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -13,7 +12,7 @@ type Entity interface {
 	// UID returns unique ID.
 	UID() uuid.UID
 	// Type of entity.
-	Type() entity.Type
+	Type() string
 	// Attrs returns attributes.
 	Attrs() attrs.Attrs
 }

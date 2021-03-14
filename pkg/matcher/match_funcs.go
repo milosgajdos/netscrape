@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	"github.com/milosgajdos/netscrape/pkg/entity"
 )
 
 type MatchFunc func(interface{}) bool
@@ -19,23 +18,6 @@ func StringEqFunc(sx ...string) MatchFunc {
 		}
 		for _, s := range sx {
 			if s == vs {
-				return true
-			}
-		}
-		return false
-	}
-}
-
-// EntityEqFunc returns MatchFunc that checks
-// the equality of entity.Type to all types in tx.
-func TypeEqFunc(tx ...entity.Type) MatchFunc {
-	return func(v interface{}) bool {
-		vt, ok := v.(entity.Type)
-		if !ok {
-			return false
-		}
-		for _, t := range tx {
-			if t == vt {
 				return true
 			}
 		}

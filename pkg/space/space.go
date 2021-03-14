@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	"github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -13,8 +12,8 @@ import (
 type Resource interface {
 	// UID returns unique ID.
 	UID() uuid.UID
-	// Type of entity
-	Type() entity.Type
+	// Type of resource.
+	Type() string
 	// Name returns name.
 	Name() string
 	// Group retrurns group.
@@ -33,8 +32,8 @@ type Resource interface {
 type Entity interface {
 	// UID returns unique ID.
 	UID() uuid.UID
-	// Type of entity
-	Type() entity.Type
+	// Type of entity.
+	Type() string
 	// Name returns human readable name.
 	Name() string
 	// Namespace returns namespace.
