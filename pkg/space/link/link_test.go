@@ -32,12 +32,12 @@ func TestNew(t *testing.T) {
 		t.Errorf("failed to create new link: %v", err)
 	}
 
-	if l.To().Value() != to.Value() {
-		t.Errorf("expeted to uid: %v, got: %v", to.Value(), l.To().Value())
+	if l.To().String() != to.String() {
+		t.Errorf("expeted to uid: %v, got: %v", to.String(), l.To().String())
 	}
 
-	if l.From().Value() != from.Value() {
-		t.Errorf("expeted from uid: %v, got: %v", from.Value(), l.From().Value())
+	if l.From().String() != from.String() {
+		t.Errorf("expeted from uid: %v, got: %v", from.String(), l.From().String())
 	}
 
 	if c := len(l.Attrs().Keys()); c != 0 {
@@ -62,8 +62,8 @@ func TestNewWithOptions(t *testing.T) {
 		t.Errorf("failed to create new link: %v", err)
 	}
 
-	if l.UID().Value() != linkUID {
-		t.Errorf("expected link uid: %s, got: %s", linkUID, l.UID().Value())
+	if l.UID().String() != linkUID {
+		t.Errorf("expected link uid: %s, got: %s", linkUID, l.UID().String())
 	}
 
 	a, err := attrs.New()

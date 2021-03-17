@@ -45,7 +45,7 @@ func NewEdge(from, to *Node, opts ...graph.Option) (*Edge, error) {
 			return nil, err
 		}
 	} else {
-		dotid = uid.Value()
+		dotid = uid.String()
 	}
 
 	a := eopts.Attrs

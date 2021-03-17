@@ -6,40 +6,26 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	types "github.com/milosgajdos/netscrape/pkg/entity"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/entity"
 	"github.com/milosgajdos/netscrape/pkg/space/link"
+	"github.com/milosgajdos/netscrape/pkg/space/marshal"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 const (
+	nodeResType    = "nodeResType"
 	nodeResName    = "nodeResName"
 	nodeResGroup   = "nodeResGroup"
 	nodeResVersion = "nodeResVersion"
 	nodeResKind    = "nodeResKind"
-	nodeGID        = 123
+	nodeType       = "testType"
 	nodeID         = "testID"
 	nodeName       = "testName"
 	nodeNs         = "testNs"
 )
-
-func newTestResource(name, group, version, kind string, namespaced bool, opts ...resource.Option) (space.Resource, error) {
-	return resource.New(name, group, version, kind, namespaced, opts...)
-}
-
-func newTestEntity(uid, name, ns string, res space.Resource, opts ...entity.Option) (space.Entity, error) {
-	u, err := uuid.NewFromString(uid)
-	if err != nil {
-		return nil, err
-	}
-
-	opts = append(opts, entity.WithUID(u))
-
-	return entity.New(name, ns, res, opts...)
-}
 
 type testSpace struct {
 	entities map[string]space.Entity
@@ -52,7 +38,7 @@ func makeTestSpace(path string) (*testSpace, error) {
 		return nil, err
 	}
 
-	var testEntities []types.LinkedEntity
+	var testEntities []marshal.LinkedEntity
 	if err := yaml.Unmarshal(data, &testEntities); err != nil {
 		return nil, err
 	}
@@ -67,6 +53,7 @@ func makeTestSpace(path string) (*testSpace, error) {
 		}
 
 		res, err := resource.New(
+			e.Resource.Type,
 			e.Resource.Name,
 			e.Resource.Group,
 			e.Resource.Version,
@@ -88,7 +75,7 @@ func makeTestSpace(path string) (*testSpace, error) {
 			return nil, err
 		}
 
-		ent, err := entity.New(e.Name, e.Namespace, res, entity.WithUID(uid), entity.WithAttrs(a))
+		ent, err := entity.New(e.Type, e.Name, e.Namespace, res, entity.WithUID(uid), entity.WithAttrs(a))
 		if err != nil {
 			return nil, err
 		}
@@ -104,17 +91,17 @@ func makeTestSpace(path string) (*testSpace, error) {
 				return nil, err
 			}
 
-			if elinks[uid.Value()] == nil {
-				elinks[uid.Value()] = make(map[string]space.Link)
+			if elinks[uid.String()] == nil {
+				elinks[uid.String()] = make(map[string]space.Link)
 			}
 
-			if _, ok := elinks[uid.Value()][to.Value()]; !ok {
+			if _, ok := elinks[uid.String()][to.String()]; !ok {
 				link, err := link.New(uid, to, link.WithAttrs(a))
 				if err != nil {
 					return nil, err
 				}
 
-				elinks[uid.Value()][to.Value()] = link
+				elinks[uid.String()][to.String()] = link
 			}
 		}
 
@@ -148,8 +135,8 @@ func makeTestGraph(path string) (*WUG, error) {
 			return nil, err
 		}
 
-		for _, link := range t.links[ent.UID().Value()] {
-			ent2, ok := t.entities[link.To().Value()]
+		for _, link := range t.links[ent.UID().String()] {
+			ent2, ok := t.entities[link.To().String()]
 			if !ok {
 				continue
 			}

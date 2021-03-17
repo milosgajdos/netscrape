@@ -3,172 +3,340 @@ package memory
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 
+	"github.com/milosgajdos/netscrape/pkg/internal"
 	"github.com/milosgajdos/netscrape/pkg/store"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-func TestNew(t *testing.T) {
-	m, err := NewStore()
+const (
+	resType    = "resType"
+	resName    = "resName"
+	resGroup   = "resGroup"
+	resVersion = "resVersion"
+	resKind    = "resKind"
+	entNs      = "testNs"
+)
+
+func MustNewStore(t *testing.T, opts ...Option) *Memory {
+	s, err := NewStore(opts...)
 	if err != nil {
-		t.Fatalf("failed to create store: %v", err)
+		t.Fatal(err)
 	}
 
-	if _, err = m.Graph(); err != nil {
-		t.Fatalf("failed to get graph handle: %v", err)
-	}
+	return s
 }
 
-func TestAddGetDelete(t *testing.T) {
-	m, err := NewStore()
-	if err != nil {
-		t.Fatalf("failed to create store: %v", err)
-	}
-
-	r, err := newTestResource(nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
+func MustTestEntity(uid, typ, name string, t *testing.T) store.Entity {
+	r, err := internal.NewTestResource(resType, resName, resGroup, resVersion, resKind, false)
 	if err != nil {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	node1UID := "foo1UID"
-	node1Name := "foo1Name"
-
-	e1, err := newTestEntity(node1UID, node1Name, nodeNs, r)
+	e, err := internal.NewTestEntity(uid, typ, name, entNs, r)
 	if err != nil {
-		t.Fatalf("failed to create entity %q: %v", node1UID, err)
+		t.Fatalf("failed to create entity %q: %v", uid, err)
 	}
 
-	if err := m.Add(context.TODO(), e1); err != nil {
-		t.Errorf("failed storing node %s: %v", e1.UID(), err)
+	return e
+}
+
+func MustMakeEntities(count int, t *testing.T) []store.Entity {
+	ents := make([]store.Entity, count)
+
+	for i := 0; i < count; i++ {
+		uid := fmt.Sprintf("uid%d", i)
+		name := fmt.Sprintf("name%d", i)
+
+		ents[i] = MustTestEntity(uid, "fooType", name, t)
 	}
 
-	res, err := m.Get(context.Background(), e1.UID())
-	if err != nil {
-		t.Errorf("failed getting node %s: %v", e1.UID(), err)
+	return ents
+}
+
+func TestAdd(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	if !reflect.DeepEqual(res.UID(), e1.UID()) {
-		t.Errorf("expected entity with uid: %s, got: %s", e1.UID(), res.UID())
+	t.Run("OK", func(t *testing.T) {
+		uid, err := uuid.NewFromString("someUID")
+		if err != nil {
+			t.Fatalf("failed generating store uid: %v", err)
+		}
+
+		s := MustNewStore(t, WithUID(uid))
+
+		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+
+		if err := s.Add(context.Background(), e); err != nil {
+			t.Errorf("failed storing entity %s: %v", e.UID(), err)
+		}
+	})
+}
+
+func TestGet(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	node2UID := "foo2UID"
-	node2Name := "foo2Name"
+	t.Run("OK", func(t *testing.T) {
+		s := MustNewStore(t)
 
-	e2, err := newTestEntity(node2UID, node2Name, nodeNs, r)
-	if err != nil {
-		t.Fatalf("failed to create entity %q: %v", node1UID, err)
+		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+
+		if err := s.Add(context.Background(), e); err != nil {
+			t.Fatalf("failed storing entity %s: %v", e.UID(), err)
+		}
+
+		res, err := s.Get(context.Background(), e.UID())
+		if err != nil {
+			t.Errorf("failed getting entity %s: %v", e.UID(), err)
+		}
+
+		if !reflect.DeepEqual(res.UID(), e.UID()) {
+			t.Errorf("expected entity: %s, got: %s", e.UID(), res.UID())
+		}
+	})
+
+	t.Run("ErrEntityNotFound", func(t *testing.T) {
+		s := MustNewStore(t)
+
+		uid, err := uuid.New()
+		if err != nil {
+			t.Fatalf("failed to generate uid: %v", err)
+		}
+		if _, err := s.Get(context.Background(), uid); !errors.Is(err, store.ErrEntityNotFound) {
+			t.Errorf("expected error: %v, got: %v", store.ErrEntityNotFound, err)
+		}
+	})
+}
+
+func TestDelete(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	if err := m.Add(context.TODO(), e2); err != nil {
-		t.Errorf("failed storing node %s: %v", e2.UID(), err)
-	}
+	t.Run("OK", func(t *testing.T) {
+		s := MustNewStore(t)
 
-	g, err := m.Graph()
-	if err != nil {
-		t.Fatalf("failed to get graph handle: %v", err)
-	}
+		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
 
-	nodes, err := g.Nodes(context.TODO())
-	if err != nil {
-		t.Fatalf("failed to get store nodes: %v", err)
-	}
+		if err := s.Add(context.Background(), e); err != nil {
+			t.Fatalf("failed storing entity %s: %v", e.UID(), err)
+		}
 
-	expCount := 2
-	if nodeCount := len(nodes); nodeCount != expCount {
-		t.Errorf("expected nodes: %d, got: %d", expCount, nodeCount)
-	}
+		if err := s.Delete(context.Background(), e.UID()); err != nil {
+			t.Fatalf("failed deleting entity %s: %v", e.UID(), err)
+		}
 
-	if err := m.Delete(context.TODO(), e2.UID()); err != nil {
-		t.Errorf("failed deleting node %s: %v", e2.UID(), err)
-	}
-
-	nodes, err = g.Nodes(context.TODO())
-	if err != nil {
-		t.Fatalf("failed to get store nodes: %v", err)
-	}
-
-	expCount = 1
-	if nodeCount := len(nodes); nodeCount != expCount {
-		t.Errorf("expected nodes: %d, got: %d", expCount, nodeCount)
-	}
-
-	uid, err := uuid.New()
-	if err != nil {
-		t.Fatalf("failed to generate uid: %v", err)
-	}
-
-	if _, err := m.Get(context.Background(), uid); !errors.Is(err, store.ErrEntityNotFound) {
-		t.Errorf("expected error: %v, got: %v", store.ErrEntityNotFound, err)
-	}
+		if _, err := s.Get(context.Background(), e.UID()); !errors.Is(err, store.ErrEntityNotFound) {
+			t.Errorf("expected %v: got: %v", store.ErrEntityNotFound, err)
+		}
+	})
 }
 
 func TestLink(t *testing.T) {
-	m, err := NewStore()
-	if err != nil {
-		t.Fatalf("failed to create store: %v", err)
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	r, err := newTestResource(nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
-	if err != nil {
-		t.Fatalf("failed to create resource: %v", err)
+	t.Run("OK", func(t *testing.T) {
+		s := MustNewStore(t)
+
+		e1 := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+
+		if err := s.Add(context.Background(), e1); err != nil {
+			t.Fatalf("failed storing entity %s: %v", e1.UID(), err)
+		}
+
+		e2 := MustTestEntity("foo2UID", "fooType", "foo2Name", t)
+
+		if err := s.Add(context.Background(), e2); err != nil {
+			t.Fatalf("failed storing entity %s: %v", e2.UID(), err)
+		}
+
+		if err := s.Link(context.Background(), e1.UID(), e2.UID()); err != nil {
+			t.Errorf("failed linking %v to %v: %v", e1.UID(), e2.UID(), err)
+		}
+	})
+}
+
+func TestUnlink(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	node1UID := "foo1UID"
-	node1Name := "foo1Name"
+	t.Run("OK", func(t *testing.T) {
+		s := MustNewStore(t)
 
-	e1, err := newTestEntity(node1UID, node1Name, nodeNs, r)
-	if err != nil {
-		t.Fatalf("failed to create entity %q: %v", node1UID, err)
+		e1 := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+
+		if err := s.Add(context.Background(), e1); err != nil {
+			t.Fatalf("failed storing entity %s: %v", e1.UID(), err)
+		}
+
+		e2 := MustTestEntity("foo2UID", "fooType", "foo2Name", t)
+
+		if err := s.Add(context.Background(), e2); err != nil {
+			t.Fatalf("failed storing entity %s: %v", e2.UID(), err)
+		}
+
+		if err := s.Link(context.Background(), e1.UID(), e2.UID()); err != nil {
+			t.Fatalf("failed linking %v to %v: %v", e1.UID(), e2.UID(), err)
+		}
+
+		if err := s.Unlink(context.Background(), e1.UID(), e2.UID()); err != nil {
+			t.Errorf("failed unlinking %v to %v: %v", e1.UID(), e2.UID(), err)
+		}
+	})
+}
+
+func TestBulkAdd(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	if err := m.Add(context.TODO(), e1); err != nil {
-		t.Errorf("failed storing node %s: %v", e1.UID(), err)
+	t.Run("OK", func(t *testing.T) {
+		s := MustNewStore(t)
+
+		ents := MustMakeEntities(5, t)
+
+		if err := s.BulkAdd(context.Background(), ents); err != nil {
+			t.Errorf("failed storing entities: %v", err)
+		}
+	})
+}
+
+func TestBulkGet(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	node2UID := "foo2UID"
-	node2Name := "foo2Name"
+	t.Run("OK", func(t *testing.T) {
+		s := MustNewStore(t)
 
-	e2, err := newTestEntity(node2UID, node2Name, nodeNs, r)
-	if err != nil {
-		t.Fatalf("failed to create entity %q: %v", node1UID, err)
+		ents := MustMakeEntities(5, t)
+
+		if err := s.BulkAdd(context.Background(), ents); err != nil {
+			t.Fatalf("failed storing entities: %v", err)
+		}
+
+		uids := make([]uuid.UID, len(ents))
+		for i, e := range ents {
+			uids[i] = e.UID()
+		}
+
+		sents, err := s.BulkGet(context.Background(), uids)
+		if err != nil {
+			t.Fatalf("failed getting entities: %v", err)
+		}
+
+		if len(sents) != len(ents) {
+			t.Errorf("expected %d entities, got: %d", len(sents), len(ents))
+		}
+	})
+}
+
+func TestBulkDelete(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	if err := m.Add(context.TODO(), e2); err != nil {
-		t.Fatalf("failed storing node %s: %v", e2.UID(), err)
+	t.Run("OK", func(t *testing.T) {
+		s := MustNewStore(t)
+
+		ents := MustMakeEntities(5, t)
+
+		if err := s.BulkAdd(context.Background(), ents); err != nil {
+			t.Fatalf("failed storing entities: %v", err)
+		}
+
+		uids := make([]uuid.UID, len(ents))
+
+		for i, e := range ents {
+			uids[i] = e.UID()
+		}
+
+		if err := s.BulkDelete(context.Background(), uids); err != nil {
+			t.Fatalf("failed deleting entities: %v", err)
+		}
+
+		for _, uid := range uids {
+			if _, err := s.Get(context.Background(), uid); !errors.Is(err, store.ErrEntityNotFound) {
+				t.Errorf("expected %v: got: %v", store.ErrEntityNotFound, err)
+			}
+		}
+	})
+}
+
+func TestBulkLink(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	if err := m.Link(context.TODO(), e1.UID(), e2.UID()); err != nil {
-		t.Errorf("failed linking %v to %v: %v", e1.UID(), e2.UID(), err)
+	t.Run("OK", func(t *testing.T) {
+		s := MustNewStore(t)
+
+		ents := MustMakeEntities(5, t)
+
+		if err := s.BulkAdd(context.Background(), ents); err != nil {
+			t.Fatalf("failed storing entities: %v", err)
+		}
+
+		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+
+		if err := s.Add(context.Background(), e); err != nil {
+			t.Fatalf("failed storing entity %s: %v", e.UID(), err)
+		}
+
+		uids := make([]uuid.UID, len(ents))
+
+		for i, e := range ents {
+			uids[i] = e.UID()
+		}
+
+		if err := s.BulkLink(context.Background(), e.UID(), uids); err != nil {
+			t.Errorf("failed bulk-linking %v: %v", e.UID(), err)
+		}
+	})
+}
+
+func TestBulkUnlink(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	g, err := m.Graph()
-	if err != nil {
-		t.Fatalf("failed to get graph handle: %v", err)
-	}
+	t.Run("OK", func(t *testing.T) {
+		s := MustNewStore(t)
 
-	nodes, err := g.From(context.TODO(), e1.UID())
-	if err != nil {
-		t.Fatalf("failed to get store links: %v", err)
-	}
+		ents := MustMakeEntities(5, t)
 
-	expCount := 1
-	if count := len(nodes); count != expCount {
-		t.Errorf("expected nodes: %d, got: %d", expCount, count)
-	}
+		if err := s.BulkAdd(context.Background(), ents); err != nil {
+			t.Fatalf("failed storing entities: %v", err)
+		}
 
-	if err := m.Unlink(context.TODO(), e1.UID(), e2.UID()); err != nil {
-		t.Errorf("failed linking %v to %v: %v", e1.UID(), e2.UID(), err)
-	}
+		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
 
-	nodes, err = g.From(context.TODO(), e1.UID())
-	if err != nil {
-		t.Fatalf("failed to get store links: %v", err)
-	}
+		if err := s.Add(context.Background(), e); err != nil {
+			t.Fatalf("failed storing entity %s: %v", e.UID(), err)
+		}
 
-	expCount = 0
-	if count := len(nodes); count != expCount {
-		t.Errorf("expected nodes: %d, got: %d", expCount, count)
-	}
+		uids := make([]uuid.UID, len(ents))
+
+		for i, e := range ents {
+			uids[i] = e.UID()
+		}
+
+		if err := s.BulkLink(context.Background(), e.UID(), uids); err != nil {
+			t.Fatalf("failed bulk-linking %v: %v", e.UID(), err)
+		}
+
+		if err := s.BulkUnlink(context.Background(), e.UID(), uids); err != nil {
+			t.Errorf("failed bulk-unlinking %v: %v", e.UID(), err)
+		}
+	})
 }

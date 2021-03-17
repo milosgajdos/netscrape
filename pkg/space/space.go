@@ -5,8 +5,6 @@ import (
 	"net/url"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	"github.com/milosgajdos/netscrape/pkg/entity"
-	"github.com/milosgajdos/netscrape/pkg/query"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -14,8 +12,8 @@ import (
 type Resource interface {
 	// UID returns unique ID.
 	UID() uuid.UID
-	// Type of entity
-	Type() entity.Type
+	// Type of resource.
+	Type() string
 	// Name returns name.
 	Name() string
 	// Group retrurns group.
@@ -34,8 +32,8 @@ type Resource interface {
 type Entity interface {
 	// UID returns unique ID.
 	UID() uuid.UID
-	// Type of entity
-	Type() entity.Type
+	// Type of entity.
+	Type() string
 	// Name returns human readable name.
 	Name() string
 	// Namespace returns namespace.
@@ -70,28 +68,47 @@ type Plan interface {
 	Origin(context.Context) (Origin, error)
 	// Add adds resource to plan.
 	Add(context.Context, Resource, ...Option) error
-	// Remove removes Resource from plan.
-	Remove(context.Context, Resource, ...Option) error
-	// Resources returns all plan resources.
-	Resources(context.Context) ([]Resource, error)
-	// Get returns all Resources matching query.
-	Get(context.Context, query.Query) ([]Resource, error)
+	// GetAll returns all resources in plan.
+	GetAll(context.Context, ...Option) ([]Resource, error)
+	// Get returns entity with the given uid.
+	Get(context.Context, uuid.UID, ...Option) (Resource, error)
+	// Delete removes Resource with the given uid from plan.
+	Delete(context.Context, uuid.UID, ...Option) error
 }
 
-// Top is topology i.e. a map of Entities.
+// Top is space topology i.e. a map of Entities.
 type Top interface {
 	// Add adds Entity to topology.
 	Add(context.Context, Entity, ...Option) error
-	// Remove removes Entity with given uid from topology.
-	Remove(context.Context, uuid.UID, ...Option) error
-	// Entities returns all topology Entities.
-	Entities(context.Context) ([]Entity, error)
-	// Get returns Entity with the given UID
-	Get(context.Context, query.Query) ([]Entity, error)
+	// GetAll returns all entities store in topology.
+	GetAll(context.Context, ...Option) ([]Entity, error)
+	// Get returns entity with the given uid.
+	Get(context.Context, uuid.UID, ...Option) (Entity, error)
+	// Delete removes Entity with given uid from topology.
+	Delete(context.Context, uuid.UID, ...Option) error
 	// Link links entities with given UIDs.
 	Link(ctx context.Context, from, to uuid.UID, opts ...Option) error
+	// Unlink unlinks entities with given UIDs.
+	Unlink(ctx context.Context, from, to uuid.UID, opts ...Option) error
 	// Links returns all links with origin in the given entity.
-	Links(context.Context, uuid.UID) ([]Link, error)
+	Links(context.Context, uuid.UID, ...Option) ([]Link, error)
+}
+
+// BulkTop provides bulk operations on topology
+type BulkTop interface {
+	Top
+	// BulkAdd adds Entites to topology.
+	BulkAdd(context.Context, []Entity, ...Option) error
+	// BulkDelete removes Entities with given uid from topology.
+	BulkDelete(context.Context, []uuid.UID, ...Option) error
+	// BulkGet returns entities with the given UIDs.
+	BulkGet(context.Context, []uuid.UID, ...Option) ([]Entity, error)
+	// BulkLink links from entity to entities with given UIDs.
+	BulkLink(ctx context.Context, from uuid.UID, to []uuid.UID, opts ...Option) error
+	// BulkUnlink unlinks from entity from entities with given UIDs.
+	BulkUnlink(ctx context.Context, from uuid.UID, to []uuid.UID, opts ...Option) error
+	// BulkLinks returns all links with origin in the given entity.
+	BulkLinks(context.Context, []uuid.UID, ...Option) (map[string][]Link, error)
 }
 
 // Planner builds plan.

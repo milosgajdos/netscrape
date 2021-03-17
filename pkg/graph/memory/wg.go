@@ -46,7 +46,7 @@ func NewWG(wg WeightedGraphBuilder, opts ...graph.Option) (*WG, error) {
 
 	dotid := gopts.DOTID
 	if dotid == "" {
-		dotid = uid.Value()
+		dotid = uid.String()
 	}
 
 	return &WG{
@@ -75,7 +75,7 @@ func (g *WG) NewNode(ctx context.Context, ent graph.Entity, opts ...graph.Option
 		return nil, err
 	}
 
-	if n, ok := g.nodes[node.UID().Value()]; ok {
+	if n, ok := g.nodes[node.UID().String()]; ok {
 		return n, nil
 	}
 
@@ -92,18 +92,18 @@ func (g *WG) AddNode(ctx context.Context, n graph.Node) error {
 	}
 
 	if node := g.WeightedGraphBuilder.Node(gnode.ID()); node != nil {
-		if _, ok := g.nodes[n.UID().Value()]; ok {
+		if _, ok := g.nodes[n.UID().String()]; ok {
 			return nil
 		}
 
-		g.nodes[n.UID().Value()] = n
+		g.nodes[n.UID().String()] = n
 
 		return nil
 	}
 
 	g.WeightedGraphBuilder.AddNode(gnode)
 
-	g.nodes[n.UID().Value()] = n
+	g.nodes[n.UID().String()] = n
 
 	return nil
 }
@@ -111,7 +111,7 @@ func (g *WG) AddNode(ctx context.Context, n graph.Node) error {
 // Node returns the node with the given ID if it exists
 // in the graph, and error if it could not be found.
 func (g *WG) Node(ctx context.Context, uid uuid.UID) (graph.Node, error) {
-	if node, ok := g.nodes[uid.Value()]; ok {
+	if node, ok := g.nodes[uid.String()]; ok {
 		return node, nil
 	}
 
@@ -133,7 +133,7 @@ func (g *WG) Nodes(ctx context.Context) ([]graph.Node, error) {
 
 // RemoveNode removes the node with the given uid from graph.
 func (g *WG) RemoveNode(ctx context.Context, uid uuid.UID) error {
-	node, ok := g.nodes[uid.Value()]
+	node, ok := g.nodes[uid.String()]
 	if !ok {
 		return nil
 	}
@@ -145,7 +145,7 @@ func (g *WG) RemoveNode(ctx context.Context, uid uuid.UID) error {
 
 	g.WeightedGraphBuilder.RemoveNode(gnode.ID())
 
-	delete(g.nodes, uid.Value())
+	delete(g.nodes, uid.String())
 
 	return nil
 }
@@ -162,12 +162,12 @@ func (g *WG) Link(ctx context.Context, from, to uuid.UID, opts ...graph.Option) 
 		return e, nil
 	}
 
-	f, ok := g.nodes[from.Value()]
+	f, ok := g.nodes[from.String()]
 	if !ok {
 		return nil, fmt.Errorf("node link %s: %w", from, graph.ErrNodeNotFound)
 	}
 
-	t, ok := g.nodes[to.Value()]
+	t, ok := g.nodes[to.String()]
 	if !ok {
 		return nil, fmt.Errorf("node link %s: %w", to, graph.ErrNodeNotFound)
 	}
@@ -184,12 +184,12 @@ func (g *WG) Link(ctx context.Context, from, to uuid.UID, opts ...graph.Option) 
 
 // Edge returns edge between nodes with the given UIDs.
 func (g *WG) Edge(ctx context.Context, uid, vid uuid.UID) (graph.Edge, error) {
-	from, ok := g.nodes[uid.Value()]
+	from, ok := g.nodes[uid.String()]
 	if !ok {
 		return nil, fmt.Errorf("%s: %w", uid, graph.ErrNodeNotFound)
 	}
 
-	to, ok := g.nodes[vid.Value()]
+	to, ok := g.nodes[vid.String()]
 	if !ok {
 		return nil, fmt.Errorf("%s: %w", vid, graph.ErrNodeNotFound)
 	}
@@ -221,7 +221,7 @@ func (g *WG) Edges(ctx context.Context) ([]graph.Edge, error) {
 
 // From returns all directly reachable nodes from the node with the given uid.
 func (g *WG) From(ctx context.Context, uid uuid.UID) ([]graph.Node, error) {
-	node, ok := g.nodes[uid.Value()]
+	node, ok := g.nodes[uid.String()]
 	if !ok {
 		return nil, nil
 	}
@@ -241,12 +241,12 @@ func (g *WG) From(ctx context.Context, uid uuid.UID) ([]graph.Node, error) {
 
 // Unlink removes the link between from and to nodes.
 func (g *WG) Unlink(ctx context.Context, from, to uuid.UID) error {
-	f, ok := g.nodes[from.Value()]
+	f, ok := g.nodes[from.String()]
 	if !ok {
 		return nil
 	}
 
-	t, ok := g.nodes[to.Value()]
+	t, ok := g.nodes[to.String()]
 	if !ok {
 		return nil
 	}
@@ -261,7 +261,7 @@ func (g *WG) Unlink(ctx context.Context, from, to uuid.UID) error {
 
 // SubGraph returns the subgraph of the graph rooted in the node with the given uid up to the given depth.
 func (g *WG) SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...graph.Option) (graph.Graph, error) {
-	root, ok := g.nodes[uid.Value()]
+	root, ok := g.nodes[uid.String()]
 	if !ok {
 		return nil, graph.ErrNodeNotFound
 	}

@@ -33,8 +33,8 @@ func WithAttrs(a attrs.Attrs) Option {
 }
 
 // WithMerge sets Merge Options.
-func WithMerge(m bool) Option {
+func WithMerge() Option {
 	return func(o *Options) {
-		o.Merge = m
+		o.Merge = true
 	}
 }

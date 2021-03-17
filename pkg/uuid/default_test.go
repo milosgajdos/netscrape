@@ -10,8 +10,8 @@ func TestNewFromString(t *testing.T) {
 		t.Fatalf("failed to create new uid from string %q: %v", s, err)
 	}
 
-	if s != uid.Value() {
-		t.Errorf("expected: %s, got: %s", s, uid.Value())
+	if s != uid.String() {
+		t.Errorf("expected: %s, got: %s", s, uid.String())
 	}
 }
 
@@ -26,11 +26,11 @@ func TestNew(t *testing.T) {
 		t.Fatalf("failed to create new uid from string: %v", err)
 	}
 
-	if len(u1.Value()) == 0 || len(u2.Value()) == 0 {
+	if len(u1.String()) == 0 || len(u2.String()) == 0 {
 		t.Fatalf("empty uid returned")
 	}
 
-	if u1.Value() == u2.Value() {
+	if u1.String() == u2.String() {
 		t.Errorf("non-unique uids generated")
 	}
 }

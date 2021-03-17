@@ -6,16 +6,21 @@ import (
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
+	"github.com/milosgajdos/netscrape/pkg/internal"
 	"github.com/milosgajdos/netscrape/pkg/space"
 )
 
+const (
+	nodeGID = 123
+)
+
 func TestNode(t *testing.T) {
-	r, err := newTestResource(nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
+	r, err := internal.NewTestResource(nodeResType, nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
 	if err != nil {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	e, err := newTestEntity(nodeID, nodeName, nodeNs, r)
+	e, err := internal.NewTestEntity(nodeID, nodeType, nodeName, nodeNs, r)
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
@@ -68,12 +73,12 @@ func TestNode(t *testing.T) {
 }
 
 func TestNodeWithDOTID(t *testing.T) {
-	r, err := newTestResource(nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
+	r, err := internal.NewTestResource(nodeResType, nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
 	if err != nil {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	o, err := newTestEntity(nodeID, nodeName, nodeNs, r)
+	o, err := internal.NewTestEntity(nodeID, nodeType, nodeName, nodeNs, r)
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}

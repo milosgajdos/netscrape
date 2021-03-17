@@ -2,171 +2,145 @@ package plan
 
 import (
 	"context"
+	"errors"
+	"reflect"
 	"strings"
 	"testing"
 
-	"github.com/milosgajdos/netscrape/pkg/query/base"
-	"github.com/milosgajdos/netscrape/pkg/query/predicate"
+	"github.com/milosgajdos/netscrape/pkg/space"
+	"github.com/milosgajdos/netscrape/pkg/space/resource"
+	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 const (
 	resPath = "../testdata/undirected/resources.yaml"
 )
 
-func TestSource(t *testing.T) {
-	src := "file:///" + resPath
-
-	space, err := NewMock(src)
+func MustNewPlan(src string, t *testing.T) *Plan {
+	p, err := NewMock(src)
 	if err != nil {
 		t.Fatalf("failed to create mock Plan: %v", err)
 	}
+	return p
+}
 
-	s, err := space.Origin(context.Background())
+func MustTestResource(t, n, g, v, k string, test *testing.T) space.Resource {
+	r, err := resource.New(t, n, g, v, k, false)
+	if err != nil {
+		test.Fatalf("failed to create resource: %v", err)
+	}
+	return r
+}
+
+func TestOrigin(t *testing.T) {
+	src := "file:///" + resPath
+	p := MustNewPlan(src, t)
+
+	o, err := p.Origin(context.Background())
 	if err != nil {
 		t.Fatalf("failed to get space origin: %v", err)
 	}
 
-	if !strings.EqualFold(src, s.URL().String()) {
-		t.Errorf("expected: %s, got: %s", src, s.URL().String())
+	if !strings.EqualFold(src, o.URL().String()) {
+		t.Errorf("expected: %s, got: %s", src, o.URL().String())
 	}
 }
 
-func TestResources(t *testing.T) {
-	src := "file:///" + resPath
-
-	space, err := NewMock(src)
-	if err != nil {
-		t.Fatalf("failed to create mock Plan: %v", err)
+func TestAdd(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	resources, err := space.Resources(context.Background())
-	if err != nil {
-		t.Fatalf("failed to get plan resources: %v", err)
-	}
+	t.Run("OK", func(t *testing.T) {
+		src := "file:///" + resPath
+		p := MustNewPlan(src, t)
+		r := MustTestResource("fooType", "fooName", "fooGroup", "fooVersion", "fooKind", t)
 
-	if len(resources) == 0 {
-		t.Errorf("no resources found")
-	}
+		if err := p.Add(context.Background(), r); err != nil {
+			t.Errorf("failed adding resource %s: %v", r.UID(), err)
+		}
+	})
 }
 
-func TestPlanGet(t *testing.T) {
-	src := "file:///" + resPath
-
-	plan, err := NewMock(src)
-	if err != nil {
-		t.Errorf("failed to create mock Plan: %v", err)
-		return
+func TestGetAll(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	resources, err := plan.Resources(context.Background())
-	if err != nil {
-		t.Fatalf("failed to get plan resources: %v", err)
-	}
-	count := len(resources)
+	t.Run("OK", func(t *testing.T) {
+		src := "file:///" + resPath
+		p := MustNewPlan(src, t)
 
-	groups := make([]string, count)
-	versions := make([]string, count)
-	kinds := make([]string, count)
-	names := make([]string, count)
-
-	for i, r := range resources {
-		groups[i] = r.Group()
-		versions[i] = r.Version()
-		kinds[i] = r.Kind()
-		names[i] = r.Name()
-	}
-
-	for _, group := range groups {
-		q := base.Build().Add(predicate.Group(group))
-
-		resources, err := plan.Get(context.Background(), q)
+		rx, err := p.GetAll(context.Background())
 		if err != nil {
-			t.Errorf("error querying group %s: %v", group, err)
+			t.Fatalf("failed getting all resource: %v", err)
 		}
 
-		for _, r := range resources {
-			if r.Group() != group {
-				t.Errorf("expected: %s, got: %s", group, r.Group())
-			}
+		exp := 12
+		if c := len(rx); c != exp {
+			t.Errorf("expected resources: %d, got: %d", exp, c)
 		}
-
-		for _, version := range versions {
-			q = q.Add(predicate.Version(version))
-
-			resources, err := plan.Get(context.Background(), q)
-			if err != nil {
-				t.Errorf("error querying g/v %s/%s: %v", group, version, err)
-			}
-
-			for _, res := range resources {
-				if res.Version() != version || res.Group() != group {
-					t.Errorf("expected: %s/%s, got: %s/%s", group, version, res.Group(), res.Version())
-				}
-			}
-
-			for _, kind := range kinds {
-				q = q.Add(predicate.Kind(kind))
-
-				resources, err := plan.Get(context.Background(), q)
-				if err != nil {
-					t.Errorf("error querying g/v/k: %s/%s/%s: %v", group, version, kind, err)
-				}
-
-				for _, res := range resources {
-					if res.Kind() != kind || res.Version() != version || res.Group() != group {
-						t.Errorf("expected: %s/%s/%s, got: %s/%s/%s", group, version, kind,
-							res.Group(), res.Version(), res.Kind())
-					}
-				}
-
-				for _, name := range names {
-					q = q.Add(predicate.Name(name))
-
-					resources, err := plan.Get(context.Background(), q)
-					if err != nil {
-						t.Errorf("error querying g/v/k/n: %s/%s/%s/%s: %v", group, version, kind, name, err)
-					}
-
-					for _, res := range resources {
-						if res.Name() != name || res.Kind() != kind || res.Version() != version || res.Group() != group {
-							t.Errorf("expected: %s/%s/%s/%s, got: %s/%s/%s/%s", group, version, kind, name,
-								res.Group(), res.Version(), res.Kind(), res.Name())
-						}
-					}
-				}
-			}
-		}
-	}
+	})
 }
 
-func TestPlanRemove(t *testing.T) {
-	src := "file:///" + resPath
-
-	plan, err := NewMock(src)
-	if err != nil {
-		t.Errorf("failed to create mock Plan: %v", err)
-		return
+func TestGet(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	ctx := context.Background()
+	t.Run("OK", func(t *testing.T) {
+		src := "file:///" + resPath
+		p := MustNewPlan(src, t)
+		r := MustTestResource("fooType", "fooName", "fooGroup", "fooVersion", "fooKind", t)
 
-	rx, err := plan.Resources(ctx)
-	if err != nil {
-		t.Fatalf("failed to get plan resources: %v", err)
-	}
-
-	for _, r := range rx {
-		if err := plan.Remove(ctx, r); err != nil {
-			t.Errorf("failed removing resource %s/%s/%s: %v", r.Group(), r.Version(), r.Kind(), err)
+		if err := p.Add(context.Background(), r); err != nil {
+			t.Fatalf("failed adding resource %s: %v", r.UID(), err)
 		}
+
+		res, err := p.Get(context.Background(), r.UID())
+		if err != nil {
+			t.Fatalf("failed getting resource %s: %v", r.UID(), err)
+		}
+
+		if !reflect.DeepEqual(res.UID(), r.UID()) {
+			t.Errorf("expected entity: %s, got: %s", r.UID(), res.UID())
+		}
+	})
+
+	t.Run("ErrResourceNotFound", func(t *testing.T) {
+		src := "file:///" + resPath
+		p := MustNewPlan(src, t)
+
+		uid, err := uuid.New()
+		if err != nil {
+			t.Fatalf("failed to generate uid: %v", err)
+		}
+		if _, err := p.Get(context.Background(), uid); !errors.Is(err, space.ErrResourceNotFound) {
+			t.Errorf("expected error: %v, got: %v", space.ErrResourceNotFound, err)
+		}
+	})
+}
+
+func TestDelete(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
 	}
 
-	rx, err = plan.Resources(ctx)
-	if err != nil {
-		t.Fatalf("failed to get plan resources: %v", err)
-	}
+	t.Run("OK", func(t *testing.T) {
+		src := "file:///" + resPath
+		p := MustNewPlan(src, t)
+		r := MustTestResource("fooType", "fooName", "fooGroup", "fooVersion", "fooKind", t)
 
-	if count := len(rx); count != 0 {
-		t.Errorf("expected %d resources, got: %d", 0, count)
-	}
+		if err := p.Add(context.Background(), r); err != nil {
+			t.Fatalf("failed adding resource %s: %v", r.UID(), err)
+		}
+
+		if err := p.Delete(context.Background(), r.UID()); err != nil {
+			t.Fatalf("failed removing resource %s: %v", r.UID(), err)
+		}
+
+		if _, err := p.Get(context.Background(), r.UID()); !errors.Is(err, space.ErrResourceNotFound) {
+			t.Errorf("expected %v: got: %v", space.ErrResourceNotFound, err)
+		}
+	})
 }

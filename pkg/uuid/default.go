@@ -23,7 +23,7 @@ func New() (uid, error) {
 	}, nil
 }
 
-// Value returns UID as a string
-func (u uid) Value() string {
+// String returns UID as a string
+func (u uid) String() string {
 	return u.id
 }

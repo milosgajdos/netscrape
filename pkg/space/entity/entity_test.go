@@ -5,33 +5,30 @@ import (
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 const (
 	resName    = "nodeResName"
+	resType    = "nodeResType"
 	resGroup   = "nodeResGroup"
 	resVersion = "nodeResVersion"
 	resKind    = "nodeResKind"
 	entUID     = "testID"
+	entType    = "testType"
 	entName    = "testName"
 	entNs      = "testNs"
 	entDOTID   = "dotID"
 )
 
-func newTestResource(name, group, version, kind string, namespaced bool, opts ...resource.Option) (space.Resource, error) {
-	return resource.New(name, group, version, kind, namespaced, opts...)
-}
-
 func TestNew(t *testing.T) {
-	r, err := newTestResource(resName, resGroup, resVersion, resKind, true)
+	r, err := resource.New(resType, resName, resGroup, resVersion, resKind, true)
 	if err != nil {
 		t.Fatalf("failed creating test resource: %v", err)
 	}
 
-	e, err := New(entName, entNs, r)
+	e, err := New(entType, entName, entNs, r)
 	if err != nil {
 		t.Fatalf("failed creating new entity: %v", err)
 	}
@@ -48,13 +45,13 @@ func TestNew(t *testing.T) {
 		t.Errorf("expected resource: %v, got: %v", r, e.Resource())
 	}
 
-	if _, err = New(entName, entNs, nil); err != nil {
+	if _, err = New(entType, entName, entNs, nil); err != nil {
 		t.Fatalf("failed creating new entity: %v", err)
 	}
 }
 
 func TestNewWithOptions(t *testing.T) {
-	r, err := newTestResource(resName, resGroup, resVersion, resKind, true)
+	r, err := resource.New(resType, resName, resGroup, resVersion, resKind, true)
 	if err != nil {
 		t.Fatalf("failed creating test resource: %v", err)
 	}
@@ -64,13 +61,13 @@ func TestNewWithOptions(t *testing.T) {
 		t.Errorf("failed to create new uid: %v", err)
 	}
 
-	e, err := New(entName, entNs, r, WithUID(uid), WithDOTID(entDOTID))
+	e, err := New(entType, entName, entNs, r, WithUID(uid), WithDOTID(entDOTID))
 	if err != nil {
 		t.Fatalf("failed creating new entity: %v", err)
 	}
 
-	if e.UID().Value() != entUID {
-		t.Errorf("expected entity uid: %s, got: %s", entUID, e.UID().Value())
+	if e.UID().String() != entUID {
+		t.Errorf("expected entity uid: %s, got: %s", entUID, e.UID().String())
 	}
 
 	if d := e.DOTID(); d != entDOTID {
@@ -91,7 +88,7 @@ func TestNewWithOptions(t *testing.T) {
 	k, v := "foo", "bar"
 	a.Set(k, v)
 
-	e, err = New(entName, entNs, r, WithAttrs(a))
+	e, err = New(entType, entName, entNs, r, WithAttrs(a))
 	if err != nil {
 		t.Errorf("failed to create new entity: %v", err)
 	}
