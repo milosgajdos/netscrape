@@ -1,4 +1,4 @@
-package plan
+package memory
 
 import (
 	"context"
@@ -7,13 +7,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/milosgajdos/netscrape/pkg/plan"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
 const (
-	resPath = "../testdata/undirected/resources.yaml"
+	resPath = "../testdata/resources.yaml"
 )
 
 func MustNewPlan(src string, t *testing.T) *Plan {
@@ -115,8 +116,8 @@ func TestGet(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to generate uid: %v", err)
 		}
-		if _, err := p.Get(context.Background(), uid); !errors.Is(err, space.ErrResourceNotFound) {
-			t.Errorf("expected error: %v, got: %v", space.ErrResourceNotFound, err)
+		if _, err := p.Get(context.Background(), uid); !errors.Is(err, plan.ErrResourceNotFound) {
+			t.Errorf("expected error: %v, got: %v", plan.ErrResourceNotFound, err)
 		}
 	})
 }
@@ -139,8 +140,8 @@ func TestDelete(t *testing.T) {
 			t.Fatalf("failed removing resource %s: %v", r.UID(), err)
 		}
 
-		if _, err := p.Get(context.Background(), r.UID()); !errors.Is(err, space.ErrResourceNotFound) {
-			t.Errorf("expected %v: got: %v", space.ErrResourceNotFound, err)
+		if _, err := p.Get(context.Background(), r.UID()); !errors.Is(err, plan.ErrResourceNotFound) {
+			t.Errorf("expected %v: got: %v", plan.ErrResourceNotFound, err)
 		}
 	})
 }

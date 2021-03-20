@@ -3,7 +3,7 @@ package resource
 import (
 	"testing"
 
-	"github.com/milosgajdos/netscrape/pkg/attrs"
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -46,7 +46,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewWithOptions(t *testing.T) {
-	a, err := attrs.New()
+	a, err := memattrs.New()
 	if err != nil {
 		t.Fatalf("failed to create new attrs: %v", err)
 	}

@@ -2,6 +2,7 @@ package memory
 
 import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"gonum.org/v1/gonum/graph/encoding"
 )
@@ -33,7 +34,7 @@ func NewNode(id int64, e graph.Entity, opts ...graph.Option) (*Node, error) {
 		}
 	}
 
-	a := attrs.NewCopyFrom(e.Attrs())
+	a := memattrs.NewCopyFrom(e.Attrs())
 	if nopts.Attrs != nil {
 		for _, k := range nopts.Attrs.Keys() {
 			a.Set(k, nopts.Attrs.Get(k))

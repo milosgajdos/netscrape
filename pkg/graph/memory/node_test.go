@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/milosgajdos/netscrape/pkg/attrs"
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/internal"
 	"github.com/milosgajdos/netscrape/pkg/space"
@@ -25,7 +25,7 @@ func TestNode(t *testing.T) {
 		t.Fatalf("failed to create entity: %v", err)
 	}
 
-	a, err := attrs.New()
+	a, err := memattrs.New()
 	if err != nil {
 		t.Fatalf("failed to create attrs: %v", err)
 	}
@@ -83,7 +83,7 @@ func TestNodeWithDOTID(t *testing.T) {
 		t.Fatalf("failed to create entity: %v", err)
 	}
 
-	a, err := attrs.New()
+	a, err := memattrs.New()
 	if err != nil {
 		t.Fatalf("failed to create attrs: %v", err)
 	}

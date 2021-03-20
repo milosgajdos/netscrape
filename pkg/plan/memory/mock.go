@@ -1,28 +1,29 @@
-package plan
+package memory
 
 import (
 	"context"
 	"io/ioutil"
 
 	"github.com/ghodss/yaml"
+	"github.com/milosgajdos/netscrape/pkg/plan"
+	"github.com/milosgajdos/netscrape/pkg/plan/origin"
 	"github.com/milosgajdos/netscrape/pkg/space/marshal"
-	"github.com/milosgajdos/netscrape/pkg/space/origin"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 )
 
 // NewMock creates mock Plan from given path and returns it.
 func NewMock(path string) (*Plan, error) {
-	s, err := origin.New(path)
+	o, err := origin.New(path)
 	if err != nil {
 		return nil, err
 	}
 
-	a, err := New(s)
+	a, err := New(plan.WithOrigin(o))
 	if err != nil {
 		return nil, err
 	}
 
-	p, err := GetFilePathFromUrl(s.URL(), false)
+	p, err := GetFilePathFromUrl(o.URL(), false)
 	if err != nil {
 		return nil, err
 	}

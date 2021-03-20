@@ -7,21 +7,29 @@ import (
 
 // Options are store options.
 type Options struct {
-	Graph graph.Graph
-	Attrs attrs.Attrs
+	Upsert bool
+	Graph  graph.Graph
+	Attrs  attrs.Attrs
 }
 
 // Option configures Options.
 type Option func(*Options)
 
-// WithGraph sets Graph options
+// WithUpsert enables cache upsert.
+func WithUpsert() Option {
+	return func(o *Options) {
+		o.Upsert = true
+	}
+}
+
+// WithGraph sets Graph options.
 func WithGraph(g graph.Graph) Option {
 	return func(o *Options) {
 		o.Graph = g
 	}
 }
 
-// WithAttrs sets Attrs options
+// WithAttrs sets Attrs options.
 func WithAttrs(a attrs.Attrs) Option {
 	return func(o *Options) {
 		o.Attrs = a

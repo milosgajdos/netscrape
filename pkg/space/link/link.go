@@ -2,6 +2,7 @@ package link
 
 import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -32,7 +33,7 @@ func New(from, to uuid.UID, opts ...Option) (*Link, error) {
 	a := lopts.Attrs
 	if a == nil {
 		var err error
-		a, err = attrs.New()
+		a, err = memattrs.New()
 		if err != nil {
 			return nil, err
 		}

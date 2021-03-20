@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/milosgajdos/netscrape/pkg/attrs"
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 
@@ -66,8 +66,13 @@ func (g WG) UID() uuid.UID {
 // NewNode creates a new graph node and returns it.
 // NOTE: this is a convenience method that creates
 // the new *memory.Node such that it makes sure its
-// ID does not already exist in the graph.
+// ID() does not ireturn an ID that already exist in the graph.
 func (g *WG) NewNode(ctx context.Context, ent graph.Entity, opts ...graph.Option) (graph.Node, error) {
+	gopts := graph.Options{}
+	for _, apply := range opts {
+		apply(&gopts)
+	}
+
 	gnode := g.WeightedGraphBuilder.NewNode()
 
 	node, err := NewNode(gnode.ID(), ent, opts...)
@@ -84,8 +89,14 @@ func (g *WG) NewNode(ctx context.Context, ent graph.Entity, opts ...graph.Option
 
 // AddNode adds node n to the graph.
 // If the node already exists in the graph it's left untouched.
+// It panics if n.ID() is not unique within the graph.
 // It returns error if n is not memory.Node.
-func (g *WG) AddNode(ctx context.Context, n graph.Node) error {
+func (g *WG) AddNode(ctx context.Context, n graph.Node, opts ...graph.Option) error {
+	gopts := graph.Options{}
+	for _, apply := range opts {
+		apply(&gopts)
+	}
+
 	gnode, ok := n.(*Node)
 	if !ok {
 		return graph.ErrInvalidNode
@@ -93,6 +104,9 @@ func (g *WG) AddNode(ctx context.Context, n graph.Node) error {
 
 	if node := g.WeightedGraphBuilder.Node(gnode.ID()); node != nil {
 		if _, ok := g.nodes[n.UID().String()]; ok {
+			if gopts.Upsert {
+				g.nodes[n.UID().String()] = n
+			}
 			return nil
 		}
 
@@ -102,7 +116,6 @@ func (g *WG) AddNode(ctx context.Context, n graph.Node) error {
 	}
 
 	g.WeightedGraphBuilder.AddNode(gnode)
-
 	g.nodes[n.UID().String()] = n
 
 	return nil
@@ -132,7 +145,7 @@ func (g *WG) Nodes(ctx context.Context) ([]graph.Node, error) {
 }
 
 // RemoveNode removes the node with the given uid from graph.
-func (g *WG) RemoveNode(ctx context.Context, uid uuid.UID) error {
+func (g *WG) RemoveNode(ctx context.Context, uid uuid.UID, opts ...graph.Option) error {
 	node, ok := g.nodes[uid.String()]
 	if !ok {
 		return nil
@@ -240,7 +253,7 @@ func (g *WG) From(ctx context.Context, uid uuid.UID) ([]graph.Node, error) {
 }
 
 // Unlink removes the link between from and to nodes.
-func (g *WG) Unlink(ctx context.Context, from, to uuid.UID) error {
+func (g *WG) Unlink(ctx context.Context, from, to uuid.UID, opts ...graph.Option) error {
 	f, ok := g.nodes[from.String()]
 	if !ok {
 		return nil
@@ -309,7 +322,7 @@ func (g *WG) SubGraph(ctx context.Context, uid uuid.UID, depth int, opts ...grap
 						we := edges.WeightedEdge()
 						e := we.(*Edge)
 
-						a := attrs.NewCopyFrom(e.Attrs())
+						a := memattrs.NewCopyFrom(e.Attrs())
 
 						opts := []graph.Option{
 							graph.WithAttrs(a),

@@ -94,13 +94,13 @@ type NodeAdder interface {
 	// NewNode returns a new node.
 	NewNode(context.Context, Entity, ...Option) (Node, error)
 	// AddNode adds a new node to graph.
-	AddNode(context.Context, Node) error
+	AddNode(context.Context, Node, ...Option) error
 }
 
 // NodeRemover removes node from graph
 type NodeRemover interface {
 	// RemoveNode removes node from graph.
-	RemoveNode(context.Context, uuid.UID) error
+	RemoveNode(context.Context, uuid.UID, ...Option) error
 }
 
 // Linker links two nodes in graph.
@@ -112,7 +112,7 @@ type Linker interface {
 // Unlinker removes link between two Nodes.
 type Unlinker interface {
 	// Unlink removes the link between the nodes with given UIDs from graph.
-	Unlink(ctx context.Context, from, to uuid.UID) error
+	Unlink(ctx context.Context, from, to uuid.UID, opts ...Option) error
 }
 
 // Edger returns graph edges

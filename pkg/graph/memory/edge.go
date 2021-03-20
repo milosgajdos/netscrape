@@ -2,6 +2,7 @@ package memory
 
 import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 	gngraph "gonum.org/v1/gonum/graph"
@@ -51,7 +52,7 @@ func NewEdge(from, to *Node, opts ...graph.Option) (*Edge, error) {
 	a := eopts.Attrs
 	if a == nil {
 		var err error
-		a, err = attrs.New()
+		a, err = memattrs.New()
 		if err != nil {
 			return nil, err
 		}

@@ -1,4 +1,4 @@
-package plan
+package memory
 
 import (
 	"net/url"

@@ -2,10 +2,11 @@ package memory
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 
 	"github.com/ghodss/yaml"
-	"github.com/milosgajdos/netscrape/pkg/attrs"
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/entity"
@@ -47,11 +48,7 @@ func makeTestSpace(path string) (*testSpace, error) {
 	elinks := make(map[string]map[string]space.Link)
 
 	for _, e := range testEntities {
-		a, err := attrs.NewFromMap(e.Resource.Attrs)
-		if err != nil {
-			return nil, err
-		}
-
+		resAttrs := memattrs.NewFromMap(e.Resource.Attrs)
 		res, err := resource.New(
 			e.Resource.Type,
 			e.Resource.Name,
@@ -59,16 +56,13 @@ func makeTestSpace(path string) (*testSpace, error) {
 			e.Resource.Version,
 			e.Resource.Kind,
 			e.Resource.Namespaced,
-			resource.WithAttrs(a),
+			resource.WithAttrs(resAttrs),
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to create new resource: %v", err)
 		}
 
-		a, err = attrs.NewFromMap(e.Attrs)
-		if err != nil {
-			return nil, err
-		}
+		a := memattrs.NewFromMap(e.Attrs)
 
 		uid, err := uuid.NewFromString(e.UID)
 		if err != nil {
@@ -86,16 +80,12 @@ func makeTestSpace(path string) (*testSpace, error) {
 				return nil, err
 			}
 
-			a, err = attrs.NewFromMap(l.Attrs)
-			if err != nil {
-				return nil, err
-			}
-
 			if elinks[uid.String()] == nil {
 				elinks[uid.String()] = make(map[string]space.Link)
 			}
 
 			if _, ok := elinks[uid.String()][to.String()]; !ok {
+				a := memattrs.NewFromMap(l.Attrs)
 				link, err := link.New(uid, to, link.WithAttrs(a))
 				if err != nil {
 					return nil, err
@@ -150,7 +140,7 @@ func makeTestGraph(path string) (*WUG, error) {
 				return nil, err
 			}
 
-			a := attrs.NewCopyFrom(link.Attrs())
+			a := memattrs.NewCopyFrom(link.Attrs())
 
 			if _, err = g.Link(context.Background(), n.UID(), n2.UID(), graph.WithAttrs(a)); err != nil {
 				return nil, err

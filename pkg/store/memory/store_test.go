@@ -7,7 +7,9 @@ import (
 	"reflect"
 	"testing"
 
+	memgraph "github.com/milosgajdos/netscrape/pkg/graph/memory"
 	"github.com/milosgajdos/netscrape/pkg/internal"
+	"github.com/milosgajdos/netscrape/pkg/space/entity"
 	"github.com/milosgajdos/netscrape/pkg/store"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -26,21 +28,19 @@ func MustNewStore(t *testing.T, opts ...Option) *Memory {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	return s
 }
 
-func MustTestEntity(uid, typ, name string, t *testing.T) store.Entity {
+func MustTestEntity(uid, typ, name string, t *testing.T, opts ...entity.Option) store.Entity {
 	r, err := internal.NewTestResource(resType, resName, resGroup, resVersion, resKind, false)
 	if err != nil {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	e, err := internal.NewTestEntity(uid, typ, name, entNs, r)
+	e, err := internal.NewTestEntity(uid, typ, name, entNs, r, opts...)
 	if err != nil {
 		t.Fatalf("failed to create entity %q: %v", uid, err)
 	}
-
 	return e
 }
 
@@ -53,8 +53,55 @@ func MustMakeEntities(count int, t *testing.T) []store.Entity {
 
 		ents[i] = MustTestEntity(uid, "fooType", name, t)
 	}
-
 	return ents
+}
+
+func MustUid(u string, t *testing.T) uuid.UID {
+	uid, err := uuid.NewFromString(u)
+	if err != nil {
+		t.Fatalf("failed generating store uid: %v", err)
+	}
+	return uid
+}
+
+func TestNewStore(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
+	t.Run("NoOpts", func(t *testing.T) {
+		if _, err := NewStore(); err != nil {
+			t.Fatalf("failed creating new store: %v", err)
+		}
+	})
+
+	t.Run("WithOpts", func(t *testing.T) {
+		uid := "storeUID"
+		suid := MustUid(uid, t)
+
+		s, err := NewStore(WithUID(suid))
+		if err != nil {
+			t.Fatalf("failed creating new store: %v", err)
+		}
+
+		if u := s.UID().String(); u != uid {
+			t.Errorf("expected uid: %s, got: %s", uid, u)
+		}
+
+		g, err := memgraph.NewWUG()
+		if err != nil {
+			t.Fatalf("failed creating new memory graph: %v", err)
+		}
+
+		sg, err := NewStore(WithGraph(g))
+		if err != nil {
+			t.Fatalf("failed creating new store: %v", err)
+		}
+
+		if _, err := sg.Graph(); err != nil {
+			t.Errorf("failed to get store graph handle: %v", err)
+		}
+	})
 }
 
 func TestAdd(t *testing.T) {
@@ -63,16 +110,29 @@ func TestAdd(t *testing.T) {
 	}
 
 	t.Run("OK", func(t *testing.T) {
-		uid, err := uuid.NewFromString("someUID")
-		if err != nil {
-			t.Fatalf("failed generating store uid: %v", err)
-		}
-
+		uid := MustUid("someUID", t)
 		s := MustNewStore(t, WithUID(uid))
 
 		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e); err != nil {
+			t.Errorf("failed storing entity %s: %v", e.UID(), err)
+		}
+	})
+
+	t.Run("Upsert", func(t *testing.T) {
+		uid := MustUid("someUID", t)
+		s := MustNewStore(t, WithUID(uid))
+
+		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+
+		if err := s.Add(context.Background(), e); err != nil {
+			t.Errorf("failed storing entity %s: %v", e.UID(), err)
+		}
+
+		ex := MustTestEntity("foo1UID", "fooType", "foo1Name", t, entity.WithDOTID("someDOTID"))
+
+		if err := s.Add(context.Background(), ex, store.WithUpsert()); err != nil {
 			t.Errorf("failed storing entity %s: %v", e.UID(), err)
 		}
 	})

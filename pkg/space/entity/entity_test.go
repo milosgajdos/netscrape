@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/milosgajdos/netscrape/pkg/attrs"
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -22,6 +22,43 @@ const (
 	entDOTID   = "dotID"
 )
 
+func TestNewPartial(t *testing.T) {
+	e, err := NewPartial()
+	if err != nil {
+		t.Fatalf("failed creating new entity: %v", err)
+	}
+
+	if e.Type() != PartialType {
+		t.Errorf("expected type: %s, got: %s", PartialType, e.Type())
+	}
+
+	if e.Name() != PartialName {
+		t.Errorf("expected name: %s, got: %s", PartialName, e.Name())
+	}
+
+	if e.Namespace() != PartialNs {
+		t.Errorf("expected namespace: %s, got: %s", PartialNs, e.Namespace())
+	}
+
+	if r := e.Resource(); r != nil {
+		t.Errorf("expected nil resource, got: %v", r)
+	}
+
+	uid, err := uuid.NewFromString("partialUID")
+	if err != nil {
+		t.Fatalf("failed to created uid: %v", err)
+	}
+
+	e, err = NewPartial(WithUID(uid))
+	if err != nil {
+		t.Fatalf("failed creating new entity: %v", err)
+	}
+
+	if u := e.UID().String(); u != uid.String() {
+		t.Errorf("expected uid: %v, got: %v", uid.String(), u)
+	}
+}
+
 func TestNew(t *testing.T) {
 	r, err := resource.New(resType, resName, resGroup, resVersion, resKind, true)
 	if err != nil {
@@ -31,6 +68,10 @@ func TestNew(t *testing.T) {
 	e, err := New(entType, entName, entNs, r)
 	if err != nil {
 		t.Fatalf("failed creating new entity: %v", err)
+	}
+
+	if e.Type() != entType {
+		t.Errorf("expected type: %s, got: %s", entType, e.Type())
 	}
 
 	if e.Name() != entName {
@@ -81,7 +122,7 @@ func TestNewWithOptions(t *testing.T) {
 		t.Errorf("expected dotid: %s, got: %s", dotid2, d)
 	}
 
-	a, err := attrs.New()
+	a, err := memattrs.New()
 	if err != nil {
 		t.Fatalf("failed to create new attrs: %v", err)
 	}

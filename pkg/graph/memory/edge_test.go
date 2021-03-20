@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/milosgajdos/netscrape/pkg/attrs"
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/internal"
 )
@@ -52,7 +52,7 @@ func TestEdge(t *testing.T) {
 		t.Errorf("expected 0 attributes, got: %d", count)
 	}
 
-	a, err := attrs.New()
+	a, err := memattrs.New()
 	if err != nil {
 		t.Fatalf("failed to create attrs: %v", err)
 	}

@@ -27,6 +27,8 @@ type Options struct {
 	Attrs      attrs.Attrs
 	Weight     float64
 	Name       string
+	NoCache    bool
+	Upsert     bool
 	DOTOptions DOTOptions
 }
 
@@ -65,6 +67,20 @@ func WithAttrs(a attrs.Attrs) Option {
 func WithWeight(w float64) Option {
 	return func(o *Options) {
 		o.Weight = w
+	}
+}
+
+// WithUpsert enables cache upsert.
+func WithUpsert() Option {
+	return func(o *Options) {
+		o.Upsert = true
+	}
+}
+
+// WithNoCache configures skipping cache.
+func WithNoCache() Option {
+	return func(o *Options) {
+		o.NoCache = true
 	}
 }
 

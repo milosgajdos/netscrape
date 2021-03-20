@@ -24,12 +24,12 @@ type Memory struct {
 // NewStore creates a new in-memory store backed by graph g and returns it.
 // By default store uses memory.WUG unless overridden by WithGraph options.
 func NewStore(opts ...Option) (*Memory, error) {
-	gopts := Options{}
+	sopts := Options{}
 	for _, apply := range opts {
-		apply(&gopts)
+		apply(&sopts)
 	}
 
-	uid := gopts.UID
+	uid := sopts.UID
 	if uid == nil {
 		var err error
 		uid, err = uuid.New()
@@ -38,7 +38,7 @@ func NewStore(opts ...Option) (*Memory, error) {
 		}
 	}
 
-	g := gopts.Graph
+	g := sopts.Graph
 	if g == nil {
 		var err error
 		g, err = memory.NewWUG()
@@ -54,6 +54,7 @@ func NewStore(opts ...Option) (*Memory, error) {
 	}, nil
 }
 
+// UID returns store UID.
 func (m Memory) UID() uuid.UID {
 	return m.uid
 }
@@ -79,7 +80,13 @@ func (m *Memory) add(ctx context.Context, e store.Entity, opts ...store.Option) 
 		return err
 	}
 
-	return m.g.AddNode(ctx, n)
+	gopts := []graph.Option{}
+
+	if aopts.Upsert {
+		gopts = append(gopts, graph.WithUpsert())
+	}
+
+	return m.g.AddNode(ctx, n, gopts...)
 }
 
 // Add stores e in memory store.

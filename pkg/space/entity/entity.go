@@ -4,8 +4,15 @@ import (
 	"strings"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
+)
+
+const (
+	PartialType = "_partial"
+	PartialName = "_partialName"
+	PartialNs   = "_partialNs"
 )
 
 // Entity is a space entity.
@@ -17,6 +24,12 @@ type Entity struct {
 	res   space.Resource
 	dotid string
 	attrs attrs.Attrs
+}
+
+// NewPartial creates a new partial entity and returns it.
+// NOTE: Partial entity has no Resource associated with it.
+func NewPartial(opts ...Option) (*Entity, error) {
+	return New(PartialType, PartialName, PartialNs, nil, opts...)
 }
 
 // New creates a new entity and returns it.
@@ -38,7 +51,7 @@ func New(typ, name, ns string, res space.Resource, opts ...Option) (*Entity, err
 	a := eopts.Attrs
 	if a == nil {
 		var err error
-		a, err = attrs.New()
+		a, err = memattrs.New()
 		if err != nil {
 			return nil, err
 		}

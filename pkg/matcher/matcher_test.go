@@ -4,17 +4,9 @@ import (
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/matcher/property"
 )
-
-func MustAttrs(m map[string]string, t *testing.T) attrs.Attrs {
-	a, err := attrs.NewFromMap(m)
-	if err != nil {
-		t.Fatalf("failed creating attrs: %v", err)
-	}
-
-	return a
-}
 
 func MustMatcher(t *testing.T, opts ...Option) *matcher {
 	f, err := New(opts...)
@@ -268,10 +260,10 @@ func TestFilterAttrs(t *testing.T) {
 	}
 
 	t.Run("OK", func(t *testing.T) {
-		a := MustAttrs(map[string]string{"foo": "bar"}, t)
-		ax := MustAttrs(map[string]string{"fooX": "barX", "foo": "bar"}, t)
-		ay := MustAttrs(map[string]string{"bar": "foo", "car": "dac"}, t)
-		az := MustAttrs(map[string]string{}, t)
+		a := memattrs.NewFromMap(map[string]string{"foo": "bar"})
+		ax := memattrs.NewFromMap(map[string]string{"fooX": "barX", "foo": "bar"})
+		ay := memattrs.NewFromMap(map[string]string{"bar": "foo", "car": "dac"})
+		az := memattrs.NewFromMap(map[string]string{})
 
 		testCases := []struct {
 			a   attrs.Attrs
