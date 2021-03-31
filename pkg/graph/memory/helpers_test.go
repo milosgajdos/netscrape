@@ -110,6 +110,10 @@ func makeTestGraph(path string) (*WUG, error) {
 		return nil, err
 	}
 
+	// NOTE: makeTestSpace builds a map of entities
+	// from testdata; these are marshal.LinkedEntity-s
+	// so we know they're proper "full"-y initialized entities
+	// hence it's ok to do Upsert into graph when adding them in
 	t, err := makeTestSpace(path)
 	if err != nil {
 		return nil, err
@@ -121,7 +125,7 @@ func makeTestGraph(path string) (*WUG, error) {
 			return nil, err
 		}
 
-		if err := g.AddNode(context.Background(), n); err != nil {
+		if err := g.AddNode(context.Background(), n, graph.WithUpsert()); err != nil {
 			return nil, err
 		}
 
@@ -136,7 +140,7 @@ func makeTestGraph(path string) (*WUG, error) {
 				return nil, err
 			}
 
-			if err := g.AddNode(context.Background(), n2); err != nil {
+			if err := g.AddNode(context.Background(), n2, graph.WithUpsert()); err != nil {
 				return nil, err
 			}
 

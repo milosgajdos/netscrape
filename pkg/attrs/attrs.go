@@ -11,7 +11,7 @@ const (
 	DOTID = "dotid"
 	// Weight is weight attribute key
 	Weight = "weight"
-	// Rel is relation attribute
+	// Relation is relation attribute
 	Relation = "relation"
 	// DOTLabel is GraphViz DOT label attribute
 	DOTLabel = "label"
@@ -32,4 +32,14 @@ type Attrs interface {
 type DOT interface {
 	// Attributes returns attributes as a slice of encoding.Attribute.
 	Attributes() []encoding.Attribute
+}
+
+// ToMap returns map of attributes.
+func ToMap(a Attrs) map[string]string {
+	m := make(map[string]string)
+
+	for _, k := range a.Keys() {
+		m[k] = a.Get(k)
+	}
+	return m
 }

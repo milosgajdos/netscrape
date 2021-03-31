@@ -18,6 +18,5 @@ func DOTAttrs(a attrs.Attrs) []encoding.Attribute {
 		}
 		i++
 	}
-
 	return attrs
 }

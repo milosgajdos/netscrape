@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/milosgajdos/netscrape/pkg/graph"
 	memgraph "github.com/milosgajdos/netscrape/pkg/graph/memory"
 	"github.com/milosgajdos/netscrape/pkg/internal"
 	"github.com/milosgajdos/netscrape/pkg/space/entity"
@@ -117,6 +118,21 @@ func TestAdd(t *testing.T) {
 
 		if err := s.Add(context.Background(), e); err != nil {
 			t.Errorf("failed storing entity %s: %v", e.UID(), err)
+		}
+	})
+
+	t.Run("DuplicateNode", func(t *testing.T) {
+		uid := MustUid("someUID", t)
+		s := MustNewStore(t, WithUID(uid))
+
+		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+
+		if err := s.Add(context.Background(), e); err != nil {
+			t.Errorf("failed storing entity %s: %v", e.UID(), err)
+		}
+
+		if err := s.Add(context.Background(), e); !errors.Is(err, graph.ErrDuplicateNode) {
+			t.Errorf("expected error: %v, got: %v", graph.ErrDuplicateNode, err)
 		}
 	})
 

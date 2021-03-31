@@ -88,7 +88,9 @@ func (g *WG) NewNode(ctx context.Context, ent graph.Entity, opts ...graph.Option
 }
 
 // AddNode adds node n to the graph.
-// If the node already exists in the graph it's left untouched.
+// AddNode allows to perform an upsert operation on the graph.
+// Upsert updates the node with the same UID if the node exists in the graph.
+// If upsert is not requested and the node already exists an error is returned.
 // It panics if n.ID() is not unique within the graph.
 // It returns error if n is not memory.Node.
 func (g *WG) AddNode(ctx context.Context, n graph.Node, opts ...graph.Option) error {
@@ -104,10 +106,10 @@ func (g *WG) AddNode(ctx context.Context, n graph.Node, opts ...graph.Option) er
 
 	if node := g.WeightedGraphBuilder.Node(gnode.ID()); node != nil {
 		if _, ok := g.nodes[n.UID().String()]; ok {
-			if gopts.Upsert {
-				g.nodes[n.UID().String()] = n
+			if !gopts.Upsert {
+				return graph.ErrDuplicateNode
 			}
-			return nil
+			g.nodes[n.UID().String()] = n
 		}
 
 		g.nodes[n.UID().String()] = n
@@ -177,12 +179,12 @@ func (g *WG) Link(ctx context.Context, from, to uuid.UID, opts ...graph.Option) 
 
 	f, ok := g.nodes[from.String()]
 	if !ok {
-		return nil, fmt.Errorf("node link %s: %w", from, graph.ErrNodeNotFound)
+		return nil, fmt.Errorf("graph link: %s: %w", from, graph.ErrNodeNotFound)
 	}
 
 	t, ok := g.nodes[to.String()]
 	if !ok {
-		return nil, fmt.Errorf("node link %s: %w", to, graph.ErrNodeNotFound)
+		return nil, fmt.Errorf("graph link: %s: %w", to, graph.ErrNodeNotFound)
 	}
 
 	edge, err := NewEdge(f.(*Node), t.(*Node), opts...)
@@ -199,12 +201,12 @@ func (g *WG) Link(ctx context.Context, from, to uuid.UID, opts ...graph.Option) 
 func (g *WG) Edge(ctx context.Context, uid, vid uuid.UID) (graph.Edge, error) {
 	from, ok := g.nodes[uid.String()]
 	if !ok {
-		return nil, fmt.Errorf("%s: %w", uid, graph.ErrNodeNotFound)
+		return nil, fmt.Errorf("graph edge: %s: %w", uid, graph.ErrNodeNotFound)
 	}
 
 	to, ok := g.nodes[vid.String()]
 	if !ok {
-		return nil, fmt.Errorf("%s: %w", vid, graph.ErrNodeNotFound)
+		return nil, fmt.Errorf("graph edge: %s: %w", vid, graph.ErrNodeNotFound)
 	}
 
 	// NOTE: it's safe to switch type without checking if possible
@@ -214,7 +216,7 @@ func (g *WG) Edge(ctx context.Context, uid, vid uuid.UID) (graph.Edge, error) {
 		return e.(*Edge), nil
 	}
 
-	return nil, fmt.Errorf("%w", graph.ErrEdgeNotExist)
+	return nil, fmt.Errorf("graph edge: %w", graph.ErrEdgeNotExist)
 }
 
 // Edges returns all the edges (lines) from u to v.

@@ -5,16 +5,15 @@ import (
 	"sync"
 
 	"github.com/milosgajdos/netscrape/pkg/cache"
-	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Links in is-memory space.Link cache.
+// Links in is-memory cache.Link cache.
 type Links struct {
 	// from indexes from->to links.
-	from map[uuid.UID]map[uuid.UID]space.Link
+	from map[uuid.UID]map[uuid.UID]cache.Link
 	// to indexes to<-from links.
-	to map[uuid.UID]map[uuid.UID]space.Link
+	to map[uuid.UID]map[uuid.UID]cache.Link
 	// mu synchronizes access to Links
 	mu *sync.RWMutex
 }
@@ -22,13 +21,13 @@ type Links struct {
 // NewLinks creates a new Links cache and returns it
 func NewLinks() (*Links, error) {
 	return &Links{
-		from: make(map[uuid.UID]map[uuid.UID]space.Link),
-		to:   make(map[uuid.UID]map[uuid.UID]space.Link),
+		from: make(map[uuid.UID]map[uuid.UID]cache.Link),
+		to:   make(map[uuid.UID]map[uuid.UID]cache.Link),
 		mu:   &sync.RWMutex{},
 	}, nil
 }
 
-func (c *Links) put(ctx context.Context, link space.Link, opts ...cache.Option) error {
+func (c *Links) put(ctx context.Context, link cache.Link, opts ...cache.Option) error {
 	copts := cache.Options{}
 	for _, apply := range opts {
 		apply(&copts)
@@ -37,11 +36,11 @@ func (c *Links) put(ctx context.Context, link space.Link, opts ...cache.Option) 
 	f, t := link.From(), link.To()
 
 	if c.from[f][t] == nil {
-		c.from[f] = make(map[uuid.UID]space.Link)
+		c.from[f] = make(map[uuid.UID]cache.Link)
 	}
 
 	if c.to[t][f] == nil {
-		c.to[t] = make(map[uuid.UID]space.Link)
+		c.to[t] = make(map[uuid.UID]cache.Link)
 	}
 
 	if copts.Upsert {
@@ -61,14 +60,14 @@ func (c *Links) put(ctx context.Context, link space.Link, opts ...cache.Option) 
 }
 
 // Put stores link in the cache.
-func (c *Links) Put(ctx context.Context, link space.Link, opts ...cache.Option) error {
+func (c *Links) Put(ctx context.Context, link cache.Link, opts ...cache.Option) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.put(ctx, link, opts...)
 }
 
-func (c *Links) get(ctx context.Context, uid uuid.UID, index map[uuid.UID]space.Link, opts ...cache.Option) ([]space.Link, error) {
-	lx := make([]space.Link, len(index))
+func (c *Links) get(ctx context.Context, uid uuid.UID, index map[uuid.UID]cache.Link, opts ...cache.Option) ([]cache.Link, error) {
+	lx := make([]cache.Link, len(index))
 
 	i := 0
 	for _, l := range index {
@@ -80,7 +79,7 @@ func (c *Links) get(ctx context.Context, uid uuid.UID, index map[uuid.UID]space.
 }
 
 // GetFrom returns all links from the given uid.
-func (c *Links) GetFrom(ctx context.Context, uid uuid.UID, opts ...cache.Option) ([]space.Link, error) {
+func (c *Links) GetFrom(ctx context.Context, uid uuid.UID, opts ...cache.Option) ([]cache.Link, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -88,11 +87,11 @@ func (c *Links) GetFrom(ctx context.Context, uid uuid.UID, opts ...cache.Option)
 		return c.get(ctx, uid, from, opts...)
 	}
 
-	return []space.Link{}, nil
+	return []cache.Link{}, nil
 }
 
 // GetTo returns all link to the given uid.
-func (c *Links) GetTo(ctx context.Context, uid uuid.UID, opts ...cache.Option) ([]space.Link, error) {
+func (c *Links) GetTo(ctx context.Context, uid uuid.UID, opts ...cache.Option) ([]cache.Link, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -100,7 +99,7 @@ func (c *Links) GetTo(ctx context.Context, uid uuid.UID, opts ...cache.Option) (
 		return c.get(ctx, uid, to, opts...)
 	}
 
-	return []space.Link{}, nil
+	return []cache.Link{}, nil
 }
 
 func (c *Links) delete(ctx context.Context, uid uuid.UID, opts ...cache.Option) error {
@@ -121,14 +120,14 @@ func (c *Links) Clear(ctx context.Context, opts ...cache.Option) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	c.from = make(map[uuid.UID]map[uuid.UID]space.Link)
-	c.to = make(map[uuid.UID]map[uuid.UID]space.Link)
+	c.from = make(map[uuid.UID]map[uuid.UID]cache.Link)
+	c.to = make(map[uuid.UID]map[uuid.UID]cache.Link)
 
 	return nil
 }
 
 // BulkPut puts all links key-ed by UID into cache.
-func (c *Links) BulkPut(ctx context.Context, links []space.Link, opts ...cache.Option) error {
+func (c *Links) BulkPut(ctx context.Context, links []cache.Link, opts ...cache.Option) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -141,14 +140,14 @@ func (c *Links) BulkPut(ctx context.Context, links []space.Link, opts ...cache.O
 }
 
 // BulkGetFrom returns all links from the given UIDs.
-func (c *Links) BulkGetFrom(ctx context.Context, uids []uuid.UID, opts ...cache.Option) (map[uuid.UID][]space.Link, error) {
+func (c *Links) BulkGetFrom(ctx context.Context, uids []uuid.UID, opts ...cache.Option) (map[uuid.UID][]cache.Link, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	m := make(map[uuid.UID][]space.Link)
+	m := make(map[uuid.UID][]cache.Link)
 
 	for _, uid := range uids {
-		lx := []space.Link{}
+		lx := []cache.Link{}
 		from, ok := c.from[uid]
 		if !ok {
 			continue
@@ -164,14 +163,14 @@ func (c *Links) BulkGetFrom(ctx context.Context, uids []uuid.UID, opts ...cache.
 }
 
 // BulkGetTo returns all links to the given UIDs.
-func (c *Links) BulkGetTo(ctx context.Context, uids []uuid.UID, opts ...cache.Option) (map[uuid.UID][]space.Link, error) {
+func (c *Links) BulkGetTo(ctx context.Context, uids []uuid.UID, opts ...cache.Option) (map[uuid.UID][]cache.Link, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	m := make(map[uuid.UID][]space.Link)
+	m := make(map[uuid.UID][]cache.Link)
 
 	for _, uid := range uids {
-		lx := []space.Link{}
+		lx := []cache.Link{}
 		to, ok := c.to[uid]
 		if !ok {
 			continue

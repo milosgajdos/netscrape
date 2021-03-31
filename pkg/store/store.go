@@ -7,6 +7,18 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
+// Link is a link between two entities.
+type Link interface {
+	// UID returns unique ID.
+	UID() uuid.UID
+	// From returns uid of the origin of link.
+	From() uuid.UID
+	// To returns uid of the end of link.
+	To() uuid.UID
+	// Attrs returns attributes.
+	Attrs() attrs.Attrs
+}
+
 // Entity is stored in Store.
 type Entity interface {
 	// UID returns unique ID.

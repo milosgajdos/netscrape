@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/cache"
-	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/link"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
@@ -27,7 +26,7 @@ func MustUID(t *testing.T) uuid.UID {
 	return u
 }
 
-func MustLink(from, to uuid.UID, t *testing.T) space.Link {
+func MustLink(from, to uuid.UID, t *testing.T) cache.Link {
 	l, err := link.New(from, to)
 	if err != nil {
 		t.Fatalf("failed to create link from %s to %s : %v", from, to, err)
@@ -35,8 +34,8 @@ func MustLink(from, to uuid.UID, t *testing.T) space.Link {
 	return l
 }
 
-func MustLinks(count int, t *testing.T) []space.Link {
-	links := make([]space.Link, count)
+func MustLinks(count int, t *testing.T) []cache.Link {
+	links := make([]cache.Link, count)
 	for i := 0; i < count; i++ {
 		from := MustUID(t)
 		to := MustUID(t)

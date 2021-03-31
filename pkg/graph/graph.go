@@ -14,7 +14,7 @@ type DOTer interface {
 	DOTID() string
 	// SetDOTID sets Graphviz DOT ID.
 	SetDOTID(string)
-	// Attributes returns Graphviz DOT attributes
+	// Attributes returns Graphviz DOT attributes.
 	Attributes() []encoding.Attribute
 }
 
@@ -115,9 +115,9 @@ type Unlinker interface {
 	Unlink(ctx context.Context, from, to uuid.UID, opts ...Option) error
 }
 
-// Edger returns graph edges
+// Edger returns graph edges.
 type Edger interface {
-	// Edges returns graph edges
+	// Edges returns graph edges.
 	Edges(ctx context.Context) ([]Edge, error)
 }
 

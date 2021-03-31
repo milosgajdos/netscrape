@@ -55,9 +55,9 @@ func TestWUGAddGetRemoveNode(t *testing.T) {
 		t.Errorf("expected nodes: %d, got: %d", expCount, nodeCount)
 	}
 
-	// adding the same nodes twice should not change the node count
-	if err := g.AddNode(context.Background(), n); err != nil {
-		t.Errorf("failed adding node: %v", err)
+	// adding the same node without upsert should return error.
+	if err := g.AddNode(context.Background(), n); !errors.Is(err, graph.ErrDuplicateNode) {
+		t.Errorf("expected error: %v, got: %v", graph.ErrDuplicateNode, err)
 	}
 
 	expCount = 1
