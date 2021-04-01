@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
@@ -41,6 +42,8 @@ type Store interface {
 	Link(ctx context.Context, from, to uuid.UID, opts ...Option) error
 	// Unlink two entities in store.
 	Unlink(ctx context.Context, from, to uuid.UID, opts ...Option) error
+	// Graph returns graph handle.
+	Graph(ctx context.Context, opts ...Option) (graph.Graph, error)
 }
 
 // BulkStore stores bulks of entities.

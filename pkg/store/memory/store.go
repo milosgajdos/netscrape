@@ -64,9 +64,7 @@ func (m *Memory) Graph() (graph.Graph, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	g := m.g
-
-	return g, nil
+	return m.g, nil
 }
 
 func (m *Memory) add(ctx context.Context, e store.Entity, opts ...store.Option) error {
