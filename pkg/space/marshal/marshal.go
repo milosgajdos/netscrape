@@ -16,7 +16,7 @@ const (
 )
 
 // Marshal marshals m into format f.
-func Marshal(m interface{}, f Format) ([]byte, error) {
+func Marshal(f Format, m interface{}) ([]byte, error) {
 	switch f {
 	case JSON:
 		return marshalJSON(m)
@@ -75,7 +75,7 @@ func marshalJSON(m interface{}) ([]byte, error) {
 }
 
 // Unmarshal unmarshals b in format f into m.
-func Unmarshal(b []byte, m interface{}, f Format) error {
+func Unmarshal(f Format, b []byte, m interface{}) error {
 	switch f {
 	case JSON:
 		return unmarshalJSON(b, m)
