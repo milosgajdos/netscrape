@@ -11,7 +11,7 @@ type Runner struct {
 	opts Options
 }
 
-// NewRunner creates a new netscraper runner and returns it.
+// NewRunner creates a Runner and returns it.
 func NewRunner(opts ...Option) (*Runner, error) {
 	ropts := Options{}
 	for _, apply := range opts {
@@ -23,7 +23,7 @@ func NewRunner(opts ...Option) (*Runner, error) {
 	}, nil
 }
 
-// Run runs netscraping using scraper s following the plan p.
+// Run runs netscraping using scraper s.
 func (r *Runner) Run(ctx context.Context, s scraper.Scraper, opts ...Option) error {
 	for _, apply := range opts {
 		apply(&r.opts)

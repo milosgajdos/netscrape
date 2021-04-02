@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 
 	"github.com/ghodss/yaml"
-	"github.com/milosgajdos/netscrape/pkg/plan"
-	"github.com/milosgajdos/netscrape/pkg/plan/origin"
+	"github.com/milosgajdos/netscrape/pkg/scraper/plan"
+	"github.com/milosgajdos/netscrape/pkg/scraper/plan/origin"
 	"github.com/milosgajdos/netscrape/pkg/space/marshal"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 )

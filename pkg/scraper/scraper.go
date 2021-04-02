@@ -3,7 +3,7 @@ package scraper
 import (
 	"context"
 
-	"github.com/milosgajdos/netscrape/pkg/plan"
+	"github.com/milosgajdos/netscrape/pkg/scraper/plan"
 )
 
 // Scraper scrapes data.

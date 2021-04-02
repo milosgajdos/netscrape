@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/milosgajdos/netscrape/pkg/plan"
-	"github.com/milosgajdos/netscrape/pkg/plan/origin"
+	"github.com/milosgajdos/netscrape/pkg/scraper/plan"
+	"github.com/milosgajdos/netscrape/pkg/scraper/plan/origin"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )

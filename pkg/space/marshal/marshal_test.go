@@ -23,7 +23,6 @@ const (
 	entType    = "testType"
 	entName    = "testName"
 	entNs      = "testNs"
-	entDOTID   = "dotID"
 
 	// NOTE: we could list all files in testadata dir programmatically, yeah
 	entJsonPath  = "testdata/entity.json"

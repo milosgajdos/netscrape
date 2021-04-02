@@ -3,7 +3,7 @@ package netscrape
 import (
 	"github.com/milosgajdos/netscrape/pkg/broker"
 	"github.com/milosgajdos/netscrape/pkg/cache"
-	"github.com/milosgajdos/netscrape/pkg/plan"
+	"github.com/milosgajdos/netscrape/pkg/scraper/plan"
 	"github.com/milosgajdos/netscrape/pkg/store"
 )
 

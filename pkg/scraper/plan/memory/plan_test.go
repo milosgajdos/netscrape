@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/milosgajdos/netscrape/pkg/plan"
+	"github.com/milosgajdos/netscrape/pkg/scraper/plan"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
