@@ -62,12 +62,12 @@ func (s *Subscriber) Receive(ctx context.Context, h broker.Handler, opts ...brok
 		recvTimeout = DefaultTimeout
 	}
 
-	s.Lock()
+	s.RLock()
 	if !s.active {
-		s.Unlock()
+		s.RUnlock()
 		return broker.ErrSubscriptionInactive
 	}
-	s.Unlock()
+	s.RUnlock()
 
 	select {
 	case <-ctx.Done():

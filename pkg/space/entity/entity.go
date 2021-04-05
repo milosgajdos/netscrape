@@ -4,9 +4,11 @@ import (
 	"strings"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
+
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
 const (
@@ -41,20 +43,12 @@ func New(typ, name, ns string, res space.Resource, opts ...Option) (*Entity, err
 
 	uid := eopts.UID
 	if uid == nil {
-		var err error
-		uid, err = uuid.New()
-		if err != nil {
-			return nil, err
-		}
+		uid = memuid.New()
 	}
 
 	a := eopts.Attrs
 	if a == nil {
-		var err error
-		a, err = memattrs.New()
-		if err != nil {
-			return nil, err
-		}
+		a = memattrs.New()
 	}
 
 	dotid := eopts.DOTID

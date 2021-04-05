@@ -4,16 +4,19 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"testing"
 
 	"github.com/ghodss/yaml"
-	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
+	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/entity"
 	"github.com/milosgajdos/netscrape/pkg/space/link"
 	"github.com/milosgajdos/netscrape/pkg/space/marshal"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
-	"github.com/milosgajdos/netscrape/pkg/uuid"
+
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
 const (
@@ -23,7 +26,6 @@ const (
 	nodeResVersion = "nodeResVersion"
 	nodeResKind    = "nodeResKind"
 	nodeType       = "testType"
-	nodeID         = "testID"
 	nodeName       = "testName"
 	nodeNs         = "testNs"
 )
@@ -63,11 +65,7 @@ func makeTestSpace(path string) (*testSpace, error) {
 		}
 
 		a := memattrs.NewFromMap(e.Attrs)
-
-		uid, err := uuid.NewFromString(e.UID)
-		if err != nil {
-			return nil, err
-		}
+		uid := memuid.NewFromString(e.UID)
 
 		ent, err := entity.New(e.Type, e.Name, e.Namespace, res, entity.WithUID(uid), entity.WithAttrs(a))
 		if err != nil {
@@ -75,10 +73,7 @@ func makeTestSpace(path string) (*testSpace, error) {
 		}
 
 		for _, l := range e.Links {
-			to, err := uuid.NewFromString(l.To)
-			if err != nil {
-				return nil, err
-			}
+			to := memuid.NewFromString(l.To)
 
 			if elinks[uid.String()] == nil {
 				elinks[uid.String()] = make(map[string]space.Link)
@@ -144,7 +139,10 @@ func makeTestGraph(path string) (*WUG, error) {
 				return nil, err
 			}
 
-			a := memattrs.NewCopyFrom(link.Attrs())
+			a, err := memattrs.NewCopyFrom(context.Background(), link.Attrs())
+			if err != nil {
+				return nil, err
+			}
 
 			if _, err = g.Link(context.Background(), n.UID(), n2.UID(), graph.WithAttrs(a)); err != nil {
 				return nil, err
@@ -153,4 +151,10 @@ func makeTestGraph(path string) (*WUG, error) {
 	}
 
 	return g, nil
+}
+
+func MustSet(ctx context.Context, a attrs.Attrs, k, v string, t *testing.T) {
+	if err := a.Set(ctx, k, v); err != nil {
+		t.Fatalf("failed to set val %s for key %s: %v", k, v, err)
+	}
 }

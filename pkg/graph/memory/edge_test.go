@@ -1,12 +1,14 @@
 package memory
 
 import (
+	"context"
 	"math/big"
 	"testing"
 
-	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/internal"
+
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 )
 
 const (
@@ -22,7 +24,7 @@ func TestEdge(t *testing.T) {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	o, err := internal.NewTestEntity(nodeID, nodeType, nodeName, nodeNs, r)
+	o, err := internal.NewTestEntity(nodeType, nodeName, nodeNs, r)
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
@@ -32,7 +34,7 @@ func TestEdge(t *testing.T) {
 		t.Fatalf("failed to create new node: %v", err)
 	}
 
-	o2, err := internal.NewTestEntity(nodeID, nodeType, nodeName, nodeNs, r)
+	o2, err := internal.NewTestEntity(nodeType, nodeName, nodeNs, r)
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
@@ -48,14 +50,16 @@ func TestEdge(t *testing.T) {
 		t.Fatalf("failed to create new edge: %v", err)
 	}
 
-	if count := len(e.Attrs().Keys()); count != 0 {
+	keys, err := e.Attrs().Keys(context.Background())
+	if err != nil {
+		t.Fatalf("failed to get attr keys: %v", err)
+	}
+
+	if count := len(keys); count != 0 {
 		t.Errorf("expected 0 attributes, got: %d", count)
 	}
 
-	a, err := memattrs.New()
-	if err != nil {
-		t.Fatalf("failed to create attrs: %v", err)
-	}
+	a := memattrs.New()
 
 	e, err = NewEdge(n1, n2, graph.WithDOTID(edgeUID), graph.WithWeight(weight), graph.WithAttrs(a))
 	if err != nil {

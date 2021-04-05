@@ -8,6 +8,7 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/cache"
 	"github.com/milosgajdos/netscrape/pkg/space/link"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
 func MustNewLinksCache(t *testing.T) *Links {
@@ -16,14 +17,6 @@ func MustNewLinksCache(t *testing.T) *Links {
 		t.Fatalf("failed to create links cache: %v", err)
 	}
 	return c
-}
-
-func MustUID(t *testing.T) uuid.UID {
-	u, err := uuid.New()
-	if err != nil {
-		t.Fatalf("failed creating new uid: %v", err)
-	}
-	return u
 }
 
 func MustLink(from, to uuid.UID, t *testing.T) cache.Link {
@@ -37,8 +30,8 @@ func MustLink(from, to uuid.UID, t *testing.T) cache.Link {
 func MustLinks(count int, t *testing.T) []cache.Link {
 	links := make([]cache.Link, count)
 	for i := 0; i < count; i++ {
-		from := MustUID(t)
-		to := MustUID(t)
+		from := memuid.New()
+		to := memuid.New()
 		links[i] = MustLink(from, to, t)
 	}
 	return links
@@ -51,8 +44,8 @@ func TestPut(t *testing.T) {
 
 	t.Run("OK", func(t *testing.T) {
 		c := MustNewLinksCache(t)
-		from := MustUID(t)
-		to := MustUID(t)
+		from := memuid.New()
+		to := memuid.New()
 		l := MustLink(from, to, t)
 
 		if err := c.Put(context.Background(), l); err != nil {
@@ -67,8 +60,8 @@ func TestPut(t *testing.T) {
 
 	t.Run("Upsert", func(t *testing.T) {
 		c := MustNewLinksCache(t)
-		from := MustUID(t)
-		to := MustUID(t)
+		from := memuid.New()
+		to := memuid.New()
 		l := MustLink(from, to, t)
 
 		if err := c.Put(context.Background(), l); err != nil {
@@ -88,8 +81,8 @@ func TestGet(t *testing.T) {
 
 	t.Run("From", func(t *testing.T) {
 		c := MustNewLinksCache(t)
-		from := MustUID(t)
-		to := MustUID(t)
+		from := memuid.New()
+		to := memuid.New()
 		l := MustLink(from, to, t)
 
 		if err := c.Put(context.Background(), l); err != nil {
@@ -113,8 +106,8 @@ func TestGet(t *testing.T) {
 
 	t.Run("To", func(t *testing.T) {
 		c := MustNewLinksCache(t)
-		from := MustUID(t)
-		to := MustUID(t)
+		from := memuid.New()
+		to := memuid.New()
 		l := MustLink(from, to, t)
 
 		if err := c.Put(context.Background(), l); err != nil {
@@ -144,8 +137,8 @@ func TestDelete(t *testing.T) {
 
 	t.Run("OK", func(t *testing.T) {
 		c := MustNewLinksCache(t)
-		from := MustUID(t)
-		to := MustUID(t)
+		from := memuid.New()
+		to := memuid.New()
 		l := MustLink(from, to, t)
 
 		if err := c.Put(context.Background(), l); err != nil {
@@ -175,8 +168,8 @@ func TestClear(t *testing.T) {
 
 	t.Run("From", func(t *testing.T) {
 		c := MustNewLinksCache(t)
-		from := MustUID(t)
-		to := MustUID(t)
+		from := memuid.New()
+		to := memuid.New()
 		l := MustLink(from, to, t)
 
 		if err := c.Put(context.Background(), l); err != nil {

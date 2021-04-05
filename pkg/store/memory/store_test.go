@@ -8,11 +8,13 @@ import (
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/graph"
-	memgraph "github.com/milosgajdos/netscrape/pkg/graph/memory"
 	"github.com/milosgajdos/netscrape/pkg/internal"
 	"github.com/milosgajdos/netscrape/pkg/space/entity"
 	"github.com/milosgajdos/netscrape/pkg/store"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
+
+	memgraph "github.com/milosgajdos/netscrape/pkg/graph/memory"
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
 const (
@@ -32,15 +34,15 @@ func MustNewStore(t *testing.T, opts ...Option) *Memory {
 	return s
 }
 
-func MustTestEntity(uid, typ, name string, t *testing.T, opts ...entity.Option) store.Entity {
+func MustTestEntity(typ, name string, t *testing.T, opts ...entity.Option) store.Entity {
 	r, err := internal.NewTestResource(resType, resName, resGroup, resVersion, resKind, false)
 	if err != nil {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	e, err := internal.NewTestEntity(uid, typ, name, entNs, r, opts...)
+	e, err := internal.NewTestEntity(typ, name, entNs, r, opts...)
 	if err != nil {
-		t.Fatalf("failed to create entity %q: %v", uid, err)
+		t.Fatalf("failed to create entity: %v", err)
 	}
 	return e
 }
@@ -49,20 +51,11 @@ func MustMakeEntities(count int, t *testing.T) []store.Entity {
 	ents := make([]store.Entity, count)
 
 	for i := 0; i < count; i++ {
-		uid := fmt.Sprintf("uid%d", i)
 		name := fmt.Sprintf("name%d", i)
 
-		ents[i] = MustTestEntity(uid, "fooType", name, t)
+		ents[i] = MustTestEntity("fooType", name, t)
 	}
 	return ents
-}
-
-func MustUid(u string, t *testing.T) uuid.UID {
-	uid, err := uuid.NewFromString(u)
-	if err != nil {
-		t.Fatalf("failed generating store uid: %v", err)
-	}
-	return uid
 }
 
 func TestNewStore(t *testing.T) {
@@ -78,7 +71,7 @@ func TestNewStore(t *testing.T) {
 
 	t.Run("WithOpts", func(t *testing.T) {
 		uid := "storeUID"
-		suid := MustUid(uid, t)
+		suid := memuid.NewFromString(uid)
 
 		s, err := NewStore(WithUID(suid))
 		if err != nil {
@@ -111,42 +104,43 @@ func TestAdd(t *testing.T) {
 	}
 
 	t.Run("OK", func(t *testing.T) {
-		uid := MustUid("someUID", t)
+		uid := memuid.NewFromString("someUID")
 		s := MustNewStore(t, WithUID(uid))
 
-		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+		e := MustTestEntity("fooType", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e); err != nil {
 			t.Errorf("failed storing entity %s: %v", e.UID(), err)
 		}
 	})
 
-	t.Run("DuplicateNode", func(t *testing.T) {
-		uid := MustUid("someUID", t)
+	t.Run("ErrAlreadyExists", func(t *testing.T) {
+		uid := memuid.NewFromString("someUID")
 		s := MustNewStore(t, WithUID(uid))
 
-		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+		e := MustTestEntity("fooType", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e); err != nil {
 			t.Errorf("failed storing entity %s: %v", e.UID(), err)
 		}
 
-		if err := s.Add(context.Background(), e); !errors.Is(err, graph.ErrDuplicateNode) {
+		// Add the same entity without Upsert
+		if err := s.Add(context.Background(), e); !errors.Is(err, store.ErrAlreadyExists) {
 			t.Errorf("expected error: %v, got: %v", graph.ErrDuplicateNode, err)
 		}
 	})
 
 	t.Run("Upsert", func(t *testing.T) {
-		uid := MustUid("someUID", t)
+		uid := memuid.NewFromString("someUID")
 		s := MustNewStore(t, WithUID(uid))
 
-		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+		e := MustTestEntity("fooType", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e); err != nil {
 			t.Errorf("failed storing entity %s: %v", e.UID(), err)
 		}
 
-		ex := MustTestEntity("foo1UID", "fooType", "foo1Name", t, entity.WithDOTID("someDOTID"))
+		ex := MustTestEntity("fooType", "foo1Name", t, entity.WithDOTID("someDOTID"))
 
 		if err := s.Add(context.Background(), ex, store.WithUpsert()); err != nil {
 			t.Errorf("failed storing entity %s: %v", e.UID(), err)
@@ -162,7 +156,7 @@ func TestGet(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		s := MustNewStore(t)
 
-		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+		e := MustTestEntity("fooType", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e.UID(), err)
@@ -181,11 +175,7 @@ func TestGet(t *testing.T) {
 	t.Run("ErrEntityNotFound", func(t *testing.T) {
 		s := MustNewStore(t)
 
-		uid, err := uuid.New()
-		if err != nil {
-			t.Fatalf("failed to generate uid: %v", err)
-		}
-		if _, err := s.Get(context.Background(), uid); !errors.Is(err, store.ErrEntityNotFound) {
+		if _, err := s.Get(context.Background(), memuid.New()); !errors.Is(err, store.ErrEntityNotFound) {
 			t.Errorf("expected error: %v, got: %v", store.ErrEntityNotFound, err)
 		}
 	})
@@ -199,7 +189,7 @@ func TestDelete(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		s := MustNewStore(t)
 
-		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+		e := MustTestEntity("fooType", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e.UID(), err)
@@ -223,13 +213,13 @@ func TestLink(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		s := MustNewStore(t)
 
-		e1 := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+		e1 := MustTestEntity("fooType", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e1); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e1.UID(), err)
 		}
 
-		e2 := MustTestEntity("foo2UID", "fooType", "foo2Name", t)
+		e2 := MustTestEntity("fooType", "foo2Name", t)
 
 		if err := s.Add(context.Background(), e2); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e2.UID(), err)
@@ -249,13 +239,13 @@ func TestUnlink(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		s := MustNewStore(t)
 
-		e1 := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+		e1 := MustTestEntity("fooType", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e1); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e1.UID(), err)
 		}
 
-		e2 := MustTestEntity("foo2UID", "fooType", "foo2Name", t)
+		e2 := MustTestEntity("fooType", "foo2Name", t)
 
 		if err := s.Add(context.Background(), e2); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e2.UID(), err)
@@ -363,7 +353,7 @@ func TestBulkLink(t *testing.T) {
 			t.Fatalf("failed storing entities: %v", err)
 		}
 
-		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+		e := MustTestEntity("fooType", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e.UID(), err)
@@ -395,7 +385,7 @@ func TestBulkUnlink(t *testing.T) {
 			t.Fatalf("failed storing entities: %v", err)
 		}
 
-		e := MustTestEntity("foo1UID", "fooType", "foo1Name", t)
+		e := MustTestEntity("fooType", "foo1Name", t)
 
 		if err := s.Add(context.Background(), e); err != nil {
 			t.Fatalf("failed storing entity %s: %v", e.UID(), err)

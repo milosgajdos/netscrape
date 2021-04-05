@@ -3,14 +3,13 @@ package memory
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math/big"
 	"reflect"
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/internal"
-	"github.com/milosgajdos/netscrape/pkg/uuid"
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
 const (
@@ -32,7 +31,7 @@ func TestWDGAddGetRemoveNode(t *testing.T) {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	o, err := internal.NewTestEntity(nodeID, nodeType, nodeName, nodeNs, r)
+	o, err := internal.NewTestEntity(nodeType, nodeName, nodeNs, r)
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
@@ -75,10 +74,7 @@ func TestWDGAddGetRemoveNode(t *testing.T) {
 		t.Errorf("expected node %#v, got: %#v", node, n)
 	}
 
-	guid, err := uuid.NewFromString("garbage")
-	if err != nil {
-		t.Fatalf("error creating new uid: %v", err)
-	}
+	guid := memuid.NewFromString("garbage")
 
 	if _, err := g.Node(context.Background(), guid); err != graph.ErrNodeNotFound {
 		t.Errorf("expected error %v, got: %#v", graph.ErrNodeNotFound, err)
@@ -98,10 +94,7 @@ func TestWDGAddGetRemoveNode(t *testing.T) {
 		t.Errorf("expected nodes: %d, got: %d", expCount, nodeCount)
 	}
 
-	guid, err = uuid.NewFromString("garbage")
-	if err != nil {
-		t.Fatalf("error creating new uid: %v", err)
-	}
+	guid = memuid.NewFromString("garbage")
 
 	if err := g.RemoveNode(context.Background(), guid); err != nil {
 		t.Errorf("failed to remove node: %v", err)
@@ -119,12 +112,9 @@ func TestWDGLinkGetRemoveEdge(t *testing.T) {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	node1UID := "foo1UID"
-	node1Name := "foo1Name"
-
-	o1, err := internal.NewTestEntity(node1UID, nodeType, node1Name, nodeNs, r)
+	o1, err := internal.NewTestEntity(nodeType, "foo1Name", nodeNs, r)
 	if err != nil {
-		t.Fatalf("failed to create entity %q: %v", node1UID, err)
+		t.Fatalf("failed to create entity: %v", err)
 	}
 
 	n1, err := g.NewNode(context.Background(), o1)
@@ -136,12 +126,9 @@ func TestWDGLinkGetRemoveEdge(t *testing.T) {
 		t.Errorf("failed adding node to graph: %v", err)
 	}
 
-	node2UID := "foo2UID"
-	node2Name := "foo2Name"
-
-	o2, err := internal.NewTestEntity(node2UID, nodeType, node2Name, nodeNs, r)
+	o2, err := internal.NewTestEntity(nodeType, "foo2Name", nodeNs, r)
 	if err != nil {
-		t.Fatalf("failed to create entity %q: %v", node2UID, err)
+		t.Fatalf("failed to create entity: %v", err)
 	}
 
 	n2, err := g.NewNode(context.Background(), o2)
@@ -153,9 +140,9 @@ func TestWDGLinkGetRemoveEdge(t *testing.T) {
 		t.Errorf("failed adding node to graph: %v", err)
 	}
 
-	ox, err := internal.NewTestEntity("nonExUID", nodeType, "nonExName", nodeNs, r)
+	ox, err := internal.NewTestEntity(nodeType, "nonExName", nodeNs, r)
 	if err != nil {
-		t.Fatalf("failed to create entity %q: %v", node2UID, err)
+		t.Fatalf("failed to create entity: %v", err)
 	}
 
 	nodeX, err := NewNode(123334444, ox)
@@ -261,14 +248,7 @@ func TestWDGSubGraph(t *testing.T) {
 		t.Fatalf("failed to create new memory graph: %v", err)
 	}
 
-	if g == nil {
-		fmt.Println("FML")
-	}
-
-	guid, err := uuid.NewFromString("garbage")
-	if err != nil {
-		t.Fatalf("error creating new uid: %v", err)
-	}
+	guid := memuid.NewFromString("garbage")
 
 	// subgraph of non-existent node should return error
 	if _, err := g.SubGraph(context.Background(), guid, 10); err != graph.ErrNodeNotFound {
@@ -278,10 +258,7 @@ func TestWDGSubGraph(t *testing.T) {
 	// NOTE: we are hardcoding the test value here
 	// since we know that this node's neighbourhood
 	suid := "fooGroup/v1/fooKind/fooNs/foo1"
-	uid, err := uuid.NewFromString(suid)
-	if err != nil {
-		t.Fatalf("error creating new uid: %v", err)
-	}
+	uid := memuid.NewFromString(suid)
 
 	testCases := []struct {
 		depth int

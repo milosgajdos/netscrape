@@ -2,7 +2,6 @@ package scraper
 
 import (
 	"github.com/milosgajdos/netscrape/pkg/broker"
-	"github.com/milosgajdos/netscrape/pkg/cache"
 	"github.com/milosgajdos/netscrape/pkg/store"
 )
 
@@ -10,7 +9,6 @@ import (
 type Options struct {
 	Store  store.Store
 	Broker broker.Broker
-	Links  cache.Links
 }
 
 // Option is functional scraper option.
@@ -27,12 +25,5 @@ func WithStore(s store.Store) Option {
 func WithBroker(b broker.Broker) Option {
 	return func(o *Options) {
 		o.Broker = b
-	}
-}
-
-// WithLinksCache sets Links options.
-func WithLinksCache(l cache.Links) Option {
-	return func(o *Options) {
-		o.Links = l
 	}
 }

@@ -1,12 +1,15 @@
 package entity
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
-	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
+	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
-	"github.com/milosgajdos/netscrape/pkg/uuid"
+
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
 const (
@@ -21,6 +24,12 @@ const (
 	entNs      = "testNs"
 	entDOTID   = "dotID"
 )
+
+func MustSet(ctx context.Context, a attrs.Attrs, k, v string, t *testing.T) {
+	if err := a.Set(ctx, k, v); err != nil {
+		t.Fatalf("failed to set val %s for key %s: %v", k, v, err)
+	}
+}
 
 func TestNewPartial(t *testing.T) {
 	e, err := NewPartial()
@@ -44,10 +53,7 @@ func TestNewPartial(t *testing.T) {
 		t.Errorf("expected nil resource, got: %v", r)
 	}
 
-	uid, err := uuid.NewFromString("partialUID")
-	if err != nil {
-		t.Fatalf("failed to created uid: %v", err)
-	}
+	uid := memuid.NewFromString("partialUID")
 
 	e, err = NewPartial(WithUID(uid))
 	if err != nil {
@@ -97,10 +103,7 @@ func TestNewWithOptions(t *testing.T) {
 		t.Fatalf("failed creating test resource: %v", err)
 	}
 
-	uid, err := uuid.NewFromString(entUID)
-	if err != nil {
-		t.Errorf("failed to create new uid: %v", err)
-	}
+	uid := memuid.NewFromString(entUID)
 
 	e, err := New(entType, entName, entNs, r, WithUID(uid), WithDOTID(entDOTID))
 	if err != nil {
@@ -122,19 +125,22 @@ func TestNewWithOptions(t *testing.T) {
 		t.Errorf("expected dotid: %s, got: %s", dotid2, d)
 	}
 
-	a, err := memattrs.New()
-	if err != nil {
-		t.Fatalf("failed to create new attrs: %v", err)
-	}
+	a := memattrs.New()
+
 	k, v := "foo", "bar"
-	a.Set(k, v)
+	MustSet(context.Background(), a, k, v, t)
 
 	e, err = New(entType, entName, entNs, r, WithAttrs(a))
 	if err != nil {
 		t.Errorf("failed to create new entity: %v", err)
 	}
 
-	if val := e.Attrs().Get(k); val != v {
+	val, err := e.Attrs().Get(context.Background(), k)
+	if err != nil {
+		t.Fatalf("failed to get val for key %s: %v", k, err)
+	}
+
+	if val != v {
 		t.Errorf("expected attrs val: %s, for key: %s, got: %s", v, k, val)
 	}
 }

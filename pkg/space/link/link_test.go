@@ -1,31 +1,23 @@
 package link
 
 import (
+	"context"
 	"testing"
 
+	"github.com/milosgajdos/netscrape/pkg/attrs"
+
 	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
-	"github.com/milosgajdos/netscrape/pkg/uuid"
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
-func createLinkEnds() (uuid.UID, uuid.UID, error) {
-	from, err := uuid.New()
-	if err != nil {
-		return nil, nil, err
+func MustSet(ctx context.Context, a attrs.Attrs, k, v string, t *testing.T) {
+	if err := a.Set(ctx, k, v); err != nil {
+		t.Fatalf("failed to set val %s for key %s: %v", k, v, err)
 	}
-
-	to, err := uuid.New()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return from, to, nil
 }
 
 func TestNew(t *testing.T) {
-	from, to, err := createLinkEnds()
-	if err != nil {
-		t.Fatalf("failed created link ends: %v", err)
-	}
+	from, to := memuid.New(), memuid.New()
 
 	l, err := New(from, to)
 	if err != nil {
@@ -40,22 +32,21 @@ func TestNew(t *testing.T) {
 		t.Errorf("expeted from uid: %v, got: %v", from.String(), l.From().String())
 	}
 
-	if c := len(l.Attrs().Keys()); c != 0 {
+	keys, err := l.Attrs().Keys(context.Background())
+	if err != nil {
+		t.Fatalf("failed to get keys: %v", err)
+	}
+
+	if c := len(keys); c != 0 {
 		t.Errorf("expected 0 attrs, got: %d", c)
 	}
 }
 
 func TestNewWithOptions(t *testing.T) {
-	from, to, err := createLinkEnds()
-	if err != nil {
-		t.Fatalf("failed created link ends: %v", err)
-	}
+	from, to := memuid.New(), memuid.New()
 
 	linkUID := "fooUID"
-	luid, err := uuid.NewFromString(linkUID)
-	if err != nil {
-		t.Errorf("failed to create new uid: %v", err)
-	}
+	luid := memuid.NewFromString(linkUID)
 
 	l, err := New(from, to, WithUID(luid))
 	if err != nil {
@@ -66,19 +57,21 @@ func TestNewWithOptions(t *testing.T) {
 		t.Errorf("expected link uid: %s, got: %s", linkUID, l.UID().String())
 	}
 
-	a, err := memattrs.New()
-	if err != nil {
-		t.Fatalf("failed to create new attrs: %v", err)
-	}
+	a := memattrs.New()
 	k, v := "foo", "bar"
-	a.Set(k, v)
+	MustSet(context.Background(), a, k, v, t)
 
 	l, err = New(from, to, WithAttrs(a))
 	if err != nil {
 		t.Errorf("failed to create new link: %v", err)
 	}
 
-	if val := l.Attrs().Get(k); val != v {
+	val, err := l.Attrs().Get(context.Background(), k)
+	if err != nil {
+		t.Fatalf("failed to get val for key %s: %v", k, err)
+	}
+
+	if val != v {
 		t.Errorf("expected attrs val: %s, for key: %s, got: %s", v, k, val)
 	}
 }

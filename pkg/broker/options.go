@@ -3,7 +3,6 @@ package broker
 import "time"
 
 // Sink is broker sink strategy.
-// NOTE: this is currently not used
 type Sink int
 
 const (

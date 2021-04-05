@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/milosgajdos/netscrape/pkg/broker"
-	"github.com/milosgajdos/netscrape/pkg/uuid"
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
 const (
@@ -165,10 +165,7 @@ func (m *Memory) Sub(ctx context.Context, topic string, opts ...broker.Option) (
 	}
 	m.RUnlock()
 
-	uid, err := uuid.New()
-	if err != nil {
-		return nil, err
-	}
+	uid := memuid.New()
 
 	m.Lock()
 	defer m.Unlock()

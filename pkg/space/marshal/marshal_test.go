@@ -10,7 +10,8 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/space/entity"
 	"github.com/milosgajdos/netscrape/pkg/space/link"
 	"github.com/milosgajdos/netscrape/pkg/space/resource"
-	"github.com/milosgajdos/netscrape/pkg/uuid"
+
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
 const (
@@ -49,7 +50,7 @@ func MustResource(t *testing.T, opts ...resource.Option) space.Resource {
 func MustEntity(t *testing.T, opts ...entity.Option) space.Entity {
 	r := MustResource(t)
 
-	e, err := internal.NewTestEntity(entUID, entType, entName, entNs, r, opts...)
+	e, err := internal.NewTestEntity(entType, entName, entNs, r, opts...)
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
@@ -57,7 +58,7 @@ func MustEntity(t *testing.T, opts ...entity.Option) space.Entity {
 }
 
 func MustEntityNoResource(t *testing.T, opts ...entity.Option) space.Entity {
-	e, err := internal.NewTestEntity(entUID, entType, entName, entNs, nil, opts...)
+	e, err := internal.NewTestEntity(entType, entName, entNs, nil, opts...)
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
@@ -65,15 +66,8 @@ func MustEntityNoResource(t *testing.T, opts ...entity.Option) space.Entity {
 }
 
 func MustLink(t *testing.T, uid1, uid2 string, opts ...link.Option) space.Link {
-	uuid1, err := uuid.NewFromString(uid1)
-	if err != nil {
-		t.Fatalf("failed to create uid from %s: %v", uid1, err)
-	}
-
-	uuid2, err := uuid.NewFromString(uid2)
-	if err != nil {
-		t.Fatalf("failed to create uid from %s: %v", uid1, err)
-	}
+	uuid1 := memuid.NewFromString(uid1)
+	uuid2 := memuid.NewFromString(uid2)
 
 	l, err := link.New(uuid1, uuid2, opts...)
 	if err != nil {
@@ -88,7 +82,7 @@ func TestMarshal(t *testing.T) {
 	}
 
 	t.Run("ErrUnsupportedFormat", func(t *testing.T) {
-		e := MustEntity(t)
+		e := MustEntity(t, entity.WithUID(memuid.NewFromString(entUID)))
 
 		if _, err := Marshal(Format(-1000), e); !errors.Is(err, ErrUnsupportedFormat) {
 			t.Fatalf("expected error: %v, got: %v", ErrUnsupportedFormat, err)
@@ -106,7 +100,7 @@ func TestMarshal(t *testing.T) {
 	})
 
 	t.Run("JSONEntity", func(t *testing.T) {
-		e := MustEntity(t)
+		e := MustEntity(t, entity.WithUID(memuid.NewFromString(entUID)))
 		// TODO: add a check for expected JSON output
 		if _, err := Marshal(JSON, e); err != nil {
 			t.Fatalf("failed to marshal entity: %v", err)
@@ -114,7 +108,7 @@ func TestMarshal(t *testing.T) {
 	})
 
 	t.Run("JSONEntityNoResource", func(t *testing.T) {
-		e := MustEntityNoResource(t)
+		e := MustEntityNoResource(t, entity.WithUID(memuid.NewFromString(entUID)))
 		// TODO: add a check for expected JSON output
 		if _, err := Marshal(JSON, e); err != nil {
 			t.Fatalf("failed to marshal entity: %v", err)
@@ -144,7 +138,7 @@ func TestUnmarshal(t *testing.T) {
 	}
 
 	t.Run("ErrUnsupportedFormat", func(t *testing.T) {
-		e := MustEntity(t)
+		e := MustEntity(t, entity.WithUID(memuid.NewFromString(entUID)))
 
 		if err := Unmarshal(Format(-1000), []byte{}, e); !errors.Is(err, ErrUnsupportedFormat) {
 			t.Fatalf("expected error: %v, got: %v", ErrUnsupportedFormat, err)

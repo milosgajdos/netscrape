@@ -1,13 +1,15 @@
 package memory
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
-	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/internal"
 	"github.com/milosgajdos/netscrape/pkg/space"
+
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 )
 
 const (
@@ -20,16 +22,13 @@ func TestNode(t *testing.T) {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	e, err := internal.NewTestEntity(nodeID, nodeType, nodeName, nodeNs, r)
+	e, err := internal.NewTestEntity(nodeType, nodeName, nodeNs, r)
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
 
-	a, err := memattrs.New()
-	if err != nil {
-		t.Fatalf("failed to create attrs: %v", err)
-	}
-	a.Set("nodename", nodeName)
+	a := memattrs.New()
+	MustSet(context.Background(), a, "nodename", nodeName, t)
 
 	n, err := NewNode(nodeGID, e, graph.WithAttrs(a))
 	if err != nil {
@@ -52,12 +51,10 @@ func TestNode(t *testing.T) {
 
 	}
 
-	// NOTE: by default we will get the following attributes:
-	// * graph.DOTIDAttr
-	// * graph.NameAttr
-	// We added "nodename" attribute above which leaves us with 3 attributes altogether.
-	if dotAttrs := n.Attributes(); len(dotAttrs) != 3 {
-		t.Errorf("expected %d attributes, got: %d", 3, len(dotAttrs))
+	// NOTE: we set the "nodename" attribute above
+	exp := 1
+	if dotAttrs := n.Attributes(); len(dotAttrs) != exp {
+		t.Errorf("expected %d attributes, got: %d", exp, len(dotAttrs))
 	}
 
 	newDOTID := "DOTID"
@@ -67,7 +64,12 @@ func TestNode(t *testing.T) {
 		t.Errorf("expected DOTID: %s, got: %s", newDOTID, dotID)
 	}
 
-	if count := len(n.Attrs().Keys()); count == 0 {
+	keys, err := n.Attrs().Keys(context.Background())
+	if err != nil {
+		t.Fatalf("failed to get attr keys: %v", err)
+	}
+
+	if count := len(keys); count == 0 {
 		t.Fatalf("expected node attributes got: %d", count)
 	}
 }
@@ -78,16 +80,13 @@ func TestNodeWithDOTID(t *testing.T) {
 		t.Fatalf("failed to create resource: %v", err)
 	}
 
-	o, err := internal.NewTestEntity(nodeID, nodeType, nodeName, nodeNs, r)
+	o, err := internal.NewTestEntity(nodeType, nodeName, nodeNs, r)
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
 
-	a, err := memattrs.New()
-	if err != nil {
-		t.Fatalf("failed to create attrs: %v", err)
-	}
-	a.Set("name", nodeName)
+	a := memattrs.New()
+	MustSet(context.Background(), a, "name", nodeName, t)
 
 	node, err := NewNode(nodeGID, o, graph.WithDOTID(nodeName), graph.WithAttrs(a))
 	if err != nil {
@@ -109,10 +108,8 @@ func TestNodeWithDOTID(t *testing.T) {
 		t.Errorf("expected DOTID: %s, got: %s", newDOTID, dotID)
 	}
 
-	// NOTE: we expect the node to have 2 attributes:
-	// * name: set when the node was created with given attrs options
-	// * dotid: set via node.SetDOTID
-	exp := 2
+	// NOTE: we set the "name" attribute
+	exp := 1
 	if dotAttrs := node.Attributes(); len(dotAttrs) != exp {
 		t.Errorf("expected attributes: %d, got: %d", exp, len(dotAttrs))
 	}

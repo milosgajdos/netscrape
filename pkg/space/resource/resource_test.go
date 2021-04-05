@@ -1,10 +1,12 @@
 package resource
 
 import (
+	"context"
 	"testing"
 
+	"github.com/milosgajdos/netscrape/pkg/attrs"
 	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
-	"github.com/milosgajdos/netscrape/pkg/uuid"
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
 const (
@@ -17,6 +19,12 @@ const (
 	testNs      = false
 	testDOTID   = "dotID"
 )
+
+func MustSet(ctx context.Context, a attrs.Attrs, k, v string, t *testing.T) {
+	if err := a.Set(ctx, k, v); err != nil {
+		t.Fatalf("failed to set val %s for key %s: %v", k, v, err)
+	}
+}
 
 func TestNew(t *testing.T) {
 	r, err := New(testType, testName, testGroup, testVersion, testKind, testNs)
@@ -46,24 +54,23 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewWithOptions(t *testing.T) {
-	a, err := memattrs.New()
-	if err != nil {
-		t.Fatalf("failed to create new attrs: %v", err)
-	}
+	a := memattrs.New()
 	k, v := "foo", "bar"
-	a.Set(k, v)
+	MustSet(context.Background(), a, k, v, t)
 
-	uid, err := uuid.NewFromString(testUID)
-	if err != nil {
-		t.Errorf("failed to create new uid: %v", err)
-	}
+	uid := memuid.NewFromString(testUID)
 
 	r, err := New(testType, testName, testGroup, testVersion, testKind, testNs, WithUID(uid), WithDOTID(testDOTID), WithAttrs(a))
 	if err != nil {
 		t.Fatalf("failed creating new resource: %v", err)
 	}
 
-	if val := r.Attrs().Get(k); val != v {
+	val, err := r.Attrs().Get(context.Background(), k)
+	if err != nil {
+		t.Fatalf("failed to get value for key %s: %v", k, err)
+	}
+
+	if val != v {
 		t.Errorf("expected attrs val: %s, for key: %s, got: %s", v, k, val)
 	}
 

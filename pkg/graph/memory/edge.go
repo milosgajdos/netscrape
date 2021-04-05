@@ -1,12 +1,16 @@
 package memory
 
 import (
+	"context"
+
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
-	gngraph "gonum.org/v1/gonum/graph"
 	"gonum.org/v1/gonum/graph/encoding"
+
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
+	gngraph "gonum.org/v1/gonum/graph"
 )
 
 // Edge implements graph.WeightedEdge
@@ -31,31 +35,19 @@ func NewEdge(from, to *Node, opts ...graph.Option) (*Edge, error) {
 
 	uid := eopts.UID
 	if uid == nil {
-		var err error
-		uid, err = uuid.New()
-		if err != nil {
-			return nil, err
-		}
+		uid = memuid.New()
 	}
 
 	dotid := eopts.DOTID
-	if dotid != "" {
-		var err error
-		uid, err = uuid.NewFromString(dotid)
-		if err != nil {
-			return nil, err
-		}
-	} else {
+	if dotid == "" {
 		dotid = uid.String()
+	} else {
+		uid = memuid.NewFromString(dotid)
 	}
 
 	a := eopts.Attrs
 	if a == nil {
-		var err error
-		a, err = memattrs.New()
-		if err != nil {
-			return nil, err
-		}
+		a = memattrs.New()
 	}
 
 	return &Edge{
@@ -122,19 +114,27 @@ func (e Edge) DOTID() string {
 
 // SetDOTID sets the edge's DOT ID.
 func (e *Edge) SetDOTID(id string) {
-	e.attrs.Set(attrs.DOTID, id)
 	e.dotid = id
 }
 
 // Attributes implements store.DOTAttrs
 func (e Edge) Attributes() []encoding.Attribute {
-	attrs := make([]encoding.Attribute, len(e.Attrs().Keys()))
+	keys, err := e.attrs.Keys(context.Background())
+	if err != nil {
+		return nil
+	}
+
+	attrs := make([]encoding.Attribute, len(keys))
 
 	i := 0
-	for _, k := range e.Attrs().Keys() {
+	for _, k := range keys {
+		val, err := e.attrs.Get(context.Background(), k)
+		if err != nil {
+			return nil
+		}
 		attrs[i] = encoding.Attribute{
 			Key:   k,
-			Value: e.Attrs().Get(k),
+			Value: val,
 		}
 		i++
 	}

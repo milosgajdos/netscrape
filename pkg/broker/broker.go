@@ -4,10 +4,18 @@ import "context"
 
 // Broker provides a message broker.
 type Broker interface {
-	// Pub publishes messages on the given topic.
+	// Pub publishes messages to the given topic.
 	Pub(ctx context.Context, topic string, m Message, opts ...Option) error
 	// Sub creates a new subscriber to the given topic.
 	Sub(ctx context.Context, topic string, opts ...Option) (Subscriber, error)
+}
+
+// BulkBroker provides a bulk message broker.
+// TODO: needs an in-memory implementation.
+type BulkBroker interface {
+	Broker
+	// BulkPub publishes bulk of messages to the given topic.
+	BulkPub(ctx context.Context, topic string, mx []Message, opts ...Option) error
 }
 
 // Handler processes messages published on topic.
@@ -23,14 +31,4 @@ type Subscriber interface {
 	Unsubscribe(context.Context, ...Option) error
 	// Receive processes received messages with handler.
 	Receive(context.Context, Handler, ...Option) error
-}
-
-// Message is broker message.
-type Message struct {
-	// UID is unique message ID.
-	UID string
-	// Data contains message payload.
-	Data []byte
-	// Attrs are message attributes.
-	Attrs map[string]string
 }

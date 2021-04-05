@@ -2,8 +2,10 @@ package link
 
 import (
 	"github.com/milosgajdos/netscrape/pkg/attrs"
-	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
+
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
 // Link links two space entities.
@@ -23,20 +25,12 @@ func New(from, to uuid.UID, opts ...Option) (*Link, error) {
 
 	uid := lopts.UID
 	if uid == nil {
-		var err error
-		uid, err = uuid.New()
-		if err != nil {
-			return nil, err
-		}
+		uid = memuid.New()
 	}
 
 	a := lopts.Attrs
 	if a == nil {
-		var err error
-		a, err = memattrs.New()
-		if err != nil {
-			return nil, err
-		}
+		a = memattrs.New()
 	}
 
 	return &Link{

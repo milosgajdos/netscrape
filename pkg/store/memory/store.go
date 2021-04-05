@@ -9,6 +9,8 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/graph/memory"
 	"github.com/milosgajdos/netscrape/pkg/store"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
+
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
 // Memory is in-memory store.
@@ -31,11 +33,7 @@ func NewStore(opts ...Option) (*Memory, error) {
 
 	uid := sopts.UID
 	if uid == nil {
-		var err error
-		uid, err = uuid.New()
-		if err != nil {
-			return nil, err
-		}
+		uid = memuid.New()
 	}
 
 	g := sopts.Graph
@@ -80,11 +78,15 @@ func (m *Memory) add(ctx context.Context, e store.Entity, opts ...store.Option) 
 
 	gopts := []graph.Option{}
 
-	if aopts.Upsert {
-		gopts = append(gopts, graph.WithUpsert())
+	if !aopts.Upsert {
+		err := m.g.AddNode(ctx, n, gopts...)
+		if err != nil && errors.Is(err, graph.ErrDuplicateNode) {
+			return store.ErrAlreadyExists
+		}
+		return err
 	}
 
-	return m.g.AddNode(ctx, n, gopts...)
+	return m.g.AddNode(ctx, n, graph.WithUpsert())
 }
 
 // Add stores e in memory store.
@@ -143,11 +145,11 @@ func (m *Memory) link(ctx context.Context, from, to uuid.UID, opts ...store.Opti
 		apply(&lopts)
 	}
 
-	if _, err := m.g.Link(ctx, from, to, graph.WithAttrs(lopts.Attrs)); err != nil {
-		return err
+	_, err := m.g.Link(ctx, from, to, graph.WithAttrs(lopts.Attrs))
+	if err != nil && errors.Is(err, graph.ErrNodeNotFound) {
+		return store.ErrEntityNotFound
 	}
-
-	return nil
+	return err
 }
 
 // Link links entities with given UIDs in store.
@@ -167,7 +169,6 @@ func (m *Memory) unlink(ctx context.Context, from, to uuid.UID, opts ...store.Op
 	if err := m.g.Unlink(ctx, from, to); err != nil {
 		return err
 	}
-
 	return nil
 }
 
