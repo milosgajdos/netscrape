@@ -17,15 +17,6 @@ import (
 	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
-const (
-	resType    = "resType"
-	resName    = "resName"
-	resGroup   = "resGroup"
-	resVersion = "resVersion"
-	resKind    = "resKind"
-	entNs      = "testNs"
-)
-
 func MustNewStore(t *testing.T, opts ...Option) *Memory {
 	s, err := NewStore(opts...)
 	if err != nil {
@@ -35,12 +26,7 @@ func MustNewStore(t *testing.T, opts ...Option) *Memory {
 }
 
 func MustTestEntity(typ, name string, t *testing.T, opts ...entity.Option) store.Entity {
-	r, err := internal.NewTestResource(resType, resName, resGroup, resVersion, resKind, false)
-	if err != nil {
-		t.Fatalf("failed to create resource: %v", err)
-	}
-
-	e, err := internal.NewTestEntity(typ, name, entNs, r, opts...)
+	e, err := internal.NewTestObject(opts...)
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}

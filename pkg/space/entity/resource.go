@@ -1,4 +1,4 @@
-package resource
+package entity
 
 import (
 	"strings"
@@ -10,7 +10,7 @@ import (
 	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
-// Resource implements a generic Space resource.
+// Resource is a space resource.
 type Resource struct {
 	uid        uuid.UID
 	typ        string
@@ -23,8 +23,8 @@ type Resource struct {
 	attrs      attrs.Attrs
 }
 
-// New creates a new generic resource and returns it.
-func New(typ, name, group, version, kind string, namespaced bool, opts ...Option) (*Resource, error) {
+// NewResource creates a new resource and returns it.
+func NewResource(typ, name, group, version, kind string, namespaced bool, opts ...Option) (*Resource, error) {
 	ropts := Options{}
 	for _, apply := range opts {
 		apply(&ropts)

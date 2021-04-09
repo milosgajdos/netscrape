@@ -26,17 +26,12 @@ func TestWUGAddGetRemoveNode(t *testing.T) {
 		t.Errorf("expected uid, got: %v", uid)
 	}
 
-	r, err := internal.NewTestResource(nodeResType, nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
-	if err != nil {
-		t.Fatalf("failed to create resource: %v", err)
-	}
-
-	o, err := internal.NewTestEntity(nodeType, nodeName, nodeNs, r)
+	e, err := internal.NewTestObject()
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
 
-	n, err := g.NewNode(context.Background(), o)
+	n, err := g.NewNode(context.Background(), e)
 	if err != nil {
 		t.Errorf("failed creating new graph node: %v", err)
 	}
@@ -107,17 +102,12 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 		t.Fatalf("failed to create graph: %v", err)
 	}
 
-	r, err := internal.NewTestResource(nodeResType, nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
-	if err != nil {
-		t.Fatalf("failed to create resource: %v", err)
-	}
-
-	o1, err := internal.NewTestEntity(nodeType, "foo1Name", nodeNs, r)
+	e1, err := internal.NewTestObject()
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
 
-	n1, err := g.NewNode(context.Background(), o1)
+	n1, err := g.NewNode(context.Background(), e1)
 	if err != nil {
 		t.Errorf("failed creating new node: %v", err)
 	}
@@ -126,12 +116,12 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 		t.Errorf("failed adding node to graph: %v", err)
 	}
 
-	o2, err := internal.NewTestEntity(nodeType, "foo2Name", nodeNs, r)
+	e2, err := internal.NewTestObject()
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
 
-	n2, err := g.NewNode(context.Background(), o2)
+	n2, err := g.NewNode(context.Background(), e2)
 	if err != nil {
 		t.Errorf("failed adding node to graph: %v", err)
 	}
@@ -140,7 +130,7 @@ func TestWUGLinkGetRemoveEdge(t *testing.T) {
 		t.Errorf("failed adding node to graph: %v", err)
 	}
 
-	ox, err := internal.NewTestEntity(nodeType, "nonExName", nodeNs, r)
+	ox, err := internal.NewNamedTestObject("nonExName")
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}

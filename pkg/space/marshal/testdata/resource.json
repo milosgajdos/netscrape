@@ -1,9 +1,0 @@
-{
-	"uid": "057f74ed-7763-4e11-af54-11b987d48996",
-	"Type": "nodeResType",
-	"name": "nodeResName",
-	"group": "nodeResGroup",
-	"version": "nodeResVersion",
-	"kind": "nodeResKind",
-	"namespaced": false
-}

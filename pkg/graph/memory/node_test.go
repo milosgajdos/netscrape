@@ -13,16 +13,12 @@ import (
 )
 
 const (
-	nodeGID = 123
+	nodeGID  = 123
+	nodeName = "testNodeName"
 )
 
 func TestNode(t *testing.T) {
-	r, err := internal.NewTestResource(nodeResType, nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
-	if err != nil {
-		t.Fatalf("failed to create resource: %v", err)
-	}
-
-	e, err := internal.NewTestEntity(nodeType, nodeName, nodeNs, r)
+	e, err := internal.NewTestObject()
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
@@ -39,7 +35,7 @@ func TestNode(t *testing.T) {
 		t.Errorf("expected ID: %d, got: %d", nodeGID, id)
 	}
 
-	if nodeEnt := n.Entity.(space.Entity); !reflect.DeepEqual(nodeEnt, e) {
+	if nodeEnt := n.Entity.(space.Object); !reflect.DeepEqual(nodeEnt, e) {
 		t.Errorf("invalid graph.Entity for node: %s", n.UID())
 	}
 
@@ -75,12 +71,7 @@ func TestNode(t *testing.T) {
 }
 
 func TestNodeWithDOTID(t *testing.T) {
-	r, err := internal.NewTestResource(nodeResType, nodeResName, nodeResGroup, nodeResVersion, nodeResKind, false)
-	if err != nil {
-		t.Fatalf("failed to create resource: %v", err)
-	}
-
-	o, err := internal.NewTestEntity(nodeType, nodeName, nodeNs, r)
+	e, err := internal.NewTestObject()
 	if err != nil {
 		t.Fatalf("failed to create entity: %v", err)
 	}
@@ -88,7 +79,7 @@ func TestNodeWithDOTID(t *testing.T) {
 	a := memattrs.New()
 	MustSet(context.Background(), a, "name", nodeName, t)
 
-	node, err := NewNode(nodeGID, o, graph.WithDOTID(nodeName), graph.WithAttrs(a))
+	node, err := NewNode(nodeGID, e, graph.WithDOTID(nodeName), graph.WithAttrs(a))
 	if err != nil {
 		t.Fatalf("failed to create new node: %v", err)
 	}

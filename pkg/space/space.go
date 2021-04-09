@@ -5,15 +5,22 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
 
-// Resource is space resource.
-type Resource interface {
+// Entity is space entity.
+type Entity interface {
 	// UID returns unique ID.
 	UID() uuid.UID
-	// Type of resource.
+	// Type returns entity type.
 	Type() string
+	// Attrs returns attributes.
+	Attrs() attrs.Attrs
+}
+
+// Resource is space resource.
+type Resource interface {
+	Entity
 	// Name returns name.
 	Name() string
-	// Group retrurns group.
+	// Group returns group.
 	Group() string
 	// Version returns version.
 	Version() string
@@ -21,27 +28,20 @@ type Resource interface {
 	Kind() string
 	// Namespaced flag.
 	Namespaced() bool
-	// Attrs returns attributes.
-	Attrs() attrs.Attrs
 }
 
-// Entity is space entity.
-type Entity interface {
-	// UID returns unique ID.
-	UID() uuid.UID
-	// Type of entity.
-	Type() string
-	// Name returns human readable name.
+// Object is space object.
+type Object interface {
+	Entity
+	// Name returns name.
 	Name() string
 	// Namespace returns namespace.
 	Namespace() string
 	// Resource returns Resource.
 	Resource() Resource
-	// Attrs returns attributes.
-	Attrs() attrs.Attrs
 }
 
-// Link links space entities.
+// Link between two Entities.
 type Link interface {
 	// UID returns unique ID.
 	UID() uuid.UID

@@ -11,7 +11,6 @@ type Broker interface {
 }
 
 // BulkBroker provides a bulk message broker.
-// TODO: needs an in-memory implementation.
 type BulkBroker interface {
 	Broker
 	// BulkPub publishes bulk of messages to the given topic.
@@ -31,4 +30,24 @@ type Subscriber interface {
 	Unsubscribe(context.Context, ...Option) error
 	// Receive processes received messages with handler.
 	Receive(context.Context, Handler, ...Option) error
+}
+
+// Marshaler is used for marshaling message data payload.
+type Marshaler interface {
+	// Marshal marshals object into bytes.
+	Marshal(interface{}) ([]byte, error)
+	// Unmarshal unmarshals bytes to object.
+	Unmarshal([]byte, interface{}) error
+}
+
+// Message is broker message.
+type Message struct {
+	// UID is unique message ID.
+	UID string
+	// Type is a message type.
+	Type Type
+	// Data contains message payload.
+	Data []byte
+	// Attrs are message attributes.
+	Attrs map[string]string
 }

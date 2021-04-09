@@ -13,26 +13,20 @@ import (
 	"github.com/milosgajdos/netscrape/pkg/space/entity"
 	"github.com/milosgajdos/netscrape/pkg/space/link"
 	"github.com/milosgajdos/netscrape/pkg/space/marshal"
-	"github.com/milosgajdos/netscrape/pkg/space/resource"
 
 	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
-const (
-	nodeResType    = "nodeResType"
-	nodeResName    = "nodeResName"
-	nodeResGroup   = "nodeResGroup"
-	nodeResVersion = "nodeResVersion"
-	nodeResKind    = "nodeResKind"
-	nodeType       = "testType"
-	nodeName       = "testName"
-	nodeNs         = "testNs"
-)
+func MustSet(ctx context.Context, a attrs.Attrs, k, v string, t *testing.T) {
+	if err := a.Set(ctx, k, v); err != nil {
+		t.Fatalf("failed to set val %s for key %s: %v", k, v, err)
+	}
+}
 
 type testSpace struct {
-	entities map[string]space.Entity
-	links    map[string]map[string]space.Link
+	objects map[string]space.Object
+	links   map[string]map[string]space.Link
 }
 
 func makeTestSpace(path string) (*testSpace, error) {
@@ -41,38 +35,38 @@ func makeTestSpace(path string) (*testSpace, error) {
 		return nil, err
 	}
 
-	var testEntities []marshal.LinkedEntity
-	if err := yaml.Unmarshal(data, &testEntities); err != nil {
+	var testObjects []marshal.LinkedObject
+	if err := yaml.Unmarshal(data, &testObjects); err != nil {
 		return nil, err
 	}
 
-	entities := make(map[string]space.Entity)
+	objects := make(map[string]space.Object)
 	elinks := make(map[string]map[string]space.Link)
 
-	for _, e := range testEntities {
-		resAttrs := memattrs.NewFromMap(e.Resource.Attrs)
-		res, err := resource.New(
-			e.Resource.Type,
-			e.Resource.Name,
-			e.Resource.Group,
-			e.Resource.Version,
-			e.Resource.Kind,
-			e.Resource.Namespaced,
-			resource.WithAttrs(resAttrs),
+	for _, o := range testObjects {
+		resAttrs := memattrs.NewFromMap(o.Resource.Attrs)
+		res, err := entity.NewResource(
+			o.Resource.Type,
+			o.Resource.Name,
+			o.Resource.Group,
+			o.Resource.Version,
+			o.Resource.Kind,
+			o.Resource.Namespaced,
+			entity.WithAttrs(resAttrs),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create new resource: %v", err)
 		}
 
-		a := memattrs.NewFromMap(e.Attrs)
-		uid := memuid.NewFromString(e.UID)
+		a := memattrs.NewFromMap(o.Attrs)
+		uid := memuid.NewFromString(o.UID)
 
-		ent, err := entity.New(e.Type, e.Name, e.Namespace, res, entity.WithUID(uid), entity.WithAttrs(a))
+		obj, err := entity.NewObject(o.Type, o.Name, o.Namespace, res, entity.WithUID(uid), entity.WithAttrs(a))
 		if err != nil {
 			return nil, err
 		}
 
-		for _, l := range e.Links {
+		for _, l := range o.Links {
 			to := memuid.NewFromString(l.To)
 
 			if elinks[uid.String()] == nil {
@@ -90,12 +84,12 @@ func makeTestSpace(path string) (*testSpace, error) {
 			}
 		}
 
-		entities[e.UID] = ent
+		objects[o.UID] = obj
 	}
 
 	return &testSpace{
-		entities: entities,
-		links:    elinks,
+		objects: objects,
+		links:   elinks,
 	}, nil
 }
 
@@ -114,8 +108,8 @@ func makeTestGraph(path string) (*WUG, error) {
 		return nil, err
 	}
 
-	for _, ent := range t.entities {
-		n, err := g.NewNode(context.Background(), ent)
+	for _, obj := range t.objects {
+		n, err := g.NewNode(context.Background(), obj)
 		if err != nil {
 			return nil, err
 		}
@@ -124,8 +118,8 @@ func makeTestGraph(path string) (*WUG, error) {
 			return nil, err
 		}
 
-		for _, link := range t.links[ent.UID().String()] {
-			ent2, ok := t.entities[link.To().String()]
+		for _, link := range t.links[obj.UID().String()] {
+			ent2, ok := t.objects[link.To().String()]
 			if !ok {
 				continue
 			}
@@ -151,10 +145,4 @@ func makeTestGraph(path string) (*WUG, error) {
 	}
 
 	return g, nil
-}
-
-func MustSet(ctx context.Context, a attrs.Attrs, k, v string, t *testing.T) {
-	if err := a.Set(ctx, k, v); err != nil {
-		t.Fatalf("failed to set val %s for key %s: %v", k, v, err)
-	}
 }

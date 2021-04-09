@@ -7,8 +7,9 @@ import (
 
 // Options configure netscraping.
 type Options struct {
-	Store  store.Store
-	Broker broker.Broker
+	Store     store.Store
+	Broker    broker.Broker
+	Marshaler broker.Marshaler
 }
 
 // Option is functional netscrape option.
@@ -25,5 +26,12 @@ func WithStore(s store.Store) Option {
 func WithBroker(b broker.Broker) Option {
 	return func(o *Options) {
 		o.Broker = b
+	}
+}
+
+// WithMarshaler sets Marshaler option.
+func WithMarshaler(m broker.Marshaler) Option {
+	return func(o *Options) {
+		o.Marshaler = m
 	}
 }

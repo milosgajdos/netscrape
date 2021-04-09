@@ -1,18 +1,27 @@
 package broker
 
-// Type is entity type
+// Type defines a message payload type.
+// It is used to identify what type is
+// encoded in the broker message payload.
 type Type int
 
 const (
+	// Entity is space.Entity.
 	Entity Type = iota
+	// Object is space.Object
+	Object
+	// Resource is space.Resource.
 	Resource
+	// Link is space.Link.
 	Link
+	// Unknown type.
 	Unknown
 )
 
 const (
 	entityString   = "Entity"
 	resourceString = "Resource"
+	objectString   = "Object"
 	linkString     = "Link"
 	unknownString  = "Unknown"
 )
@@ -26,19 +35,9 @@ func (t Type) String() string {
 		return resourceString
 	case Link:
 		return linkString
+	case Object:
+		return objectString
 	default:
 		return unknownString
 	}
-}
-
-// Message is broker message.
-type Message struct {
-	// UID is unique message ID.
-	UID string
-	// Type is a message type.
-	Type Type
-	// Data contains message payload.
-	Data []byte
-	// Attrs are message attributes.
-	Attrs map[string]string
 }

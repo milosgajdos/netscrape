@@ -21,7 +21,7 @@ func MustNewSimple(t *testing.T) *Simple {
 }
 
 func MustTestResource(t, n, g, v, k string, test *testing.T) space.Resource {
-	r, err := internal.NewTestResource(t, n, g, v, k, false)
+	r, err := internal.NewTestResource()
 	if err != nil {
 		test.Fatalf("failed to create resource: %v", err)
 	}

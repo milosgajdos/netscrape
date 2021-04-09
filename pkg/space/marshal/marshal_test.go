@@ -1,184 +1,137 @@
 package marshal
 
 import (
-	"errors"
-	"io/ioutil"
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/internal"
-	"github.com/milosgajdos/netscrape/pkg/space"
-	"github.com/milosgajdos/netscrape/pkg/space/entity"
-	"github.com/milosgajdos/netscrape/pkg/space/link"
-	"github.com/milosgajdos/netscrape/pkg/space/resource"
-
-	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
-const (
-	resName    = "nodeResName"
-	resType    = "nodeResType"
-	resGroup   = "nodeResGroup"
-	resVersion = "nodeResVersion"
-	resKind    = "nodeResKind"
-	entUID     = "testID"
-	entType    = "testType"
-	entName    = "testName"
-	entNs      = "testNs"
-
-	// NOTE: we could list all files in testadata dir programmatically, yeah
-	entJsonPath  = "testdata/entity.json"
-	resJsonPath  = "testdata/resource.json"
-	linkJsonPath = "testdata/link.json"
-)
-
-func MustReadFile(t *testing.T, path string) []byte {
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		t.Fatalf("failed to read file %s: %v", path, err)
-	}
-	return content
-}
-
-func MustResource(t *testing.T, opts ...resource.Option) space.Resource {
-	r, err := internal.NewTestResource(resType, resName, resGroup, resVersion, resKind, false, opts...)
-	if err != nil {
-		t.Fatalf("failed to create resource: %v", err)
-	}
-	return r
-}
-
-func MustEntity(t *testing.T, opts ...entity.Option) space.Entity {
-	r := MustResource(t)
-
-	e, err := internal.NewTestEntity(entType, entName, entNs, r, opts...)
-	if err != nil {
-		t.Fatalf("failed to create entity: %v", err)
-	}
-	return e
-}
-
-func MustEntityNoResource(t *testing.T, opts ...entity.Option) space.Entity {
-	e, err := internal.NewTestEntity(entType, entName, entNs, nil, opts...)
-	if err != nil {
-		t.Fatalf("failed to create entity: %v", err)
-	}
-	return e
-}
-
-func MustLink(t *testing.T, uid1, uid2 string, opts ...link.Option) space.Link {
-	uuid1 := memuid.NewFromString(uid1)
-	uuid2 := memuid.NewFromString(uid2)
-
-	l, err := link.New(uuid1, uuid2, opts...)
-	if err != nil {
-		t.Fatalf("failed to create link: %v", err)
-	}
-	return l
-}
-
-func TestMarshal(t *testing.T) {
+func TestEntity(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
 
-	t.Run("ErrUnsupportedFormat", func(t *testing.T) {
-		e := MustEntity(t, entity.WithUID(memuid.NewFromString(entUID)))
+	t.Run("EntityToSpace", func(t *testing.T) {
+		e := Entity{
+			UID:   internal.ResUID,
+			Type:  internal.ResType,
+			Attrs: map[string]string{"foo": "bar"},
+		}
 
-		if _, err := Marshal(Format(-1000), e); !errors.Is(err, ErrUnsupportedFormat) {
-			t.Fatalf("expected error: %v, got: %v", ErrUnsupportedFormat, err)
+		if _, err := EntityToSpace(e); err != nil {
+			t.Fatalf("error marshaling entity to space: %v", err)
 		}
 	})
 
-	t.Run("ErrUnsuportedType", func(t *testing.T) {
-		e := struct {
-			Foo int
-		}{Foo: 1}
+	t.Run("EntityFromSpace", func(t *testing.T) {
+		e := MustEntity(t)
 
-		if _, err := Marshal(JSON, e); !errors.Is(err, ErrUnsuportedType) {
-			t.Fatalf("expected error: %v, got: %v", ErrUnsuportedType, err)
+		if _, err := EntityFromSpace(e); err != nil {
+			t.Fatalf("error marshaling space to entity: %v", err)
+		}
+	})
+}
+
+func TestResource(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
+	t.Run("ResourceToSpace", func(t *testing.T) {
+		r := Resource{
+			Entity: Entity{
+				UID:   internal.ResUID,
+				Type:  internal.ResType,
+				Attrs: map[string]string{"foo": "bar"},
+			},
+			Name:       internal.ResName,
+			Group:      internal.ResGroup,
+			Version:    internal.ResVersion,
+			Kind:       internal.ResKind,
+			Namespaced: internal.ResNsd,
+		}
+
+		if _, err := ResourceToSpace(r); err != nil {
+			t.Fatalf("error marshaling resource to space: %v", err)
 		}
 	})
 
-	t.Run("JSONEntity", func(t *testing.T) {
-		e := MustEntity(t, entity.WithUID(memuid.NewFromString(entUID)))
-		// TODO: add a check for expected JSON output
-		if _, err := Marshal(JSON, e); err != nil {
-			t.Fatalf("failed to marshal entity: %v", err)
-		}
-	})
-
-	t.Run("JSONEntityNoResource", func(t *testing.T) {
-		e := MustEntityNoResource(t, entity.WithUID(memuid.NewFromString(entUID)))
-		// TODO: add a check for expected JSON output
-		if _, err := Marshal(JSON, e); err != nil {
-			t.Fatalf("failed to marshal entity: %v", err)
-		}
-	})
-
-	t.Run("JSONResource", func(t *testing.T) {
+	t.Run("ResourceFromSpace", func(t *testing.T) {
 		r := MustResource(t)
-		// TODO: add a check for expected JSON output
-		if _, err := Marshal(JSON, r); err != nil {
-			t.Fatalf("failed to marshal resource: %v", err)
-		}
-	})
 
-	t.Run("JSONLink", func(t *testing.T) {
-		l := MustLink(t, "foo1", "foo2")
-		// TODO: add a check for expected JSON output
-		if _, err := Marshal(JSON, l); err != nil {
-			t.Fatalf("failed to marshal link: %v", err)
+		if _, err := ResourceFromSpace(r); err != nil {
+			t.Fatalf("error marshaling space to resource: %v", err)
 		}
 	})
 }
 
-func TestUnmarshal(t *testing.T) {
+func TestObject(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
 
-	t.Run("ErrUnsupportedFormat", func(t *testing.T) {
-		e := MustEntity(t, entity.WithUID(memuid.NewFromString(entUID)))
+	t.Run("ObjectToSpace", func(t *testing.T) {
+		r := Resource{
+			Entity: Entity{
+				UID:   internal.ResUID,
+				Type:  internal.ResType,
+				Attrs: map[string]string{"foo": "bar"},
+			},
+			Name:       internal.ResName,
+			Group:      internal.ResGroup,
+			Version:    internal.ResVersion,
+			Kind:       internal.ResKind,
+			Namespaced: internal.ResNsd,
+		}
 
-		if err := Unmarshal(Format(-1000), []byte{}, e); !errors.Is(err, ErrUnsupportedFormat) {
-			t.Fatalf("expected error: %v, got: %v", ErrUnsupportedFormat, err)
+		o := Object{
+			Entity: Entity{
+				UID:   internal.ObjUID,
+				Type:  internal.ObjType,
+				Attrs: map[string]string{"foo": "bar"},
+			},
+			Name:      internal.ObjName,
+			Namespace: internal.ObjNs,
+			Resource:  &r,
+		}
+
+		if _, err := ObjectToSpace(o); err != nil {
+			t.Fatalf("error marshaling object to space: %v", err)
 		}
 	})
 
-	t.Run("ErrUnsuportedType", func(t *testing.T) {
-		e := struct {
-			Foo int
-		}{Foo: 1}
+	t.Run("ObjectFromSpace", func(t *testing.T) {
+		e := MustObject(t)
 
-		if err := Unmarshal(JSON, []byte{}, e); !errors.Is(err, ErrUnsuportedType) {
-			t.Fatalf("expected error: %v, got: %v", ErrUnsuportedType, err)
+		if _, err := ObjectFromSpace(e); err != nil {
+			t.Fatalf("error marshaling space to object: %v", err)
+		}
+	})
+}
+
+func TestLink(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
+	t.Run("LinkToSpace", func(t *testing.T) {
+		l := Link{
+			UID:   internal.LinkUID,
+			From:  internal.LinkFrom,
+			To:    internal.LinkTo,
+			Attrs: map[string]string{"foo": "bar"},
+		}
+
+		if _, err := LinkToSpace(l); err != nil {
+			t.Fatalf("error marshaling link to space: %v", err)
 		}
 	})
 
-	t.Run("JSONEntity", func(t *testing.T) {
-		b := MustReadFile(t, entJsonPath)
+	t.Run("LinkFromSpace", func(t *testing.T) {
+		l := MustLink(t)
 
-		var e Entity
-		if err := Unmarshal(JSON, b, &e); err != nil {
-			t.Fatalf("failed to unmarshal data to entity: %v", err)
-		}
-	})
-
-	t.Run("JSONResource", func(t *testing.T) {
-		b := MustReadFile(t, resJsonPath)
-
-		var r Resource
-		if err := Unmarshal(JSON, b, &r); err != nil {
-			t.Fatalf("failed to unmarshal data to resource: %v", err)
-		}
-	})
-
-	t.Run("JSONLink", func(t *testing.T) {
-		b := MustReadFile(t, linkJsonPath)
-
-		var l Link
-		if err := Unmarshal(JSON, b, &l); err != nil {
-			t.Fatalf("failed to unmarshal data to link: %v", err)
+		if _, err := LinkFromSpace(l); err != nil {
+			t.Fatalf("error marshalling space to link: %v", err)
 		}
 	})
 }
