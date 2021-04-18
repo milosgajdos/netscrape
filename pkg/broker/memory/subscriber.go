@@ -73,6 +73,11 @@ func (s *Subscriber) Receive(ctx context.Context, h broker.Handler, opts ...brok
 	case <-ctx.Done():
 		return nil
 	case <-time.After(recvTimeout):
+		// NOTE: drop the message once the timeout expires
+		select {
+		case <-s.queue.msg:
+		default:
+		}
 		return broker.ErrTimeout
 	case <-s.queue.exit:
 		return nil

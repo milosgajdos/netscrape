@@ -47,51 +47,36 @@ func (m *Marshaler) Marshal(x interface{}) ([]byte, error) {
 	}
 }
 
-// Unmarshal unmarshals b to object o.
+// Unmarshal unmarshals b to x.
 func (m *Marshaler) Unmarshal(b []byte, x interface{}) error {
+	var err error
 	switch x := x.(type) {
 	case *space.Resource:
 		var r marshal.Resource
 		if err := json.Unmarshal(b, &r); err != nil {
 			return err
 		}
-		var err error
 		*x, err = marshal.ResourceToSpace(r)
-		if err != nil {
-			return err
-		}
 	case *space.Object:
 		var o marshal.Object
 		if err := json.Unmarshal(b, &o); err != nil {
 			return err
 		}
-		var err error
 		*x, err = marshal.ObjectToSpace(o)
-		if err != nil {
-			return err
-		}
 	case *space.Entity:
 		var e marshal.Entity
 		if err := json.Unmarshal(b, &e); err != nil {
 			return err
 		}
-		var err error
 		*x, err = marshal.EntityToSpace(e)
-		if err != nil {
-			return err
-		}
 	case *space.Link:
 		var l marshal.Link
 		if err := json.Unmarshal(b, &l); err != nil {
 			return err
 		}
-		var err error
 		*x, err = marshal.LinkToSpace(l)
-		if err != nil {
-			return err
-		}
 	default:
 		return marshal.ErrUnsuportedType
 	}
-	return nil
+	return err
 }

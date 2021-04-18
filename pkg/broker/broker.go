@@ -32,14 +32,6 @@ type Subscriber interface {
 	Receive(context.Context, Handler, ...Option) error
 }
 
-// Marshaler is used for marshaling message data payload.
-type Marshaler interface {
-	// Marshal marshals object into bytes.
-	Marshal(interface{}) ([]byte, error)
-	// Unmarshal unmarshals bytes to object.
-	Unmarshal([]byte, interface{}) error
-}
-
 // Message is broker message.
 type Message struct {
 	// UID is unique message ID.

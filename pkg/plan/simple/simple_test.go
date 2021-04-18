@@ -7,8 +7,7 @@ import (
 	"testing"
 
 	"github.com/milosgajdos/netscrape/pkg/internal"
-	"github.com/milosgajdos/netscrape/pkg/scraper"
-	"github.com/milosgajdos/netscrape/pkg/space"
+	"github.com/milosgajdos/netscrape/pkg/plan"
 	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
@@ -20,7 +19,7 @@ func MustNewSimple(t *testing.T) *Simple {
 	return p
 }
 
-func MustTestResource(t, n, g, v, k string, test *testing.T) space.Resource {
+func MustTestResource(t, n, g, v, k string, test *testing.T) plan.Resource {
 	r, err := internal.NewTestResource()
 	if err != nil {
 		test.Fatalf("failed to create resource: %v", err)
@@ -89,8 +88,8 @@ func TestGet(t *testing.T) {
 	t.Run("ErrResourceNotFound", func(t *testing.T) {
 		p := MustNewSimple(t)
 
-		if _, err := p.Get(context.Background(), memuid.New()); !errors.Is(err, scraper.ErrResourceNotFound) {
-			t.Errorf("expected error: %v, got: %v", scraper.ErrResourceNotFound, err)
+		if _, err := p.Get(context.Background(), memuid.New()); !errors.Is(err, plan.ErrResourceNotFound) {
+			t.Errorf("expected error: %v, got: %v", plan.ErrResourceNotFound, err)
 		}
 	})
 }
@@ -112,8 +111,8 @@ func TestDelete(t *testing.T) {
 			t.Fatalf("failed removing resource %s: %v", r.UID(), err)
 		}
 
-		if _, err := p.Get(context.Background(), r.UID()); !errors.Is(err, scraper.ErrResourceNotFound) {
-			t.Errorf("expected %v: got: %v", scraper.ErrResourceNotFound, err)
+		if _, err := p.Get(context.Background(), r.UID()); !errors.Is(err, plan.ErrResourceNotFound) {
+			t.Errorf("expected %v: got: %v", plan.ErrResourceNotFound, err)
 		}
 	})
 }
