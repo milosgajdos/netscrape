@@ -4,8 +4,21 @@ import (
 	"context"
 
 	"github.com/milosgajdos/netscrape/pkg/attrs"
+	"github.com/milosgajdos/netscrape/pkg/graph"
 	"github.com/milosgajdos/netscrape/pkg/uuid"
 )
+
+// Link is a link between two entities.
+type Link interface {
+	// UID returns unique ID.
+	UID() uuid.UID
+	// From returns uid of the origin of link.
+	From() uuid.UID
+	// To returns uid of the end of link.
+	To() uuid.UID
+	// Attrs returns attributes.
+	Attrs() attrs.Attrs
+}
 
 // Entity is stored in Store.
 type Entity interface {
@@ -29,6 +42,8 @@ type Store interface {
 	Link(ctx context.Context, from, to uuid.UID, opts ...Option) error
 	// Unlink two entities in store.
 	Unlink(ctx context.Context, from, to uuid.UID, opts ...Option) error
+	// Graph returns graph handle.
+	Graph(ctx context.Context, opts ...Option) (graph.Graph, error)
 }
 
 // BulkStore stores bulks of entities.

@@ -1,0 +1,18 @@
+{
+	"uid": "testObjUID",
+	"type": "testObjType",
+	"attrs": {
+		"foo": "bar"
+	},
+	"name": "testObjName",
+	"namespace": "testObjNs",
+	"resource": {
+		"uid": "6fd60d54-9caa-41d0-a5a0-260e8553b0cd",
+		"type": "testResType",
+		"name": "testResName",
+		"group": "testResGroup",
+		"version": "testResVersion",
+		"kind": "testResKind",
+		"namespaced": false
+	}
+}

@@ -1,9 +1,13 @@
 package memory
 
 import (
+	"context"
+
 	"github.com/milosgajdos/netscrape/pkg/attrs"
 	"github.com/milosgajdos/netscrape/pkg/graph"
 	"gonum.org/v1/gonum/graph/encoding"
+
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
 )
 
 // Node is a memory Graph node.
@@ -33,14 +37,10 @@ func NewNode(id int64, e graph.Entity, opts ...graph.Option) (*Node, error) {
 		}
 	}
 
-	a := attrs.NewCopyFrom(e.Attrs())
-	if nopts.Attrs != nil {
-		for _, k := range nopts.Attrs.Keys() {
-			a.Set(k, nopts.Attrs.Get(k))
-		}
+	a := nopts.Attrs
+	if a == nil {
+		a = memattrs.New()
 	}
-	a.Set(attrs.DOTID, dotid)
-	a.Set(attrs.Name, dotid)
 
 	return &Node{
 		Entity: e,
@@ -62,8 +62,6 @@ func (n Node) DOTID() string {
 
 // SetDOTID sets Graphviz DOT ID.
 func (n *Node) SetDOTID(id string) {
-	n.attrs.Set(attrs.DOTID, id)
-	n.attrs.Set(attrs.Name, id)
 	n.dotid = id
 }
 
@@ -74,13 +72,22 @@ func (n Node) Attrs() attrs.Attrs {
 
 // Attributes implements attrs.DOT.
 func (n Node) Attributes() []encoding.Attribute {
-	attrs := make([]encoding.Attribute, len(n.attrs.Keys()))
+	keys, err := n.attrs.Keys(context.Background())
+	if err != nil {
+		return nil
+	}
+
+	attrs := make([]encoding.Attribute, len(keys))
 
 	i := 0
-	for _, k := range n.attrs.Keys() {
+	for _, k := range keys {
+		val, err := n.attrs.Get(context.Background(), k)
+		if err != nil {
+			return nil
+		}
 		attrs[i] = encoding.Attribute{
 			Key:   k,
-			Value: n.attrs.Get(k),
+			Value: val,
 		}
 		i++
 	}

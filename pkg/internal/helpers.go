@@ -3,21 +3,56 @@ package internal
 import (
 	"github.com/milosgajdos/netscrape/pkg/space"
 	"github.com/milosgajdos/netscrape/pkg/space/entity"
-	"github.com/milosgajdos/netscrape/pkg/space/resource"
-	"github.com/milosgajdos/netscrape/pkg/uuid"
+	"github.com/milosgajdos/netscrape/pkg/space/link"
+
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
-func NewTestResource(typ, name, group, version, kind string, namespaced bool, opts ...resource.Option) (space.Resource, error) {
-	return resource.New(typ, name, group, version, kind, namespaced, opts...)
+const (
+	EntUID     = "testEntUID"
+	EntType    = "testEntType"
+	ResUID     = "testResUID"
+	ResType    = "testResType"
+	ResName    = "testResName"
+	ResGroup   = "testResGroup"
+	ResVersion = "testResVersion"
+	ResKind    = "testResKind"
+	ResNsd     = false
+	ObjUID     = "testObjUID"
+	ObjType    = "testObjType"
+	ObjName    = "testObjName"
+	ObjNs      = "testObjNs"
+	LinkUID    = "testLinkUID"
+	LinkFrom   = "testFromUID"
+	LinkTo     = "testToUID"
+)
+
+func NewTestEntity(opts ...entity.Option) (space.Entity, error) {
+	return entity.New(EntType, opts...)
 }
 
-func NewTestEntity(uid, typ, name, ns string, res space.Resource, opts ...entity.Option) (space.Entity, error) {
-	u, err := uuid.NewFromString(uid)
+func NewTestResource(opts ...entity.Option) (space.Resource, error) {
+	return entity.NewResource(ResType, ResName, ResGroup, ResVersion, ResKind, ResNsd, opts...)
+}
+
+func NewNamedTestObject(name string, opts ...entity.Option) (space.Object, error) {
+	r, err := entity.NewResource(ResType, ResName, ResGroup, ResVersion, ResKind, ResNsd)
 	if err != nil {
 		return nil, err
 	}
+	return entity.NewObject(ObjType, name, ObjNs, r, opts...)
+}
 
-	opts = append(opts, entity.WithUID(u))
+func NewTestObject(opts ...entity.Option) (space.Object, error) {
+	r, err := entity.NewResource(ResType, ResName, ResGroup, ResVersion, ResKind, ResNsd)
+	if err != nil {
+		return nil, err
+	}
+	return entity.NewObject(ObjType, ObjName, ObjNs, r, opts...)
+}
 
-	return entity.New(typ, name, ns, res, opts...)
+func NewTestLink(opts ...link.Option) (space.Link, error) {
+	from := memuid.NewFromString(LinkFrom)
+	to := memuid.NewFromString(LinkTo)
+	return link.New(from, to, opts...)
 }

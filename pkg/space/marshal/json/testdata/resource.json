@@ -1,0 +1,12 @@
+{
+	"uid": "testResUID",
+	"type": "testResType",
+	"attrs": {
+		"foo": "bar"
+	},
+	"name": "testResName",
+	"group": "testResGroup",
+	"version": "testResVersion",
+	"kind": "testResKind",
+	"namespaced": false
+}

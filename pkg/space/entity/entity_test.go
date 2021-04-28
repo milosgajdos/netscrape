@@ -1,67 +1,28 @@
 package entity
 
 import (
-	"reflect"
+	"context"
 	"testing"
 
-	"github.com/milosgajdos/netscrape/pkg/attrs"
-	"github.com/milosgajdos/netscrape/pkg/space/resource"
-	"github.com/milosgajdos/netscrape/pkg/uuid"
-)
-
-const (
-	resName    = "nodeResName"
-	resType    = "nodeResType"
-	resGroup   = "nodeResGroup"
-	resVersion = "nodeResVersion"
-	resKind    = "nodeResKind"
-	entUID     = "testID"
-	entType    = "testType"
-	entName    = "testName"
-	entNs      = "testNs"
-	entDOTID   = "dotID"
+	memattrs "github.com/milosgajdos/netscrape/pkg/attrs/memory"
+	memuid "github.com/milosgajdos/netscrape/pkg/uuid/memory"
 )
 
 func TestNew(t *testing.T) {
-	r, err := resource.New(resType, resName, resGroup, resVersion, resKind, true)
-	if err != nil {
-		t.Fatalf("failed creating test resource: %v", err)
-	}
-
-	e, err := New(entType, entName, entNs, r)
+	e, err := New(entType)
 	if err != nil {
 		t.Fatalf("failed creating new entity: %v", err)
 	}
 
-	if e.Name() != entName {
-		t.Errorf("expected name: %s, got: %s", entName, e.Name())
-	}
-
-	if e.Namespace() != entNs {
-		t.Errorf("expected namespace: %s, got: %s", entNs, e.Namespace())
-	}
-
-	if !reflect.DeepEqual(e.Resource(), r) {
-		t.Errorf("expected resource: %v, got: %v", r, e.Resource())
-	}
-
-	if _, err = New(entType, entName, entNs, nil); err != nil {
-		t.Fatalf("failed creating new entity: %v", err)
+	if e.Type() != entType {
+		t.Errorf("expected type: %s, got: %s", entType, e.Type())
 	}
 }
 
 func TestNewWithOptions(t *testing.T) {
-	r, err := resource.New(resType, resName, resGroup, resVersion, resKind, true)
-	if err != nil {
-		t.Fatalf("failed creating test resource: %v", err)
-	}
+	uid := memuid.NewFromString(entUID)
 
-	uid, err := uuid.NewFromString(entUID)
-	if err != nil {
-		t.Errorf("failed to create new uid: %v", err)
-	}
-
-	e, err := New(entType, entName, entNs, r, WithUID(uid), WithDOTID(entDOTID))
+	e, err := New(entType, WithUID(uid), WithDOTID(testDOTID))
 	if err != nil {
 		t.Fatalf("failed creating new entity: %v", err)
 	}
@@ -70,8 +31,8 @@ func TestNewWithOptions(t *testing.T) {
 		t.Errorf("expected entity uid: %s, got: %s", entUID, e.UID().String())
 	}
 
-	if d := e.DOTID(); d != entDOTID {
-		t.Errorf("expected dotid: %s, got: %s", entDOTID, d)
+	if d := e.DOTID(); d != testDOTID {
+		t.Errorf("expected dotid: %s, got: %s", testDOTID, d)
 	}
 
 	dotid2 := "dotid2"
@@ -81,19 +42,22 @@ func TestNewWithOptions(t *testing.T) {
 		t.Errorf("expected dotid: %s, got: %s", dotid2, d)
 	}
 
-	a, err := attrs.New()
-	if err != nil {
-		t.Fatalf("failed to create new attrs: %v", err)
-	}
-	k, v := "foo", "bar"
-	a.Set(k, v)
+	a := memattrs.New()
 
-	e, err = New(entType, entName, entNs, r, WithAttrs(a))
+	k, v := "foo", "bar"
+	MustSet(context.Background(), a, k, v, t)
+
+	e, err = New(entType, WithAttrs(a))
 	if err != nil {
 		t.Errorf("failed to create new entity: %v", err)
 	}
 
-	if val := e.Attrs().Get(k); val != v {
+	val, err := e.Attrs().Get(context.Background(), k)
+	if err != nil {
+		t.Fatalf("failed to get val for key %s: %v", k, err)
+	}
+
+	if val != v {
 		t.Errorf("expected attrs val: %s, for key: %s, got: %s", v, k, val)
 	}
 }

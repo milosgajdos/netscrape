@@ -1,19 +1,21 @@
 package attrs
 
 import (
+	"context"
+
 	"gonum.org/v1/gonum/graph/encoding"
 )
 
 const (
-	// Name is name attribute key
+	// Name defines name attribute key.
 	Name = "name"
-	// DOTID is DOT ID attribute key
+	// DOTID defined DOT ID attribute key.
 	DOTID = "dotid"
-	// Weight is weight attribute key
+	// Weight defines weight attribute key.
 	Weight = "weight"
-	// Rel is relation attribute
+	// Relation defines relation attribute key.
 	Relation = "relation"
-	// DOTLabel is GraphViz DOT label attribute
+	// DOTLabel defines GraphViz DOT label attribute key.
 	DOTLabel = "label"
 )
 
@@ -21,15 +23,33 @@ const (
 // for storing arbitrary entity attributes.
 type Attrs interface {
 	// Keys returns all attribute keys.
-	Keys() []string
+	Keys(context.Context) ([]string, error)
 	// Get returns the attribute value for the given key.
-	Get(string) string
+	Get(context.Context, string) (string, error)
 	// Set sets the value of the attribute for the given key.
-	Set(string, string)
+	Set(ctx context.Context, key, val string) error
 }
 
 // DOT are Attrs which implement graph.DOTAttributes interface.
 type DOT interface {
 	// Attributes returns attributes as a slice of encoding.Attribute.
 	Attributes() []encoding.Attribute
+}
+
+// ToMap returns map of attributes.
+func ToMap(ctx context.Context, a Attrs) (map[string]string, error) {
+	m := make(map[string]string)
+
+	keys, err := a.Keys(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, k := range keys {
+		m[k], err = a.Get(ctx, k)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return m, nil
 }

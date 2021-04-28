@@ -1,0 +1,8 @@
+{
+	"uid": "testLinkUID",
+	"from": "testFromUID",
+	"to": "testToUID",
+	"attrs": {
+		"foo": "bar"
+	}
+}

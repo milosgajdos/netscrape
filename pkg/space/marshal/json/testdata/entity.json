@@ -1,0 +1,7 @@
+{
+	"uid": "testEntUID",
+	"type": "testEntType",
+	"attrs": {
+		"foo": "bar"
+	}
+}
